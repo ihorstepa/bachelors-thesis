@@ -1,0 +1,26 @@
+:root {
+    --bg-base: #282c34;
+    --bg-panel: #21252b;
+    --bg-hover: #2c313a;
+    --bg-active: #282c34;
+    --bg-selection: #3e4451;
+
+    --border: #181a1f;
+
+    --text-primary: #abb2bf;
+    --text-muted: #636d83;
+    --text-bright: #ffffff;
+
+    --accent: #528bff;
+}
+
+#root {
+    height: 100%;
+    overflow: hidden;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}

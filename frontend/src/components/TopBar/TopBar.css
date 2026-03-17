@@ -1,0 +1,22 @@
+.ide-topbar {
+    grid-area: topbar;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 4px;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    user-select: none;
+}
+
+.ide-topbar span {
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-primary);
+}
+
+.ide-topbar span:hover {
+    background: var(--bg-hover);
+}

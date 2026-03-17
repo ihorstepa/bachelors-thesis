@@ -1,0 +1,31 @@
+.ide-sidebar {
+    grid-area: sidebar;
+    overflow-y: auto;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border);
+    padding: 4px 0;
+}
+
+.ide-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ide-sidebar::-webkit-scrollbar-thumb {
+    background: var(--bg-selection);
+    border-radius: 3px;
+}
+
+.ide-sidebar-file {
+    padding: 4px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ide-sidebar-file:hover {
+    background: var(--bg-hover);
+    color: var(--text-bright);
+}

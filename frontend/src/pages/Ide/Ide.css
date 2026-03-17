@@ -1,0 +1,15 @@
+.ide {
+    display: grid;
+    grid-template:
+        'topbar  topbar ' 36px
+        'sidebar tabs   ' 33px
+        'sidebar editor ' 1fr
+        'statusbar statusbar' 22px
+        / 220px 1fr;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 13px;
+}

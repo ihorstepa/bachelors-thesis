@@ -1,0 +1,29 @@
+.ide-statusbar {
+    grid-area: statusbar;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 16px;
+    font-size: 11px;
+    background: var(--accent);
+    color: var(--text-bright);
+    user-select: none;
+}
+
+.ide-statusbar span {
+    padding: 0 4px;
+    cursor: pointer;
+    opacity: 0.9;
+}
+
+.ide-statusbar span:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+}
+
+.ide-statusbar-right {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+}
