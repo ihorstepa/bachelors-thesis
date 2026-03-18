@@ -1,11 +1,11 @@
 import * as Y from 'yjs'
 
 import syncManagementService from '@/services/syncManagementService.ts'
-import { isValidNodeName } from '@/utils/validators.ts'
+import { validateFileName } from '@/utils/validators.ts'
+import type { NullableString } from '@/types/generalTypes.ts'
+import * as fileErrors from '@/errors/fileErrors.ts'
 
 type NodeType = 'file' | 'dir'
-
-type NullableString = string | null
 
 type NodeMeta = {
     id: string
@@ -15,13 +15,17 @@ type NodeMeta = {
 }
 
 class FileManagementService {
+    private syncService: syncManagementService
     private rootDoc: Y.Doc
     private docsMap: Y.Map<Y.Doc>
     private metaMap: Y.Map<NodeMeta>
     private index: Map<NullableString, Set<string>> = new Map()
     private openFiles: Set<string> = new Set()
 
-    private constructor(rootDoc: Y.Doc) {
+    private static readonly rootId: string = '__root__'
+
+    private constructor(syncService: syncManagementService, rootDoc: Y.Doc) {
+        this.syncService = syncService
         this.rootDoc = rootDoc
         this.docsMap = rootDoc.getMap('docs') as Y.Map<Y.Doc>
         this.metaMap = rootDoc.getMap('meta') as Y.Map<NodeMeta>
@@ -29,12 +33,15 @@ class FileManagementService {
     }
 
     public static async build(syncService: syncManagementService): Promise<FileManagementService> {
-        const rootDoc = await syncService.connect('__root__')
-        return new FileManagementService(rootDoc)
+        const rootDoc = await syncService.connect(this.rootId)
+        return new FileManagementService(syncService, rootDoc)
     }
 
     public destroy(): void {
-        // TODO
+        for (const id of this.openFiles) {
+            this.close(id)
+        }
+        this.syncService.disconnect(FileManagementService.rootId)
     }
 
     public open(id: string) {
@@ -46,8 +53,17 @@ class FileManagementService {
     }
 
     public create(name: string, type: NodeType, parentId: NullableString): string {
-        if (!isValidNodeName(name)) {
-            throw new Error(`Invalid node name: ${name}`)
+        const validationResult = validateFileName(name)
+        if (!validationResult.valid) {
+            throw new fileErrors.InvalidNodeNameError(name, validationResult.msg)
+        }
+        if (parentId !== null) {
+            if (!this.metaMap.has(parentId)) {
+                throw new fileErrors.NodeNotFoundError(parentId)
+            }
+            if (this.metaMap.get(parentId)!.type !== 'dir') {
+                throw new fileErrors.InvalidParentError(parentId)
+            }
         }
         const doc = new Y.Doc()
         const id = doc.guid
@@ -61,7 +77,12 @@ class FileManagementService {
     }
 
     public delete(id: string): void {
-        // TODO
+        if (!this.metaMap.has(id)) {
+            throw new fileErrors.NodeNotFoundError(id)
+        }
+        this.rootDoc.transact(() => {
+            this.deleteRecursive(id)
+        })
     }
 
     public rename(id: string, newName: string): void {
@@ -76,9 +97,25 @@ class FileManagementService {
         // TODO
     }
 
+    private deleteRecursive(id: string): void {
+        if (this.metaMap.get(id)!.type === 'file') {
+            this.metaMap.delete(id)
+            this.docsMap.delete(id)
+            // this.openFiles.delete(id)
+            return
+        }
+        if (this.index.has(id)) {
+            const children = this.index.get(id)!
+            for (const child of children) {
+                this.deleteRecursive(child)
+            }
+        }
+        this.deleteRecursive(id)
+    }
+
     private buildIndex(): void {
         this.index.clear()
-        for (const [key, _] of this.metaMap) {
+        for (const key of this.metaMap.keys()) {
             const parentKey = this.metaMap.get(key)!.parentId
             this.addToIndex(key, parentKey)
         }
