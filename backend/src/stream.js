@@ -197,10 +197,7 @@ export class Stream {
                 }),
             },
         })
-        this.redis.on(
-            'error',
-            /** @param {Error} err */ (err) => log.error({ err }, 'Redis client error'),
-        )
+        this.redis.on('error', /** @param {Error} err */ (err) => log.error({ err }, 'Redis client error'))
         /**
          * Second instance to fetch things concurrent to the other connection.
          *
@@ -225,8 +222,7 @@ export class Stream {
                 this.redisSubscriptions = redis.createClient(this.redisClientConf)
                 this.redisSubscriptions.on(
                     'error',
-                    /** @param {Error} err */ (err) =>
-                        log.error({ err }, 'Redis subscription client error'),
+                    /** @param {Error} err */ (err) => log.error({ err }, 'Redis subscription client error'),
                 )
                 await this.redisSubscriptions.connect()
             }
@@ -245,9 +241,7 @@ export class Stream {
                 this.subUpdates.clear()
                 try {
                     const ms = await this.getMessages(
-                        array
-                            .from(this.subs.entries())
-                            .map(([room, s]) => ({ room, clock: s.lastReceivedClock })),
+                        array.from(this.subs.entries()).map(([room, s]) => ({ room, clock: s.lastReceivedClock })),
                         { redisClient: this.redisSubscriptions, blocking: true },
                     )
                     let nsubCounter = 0
@@ -320,9 +314,7 @@ export class Stream {
                 messages: stream.messages
                     .filter((m) => m.message.m != null)
                     .map((message) => {
-                        const dm = buffer.decodeAny(
-                            /** @type {Uint8Array<ArrayBuffer>} */ (message.message.m),
-                        )
+                        const dm = buffer.decodeAny(/** @type {Uint8Array<ArrayBuffer>} */ (message.message.m))
                         dm.redisClock = message.id.toString()
                         return dm
                     }),
@@ -349,10 +341,7 @@ export class Stream {
      * @param {t.Message} m
      */
     addMessage(room, m) {
-        return this.redis.addMessage(
-            encodeRoomName(room, this.prefix),
-            Buffer.from(buffer.encodeAny(m)),
-        )
+        return this.redis.addMessage(encodeRoomName(room, this.prefix), Buffer.from(buffer.encodeAny(m)))
     }
 
     /**
@@ -403,10 +392,7 @@ export class Stream {
             { COUNT: count },
         )
         if (reclaimedTasks.deletedMessages != null && reclaimedTasks.deletedMessages.length > 0) {
-            log.warn(
-                { deletedMessages: reclaimedTasks.deletedMessages },
-                'deleting ghost tasks from stream',
-            )
+            log.warn({ deletedMessages: reclaimedTasks.deletedMessages }, 'deleting ghost tasks from stream')
             const multi = this.redis.multi()
             for (const id of reclaimedTasks.deletedMessages) {
                 multi.xAck(this.workerStreamName, this.workerGroupName, id)
@@ -443,12 +429,7 @@ export class Stream {
      * @param {string?} taskid
      */
     async trimMessages(room, minId, maxAgeMs, taskid) {
-        await this.redis.trimMessages(
-            encodeRoomName(room, this.prefix),
-            minId,
-            maxAgeMs,
-            taskid || '',
-        )
+        await this.redis.trimMessages(encodeRoomName(room, this.prefix), minId, maxAgeMs, taskid || '')
     }
 
     /**

@@ -59,9 +59,7 @@ const tryPersistencePluginRetrieve = async (plugins, assetId, asset) => {
     if (asset.type === 'asset:retrievable:v1') {
         for (const plugin of plugins) {
             if (plugin.retrieve != null) {
-                const r = /** @type {Exclude<ASSET,t.RetrievableAsset>} */ (
-                    await plugin.retrieve(assetId, asset)
-                )
+                const r = /** @type {Exclude<ASSET,t.RetrievableAsset>} */ (await plugin.retrieve(assetId, asset))
                 if (r != null) return r
             }
         }
@@ -79,9 +77,7 @@ const tryPersistencePluginDelete = (plugins, assetId, asset) => {
     if (asset.type === 'asset:retrievable:v1') {
         for (const plugin of plugins) {
             if (plugin.delete != null) {
-                plugin
-                    .delete(assetId, asset)
-                    .catch((err) => log.error({ err, assetId }, 'error deleting asset'))
+                plugin.delete(assetId, asset).catch((err) => log.error({ err, assetId }, 'error deleting asset'))
             }
         }
     }
@@ -127,10 +123,7 @@ export class Persistence {
         /**
          * @type {t.AssetId}
          */
-        const gcDocAssetId = object.assign(
-            { type: /** @type {const} */ ('id:ydoc:v1'), gc: true, t: lastClock },
-            room,
-        )
+        const gcDocAssetId = object.assign({ type: /** @type {const} */ ('id:ydoc:v1'), gc: true, t: lastClock }, room)
         /**
          * @type {t.AssetId}
          */
@@ -141,17 +134,11 @@ export class Persistence {
         /**
          * @type {t.AssetId}
          */
-        const contentmapAssetId = object.assign(
-            { type: /** @type {const} */ ('id:contentmap:v1'), t: lastClock },
-            room,
-        )
+        const contentmapAssetId = object.assign({ type: /** @type {const} */ ('id:contentmap:v1'), t: lastClock }, room)
         /**
          * @type {t.AssetId}
          */
-        const contentidsAssetId = object.assign(
-            { type: /** @type {const} */ ('id:contentids:v1'), t: lastClock },
-            room,
-        )
+        const contentidsAssetId = object.assign({ type: /** @type {const} */ ('id:contentids:v1'), t: lastClock }, room)
         const [gcDocAsset, nongcDocAsset, contentmapAsset, contentidsAsset] = await promise.all([
             tryPersistencePluginStore(this.plugins, gcDocAssetId, {
                 type: 'asset:ydoc:v1',
@@ -223,19 +210,11 @@ export class Persistence {
             rows
                 .filter((row) => row.contentmap != null)
                 .map(async (row) => {
-                    const assetId = object.assign(
-                        { type: /** @type {const} */ ('id:contentmap:v1'), t: row.t },
-                        room,
+                    const assetId = object.assign({ type: /** @type {const} */ ('id:contentmap:v1'), t: row.t }, room)
+                    const contentmapAsset = /** @type {s.Unwrap<typeof t.$contentMapAsset> | t.RetrievableAsset} */ (
+                        buffer.decodeAny(/** @type {Buffer} */ (row.contentmap))
                     )
-                    const contentmapAsset =
-                        /** @type {s.Unwrap<typeof t.$contentMapAsset> | t.RetrievableAsset} */ (
-                            buffer.decodeAny(/** @type {Buffer} */ (row.contentmap))
-                        )
-                    return tryPersistencePluginRetrieve(
-                        this.plugins,
-                        assetId,
-                        contentmapAsset,
-                    ).then((retrieved) => {
+                    return tryPersistencePluginRetrieve(this.plugins, assetId, contentmapAsset).then((retrieved) => {
                         retrieved && references?.push({ assetId, asset: contentmapAsset })
                         return retrieved?.contentmap
                     })
@@ -245,19 +224,11 @@ export class Persistence {
             rows
                 .filter((row) => row.contentids != null)
                 .map(async (row) => {
-                    const assetId = object.assign(
-                        { type: /** @type {const} */ ('id:contentids:v1'), t: row.t },
-                        room,
+                    const assetId = object.assign({ type: /** @type {const} */ ('id:contentids:v1'), t: row.t }, room)
+                    const contentidsAsset = /** @type {s.Unwrap<typeof t.$contentidsAsset> | t.RetrievableAsset} */ (
+                        buffer.decodeAny(/** @type {Buffer} */ (row.contentids))
                     )
-                    const contentidsAsset =
-                        /** @type {s.Unwrap<typeof t.$contentidsAsset> | t.RetrievableAsset} */ (
-                            buffer.decodeAny(/** @type {Buffer} */ (row.contentids))
-                        )
-                    return tryPersistencePluginRetrieve(
-                        this.plugins,
-                        assetId,
-                        contentidsAsset,
-                    ).then((retrieved) => {
+                    return tryPersistencePluginRetrieve(this.plugins, assetId, contentidsAsset).then((retrieved) => {
                         retrieved && references?.push({ assetId, asset: contentidsAsset })
                         return retrieved?.contentids
                     })
@@ -271,16 +242,13 @@ export class Persistence {
                         { type: /** @type {const} */ ('id:ydoc:v1'), t: row.t, gc: true },
                         room,
                     )
-                    const gcDocAsset =
-                        /** @type {s.Unwrap<typeof t.$ydocAsset> | t.RetrievableAsset} */ (
-                            buffer.decodeAny(/** @type {Buffer} */ (row.gcdoc))
-                        )
-                    return tryPersistencePluginRetrieve(this.plugins, assetId, gcDocAsset).then(
-                        (retrieved) => {
-                            retrieved && references?.push({ assetId, asset: gcDocAsset })
-                            return retrieved?.update
-                        },
+                    const gcDocAsset = /** @type {s.Unwrap<typeof t.$ydocAsset> | t.RetrievableAsset} */ (
+                        buffer.decodeAny(/** @type {Buffer} */ (row.gcdoc))
                     )
+                    return tryPersistencePluginRetrieve(this.plugins, assetId, gcDocAsset).then((retrieved) => {
+                        retrieved && references?.push({ assetId, asset: gcDocAsset })
+                        return retrieved?.update
+                    })
                 }),
         )
         const nongcUpdates = await promise.all(
@@ -291,40 +259,32 @@ export class Persistence {
                         { type: /** @type {const} */ ('id:ydoc:v1'), t: row.t, gc: false },
                         room,
                     )
-                    const nongcDocAsset =
-                        /** @type {s.Unwrap<typeof t.$ydocAsset> | t.RetrievableAsset} */ (
-                            buffer.decodeAny(/** @type {Buffer} */ (row.nongcdoc))
-                        )
-                    return tryPersistencePluginRetrieve(this.plugins, assetId, nongcDocAsset).then(
-                        (retrieved) => {
-                            retrieved && references?.push({ assetId, asset: nongcDocAsset })
-                            return retrieved?.update
-                        },
+                    const nongcDocAsset = /** @type {s.Unwrap<typeof t.$ydocAsset> | t.RetrievableAsset} */ (
+                        buffer.decodeAny(/** @type {Buffer} */ (row.nongcdoc))
                     )
+                    return tryPersistencePluginRetrieve(this.plugins, assetId, nongcDocAsset).then((retrieved) => {
+                        retrieved && references?.push({ assetId, asset: nongcDocAsset })
+                        return retrieved?.update
+                    })
                 }),
         )
         const lastClock =
-            array.last(
-                rows.map((row) => row.t).sort((a, b) => (isSmallerRedisClock(a, b) ? -1 : 1)),
-            ) || '0'
+            array.last(rows.map((row) => row.t).sort((a, b) => (isSmallerRedisClock(a, b) ? -1 : 1))) || '0'
         log.debug({ room, rowCount: rows.length, lastClock }, 'retrieved doc')
         return {
             lastClock,
             gcDoc: /** @type {Include['gc'] extends true ? Array<Uint8Array<ArrayBuffer>> : null} */ (
                 includeGc ? gcUpdates.filter((u) => u != null) : null
             ),
-            nongcDoc:
-                /** @type {Include['nongc'] extends true ? Array<Uint8Array<ArrayBuffer>> : null} */ (
-                    includeNongc ? nongcUpdates.filter((u) => u != null) : null
-                ),
-            contentmap:
-                /** @type {Include['contentmap'] extends true ? Array<Uint8Array<ArrayBuffer>> : null} */ (
-                    includeContentmap ? contentmapAssets.filter((u) => u != null) : null
-                ),
-            contentids:
-                /** @type {Include['contentids'] extends true ? Array<Uint8Array<ArrayBuffer>> : null} */ (
-                    includeContentids ? contentidsAssets.filter((u) => u != null) : null
-                ),
+            nongcDoc: /** @type {Include['nongc'] extends true ? Array<Uint8Array<ArrayBuffer>> : null} */ (
+                includeNongc ? nongcUpdates.filter((u) => u != null) : null
+            ),
+            contentmap: /** @type {Include['contentmap'] extends true ? Array<Uint8Array<ArrayBuffer>> : null} */ (
+                includeContentmap ? contentmapAssets.filter((u) => u != null) : null
+            ),
+            contentids: /** @type {Include['contentids'] extends true ? Array<Uint8Array<ArrayBuffer>> : null} */ (
+                includeContentids ? contentidsAssets.filter((u) => u != null) : null
+            ),
             references,
         }
     }
@@ -335,9 +295,7 @@ export class Persistence {
      */
     async deleteReferences(references) {
         log.debug({ referenceCount: references.length }, 'deleting references')
-        references.forEach((ref) =>
-            tryPersistencePluginDelete(this.plugins, ref.assetId, ref.asset),
-        )
+        references.forEach((ref) => tryPersistencePluginDelete(this.plugins, ref.assetId, ref.asset))
         /**
          * org, docid, branch, t[]
          * @type {Map<string,Map<string,Map<string,Set<string>>>>}

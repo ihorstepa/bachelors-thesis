@@ -62,8 +62,7 @@ const $computeTask = s.$union(
         to: s.$number.optional,
         by: s.$string.optional,
         contentIds: s.$uint8Array.optional,
-        withCustomAttributions: s.$array(s.$object({ k: s.$string, v: s.$string })).nullable
-            .optional,
+        withCustomAttributions: s.$array(s.$object({ k: s.$string, v: s.$string })).nullable.optional,
         userid: s.$string,
         customAttributions: s.$array(s.$object({ k: s.$string, v: s.$string })),
     }),
@@ -236,10 +235,7 @@ class ComputePool {
         return promise.create((resolve, reject) => {
             this.queue.push({ task, transferList, resolve, reject })
             if (this.queue.length > 1) {
-                log.debug(
-                    { taskType: task.type, queueDepth: this.queue.length },
-                    'task queued, no free worker',
-                )
+                log.debug({ taskType: task.type, queueDepth: this.queue.length }, 'task queued, no free worker')
             }
             drain(this)
         })

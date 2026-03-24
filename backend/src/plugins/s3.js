@@ -78,8 +78,7 @@ export class S3PersistenceV1 {
         if (assetId.branch === 'main') {
             const path = t.assetIdToString(assetId)
             const file = Buffer.from(buffer.encodeAny(asset))
-            const put = () =>
-                this.s3client.putObject(this.bucket, path, Readable.from(file), file.length)
+            const put = () => this.s3client.putObject(this.bucket, path, Readable.from(file), file.length)
             try {
                 await put()
             } catch (e) {

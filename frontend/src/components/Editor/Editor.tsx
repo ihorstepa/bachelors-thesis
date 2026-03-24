@@ -1,34 +1,26 @@
-import ReactCodeMirror from '@uiw/react-codemirror'
-
+import { useTabs } from '@/hooks/useTabs'
+import CodeMirror from '@/components/Editor/CodeMirror'
 import '@/components/Editor/Editor.css'
-import getExtensions from '@/components/Editor/extensions.ts'
 
 function Editor() {
+    const { tabs, activeId } = useTabs()
+
+    if (tabs.length === 0) {
+        return <div className='ide-editor-empty'>Open a file to start editing</div>
+    }
+
     return (
-        <ReactCodeMirror
-            // value={}
-            className='ide-editor'
-            height='100%'
-            // minHeight={}
-            // maxHeight={}
-            width='100%'
-            // minWidth={}
-            // maxWidth={}
-            autoFocus={true}
-            // placeholder={}
-            theme='none'
-            basicSetup={false}
-            editable={true}
-            readOnly={false}
-            // indentWithTab={}
-            // onChange={}
-            // onStatistics={}
-            // onUpdate={}
-            // onCreateEditor={}
-            extensions={getExtensions()}
-            // root={}
-            // initialState={}
-        />
+        <>
+            {tabs.map((fileId) => (
+                <div
+                    key={fileId}
+                    className='ide-editor-container'
+                    style={{ display: fileId === activeId ? 'block' : 'none' }}
+                >
+                    <CodeMirror fileId={fileId} isActive={fileId === activeId} />
+                </div>
+            ))}
+        </>
     )
 }
 

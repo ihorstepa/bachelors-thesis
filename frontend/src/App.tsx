@@ -1,8 +1,8 @@
 import { Routes, Route } from 'react-router'
 
 import '@/App.css'
-import Dashboard from '@/pages/Dashboard/Dashboard.tsx'
-import Ide from '@/pages/Ide/Ide.tsx'
+import Dashboard from '@/pages/Dashboard/Dashboard'
+import Ide from '@/pages/Ide/Ide'
 
 function App() {
     return (

@@ -54,11 +54,7 @@ async function init(postgresUrl) {
         WHERE tablename = 'yhub_ydoc_v1'
       );
     `
-        if (
-            !updatesTableExists ||
-            updatesTableExists.length === 0 ||
-            !updatesTableExists[0].exists
-        ) {
+        if (!updatesTableExists || updatesTableExists.length === 0 || !updatesTableExists[0].exists) {
             log.info('creating yhub_ydoc_v1 table')
             // @todo move contentmap and sv to another table!
             await sql`
@@ -141,10 +137,7 @@ if (redisUrl) {
         })
         log.info('successfully created redis worker and group')
     } catch (err) {
-        log.error(
-            { err, redisWorkerStreamName, redisWorkerGroupName },
-            'failed to init worker stream',
-        )
+        log.error({ err, redisWorkerStreamName, redisWorkerGroupName }, 'failed to init worker stream')
     }
 }
 

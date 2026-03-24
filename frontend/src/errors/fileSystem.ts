@@ -1,3 +1,5 @@
+import type { NullableString } from '@/utils/types'
+
 export class NodeNotFoundError extends Error {
     constructor(id: string) {
         super(`Node with id "${id}" does not exist`)
@@ -30,5 +32,19 @@ export class CircularMoveError extends Error {
     constructor(id: string) {
         super(`Cannot move node with id "${id}" into its own descendant`)
         this.name = 'CircularMoveError'
+    }
+}
+
+export class FileNotOpenError extends Error {
+    constructor(id: string) {
+        super(`File with id "${id}" is not open`)
+        this.name = 'FileNotOpenError'
+    }
+}
+
+export class MissingIndexError extends Error {
+    constructor(id: NullableString) {
+        super(`Index missing for ${id ? 'root node' : 'node with id ' + id}`)
+        this.name = 'MissingIndexError'
     }
 }

@@ -59,8 +59,7 @@ export const writeSyncUpdate = (encoder, update) => {
 /**
  * @param {Uint8Array} update
  */
-export const encodeSyncUpdate = (update) =>
-    encoding.encode((encoder) => writeSyncUpdate(encoder, update))
+export const encodeSyncUpdate = (update) => encoding.encode((encoder) => writeSyncUpdate(encoder, update))
 
 /**
  * @param {encoding.Encoder} encoder

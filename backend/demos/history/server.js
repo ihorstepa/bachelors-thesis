@@ -44,9 +44,7 @@ const yhub = createYHub({
 })
 
 // Read the AUTH_PRIVATE_KEY environment variable and import the JWK
-export const authPrivateKey = await ecdsa.importKeyJwk(
-    JSON.parse(env.ensureConf('auth-private-key')),
-)
+export const authPrivateKey = await ecdsa.importKeyJwk(JSON.parse(env.ensureConf('auth-private-key')))
 // Read the AUTH_PUBLIC_KEY environment variable and import the JWK
 export const authPublicKey = await ecdsa.importKeyJwk(JSON.parse(env.ensureConf('auth-public-key')))
 

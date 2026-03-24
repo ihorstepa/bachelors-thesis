@@ -1,0 +1,13 @@
+.text-input {
+    flex: 1;
+    height: 18px;
+    background: var(--bg-input, var(--bg-hover));
+    border: 1px solid var(--border-focus, var(--border));
+    border-radius: 2px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 0 4px;
+    outline: none;
+    min-width: 0;
+}

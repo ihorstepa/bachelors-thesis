@@ -270,12 +270,7 @@ export const $config = s.$object({
     postgres: s.$string,
     persistence: s.$array($persistencePlugin),
     events: s.$object({
-        docUpdate: s.$lambda(
-            s.$any,
-            s.$instanceOf(Y.Doc),
-            s.$instanceOf(Y.Attributions),
-            s.$undefined,
-        ),
+        docUpdate: s.$lambda(s.$any, s.$instanceOf(Y.Doc), s.$instanceOf(Y.Attributions), s.$undefined),
     }).optional,
     worker: s.$object({
         taskConcurrency: s.$number,

@@ -30,9 +30,7 @@ export const userColor = usercolors[random.uint32() % usercolors.length]
 const room = 'y-redis-demo-app-3'
 
 // request an auth token before trying to connect
-const authToken = await fetch(`http://${location.host}/auth/token`).then((request) =>
-    request.text(),
-)
+const authToken = await fetch(`http://${location.host}/auth/token`).then((request) => request.text())
 
 const ydoc = new Y.Doc()
 const yhubHost = 'localhost:3002'
@@ -45,9 +43,7 @@ const provider = new WebsocketProvider(`ws://${yhubHost}/ws`, room, ydoc, {
 // Periodically pull a new auth token (e.g. every 30 minutes) and update the auth parameter
 const _updateAuthToken = async () => {
     try {
-        provider.params.yauth = await fetch(`http://${location.host}/auth/token`).then((request) =>
-            request.text(),
-        )
+        provider.params.yauth = await fetch(`http://${location.host}/auth/token`).then((request) => request.text())
     } catch (e) {
         setTimeout(_updateAuthToken, 1000) // in case of an error, retry in a second
         return
@@ -167,9 +163,7 @@ renderBtn.addEventListener('click', async () => {
         return
     }
     try {
-        const response = await fetch(
-            `http://${yhubHost}/changeset/${room}?from=${from}&to=${to}&delta=true&ydoc=true`,
-        )
+        const response = await fetch(`http://${yhubHost}/changeset/${room}?from=${from}&to=${to}&delta=true&ydoc=true`)
         const data = await response.arrayBuffer()
         const decoder = decoding.createDecoder(new Uint8Array(data))
         const result = decoding.readAny(decoder)

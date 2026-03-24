@@ -28,16 +28,12 @@ const createContentMapFromParams = (contentids, userid, customAttributions) => {
             [
                 Y.createContentAttribute('insert', userid),
                 Y.createContentAttribute('insertAt', now),
-                ...customAttributions.map((attr) =>
-                    Y.createContentAttribute('insert:' + attr.k, attr.v),
-                ),
+                ...customAttributions.map((attr) => Y.createContentAttribute('insert:' + attr.k, attr.v)),
             ],
             [
                 Y.createContentAttribute('delete', userid),
                 Y.createContentAttribute('deleteAt', now),
-                ...customAttributions.map((attr) =>
-                    Y.createContentAttribute('delete:' + attr.k, attr.v),
-                ),
+                ...customAttributions.map((attr) => Y.createContentAttribute('delete:' + attr.k, attr.v)),
             ],
         ),
     )
@@ -172,11 +168,7 @@ export const createYHubServer = async (yhub, conf) => {
             return
         }
         try {
-            const { gcDoc, nongcDoc } = await yhub.getDoc(
-                room,
-                { gc, nongc: !gc },
-                { gcOnMerge: false },
-            )
+            const { gcDoc, nongcDoc } = await yhub.getDoc(room, { gc, nongc: !gc }, { gcOnMerge: false })
             const ydoc = gcDoc || nongcDoc || Y.encodeStateAsUpdate(new Y.Doc())
             if (aborted) return
             const encoder = encoding.createEncoder()
@@ -223,8 +215,7 @@ export const createYHubServer = async (yhub, conf) => {
                     s
                         .$object({
                             update: s.$uint8Array,
-                            customAttributions: s.$array(s.$object({ k: s.$string, v: s.$string }))
-                                .optional,
+                            customAttributions: s.$array(s.$object({ k: s.$string, v: s.$string })).optional,
                         })
                         .check(decodedBody)
                 ) {
@@ -320,11 +311,8 @@ export const createYHubServer = async (yhub, conf) => {
                             to: s.$number.optional,
                             by: s.$string.optional,
                             contentIds: s.$uint8Array.optional,
-                            customAttributions: s.$array(s.$object({ k: s.$string, v: s.$string }))
-                                .optional,
-                            withCustomAttributions: s.$array(
-                                s.$object({ k: s.$string, v: s.$string }),
-                            ).optional,
+                            customAttributions: s.$array(s.$object({ k: s.$string, v: s.$string })).optional,
+                            withCustomAttributions: s.$array(s.$object({ k: s.$string, v: s.$string })).optional,
                         })
                         .check(decodedBody)
                 ) {
@@ -336,13 +324,7 @@ export const createYHubServer = async (yhub, conf) => {
                         customAttributions = [],
                         withCustomAttributions = null,
                     } = decodedBody
-                    if (
-                        !from &&
-                        !to &&
-                        !by &&
-                        !contentIdsBin &&
-                        (withCustomAttributions ?? []).length === 0
-                    ) {
+                    if (!from && !to && !by && !contentIdsBin && (withCustomAttributions ?? []).length === 0) {
                         !aborted &&
                             sendErrorResponse(res, '400 Bad Request', {
                                 error: 'Rollback requires at least one filter (from, to, by, contentIds, or withCustomAttributions)',
@@ -717,13 +699,9 @@ const registerWebsocketServer = (yhub, app) => {
                     const customAttributions = parseCustomAttributionsParam(customAttributionsParam)
                     const authInfo = await yhub.conf.server?.auth.readAuthInfo(req)
                     s.$string.expect(authInfo.userid)
-                    const accessType =
-                        authInfo && (await yhub.conf.server?.auth.getAccessType(authInfo, room))
+                    const accessType = authInfo && (await yhub.conf.server?.auth.getAccessType(authInfo, room))
                     if (authInfo == null || !t.hasReadAccess(accessType)) {
-                        log.info(
-                            { url, userid: authInfo?.userid ?? null },
-                            'ws upgrade denied, insufficient access',
-                        )
+                        log.info({ url, userid: authInfo?.userid ?? null }, 'ws upgrade denied, insufficient access')
                         res.cork(() => {
                             res.writeStatus('401 Unauthorized').end('Unauthorized')
                         })
@@ -760,17 +738,13 @@ const registerWebsocketServer = (yhub, app) => {
             open: async (ws) => {
                 const user = ws.getUserData().user
                 user.ws = ws
-                user.log.info(
-                    { ip: Buffer.from(ws.getRemoteAddressAsText()).toString() },
-                    'client connected',
-                )
+                user.log.info({ ip: Buffer.from(ws.getRemoteAddressAsText()).toString() }, 'client connected')
                 const doctable = await yhub.getDoc(
                     user.room,
                     { gc: user.gc, nongc: !user.gc, awareness: true },
                     { gcOnMerge: false },
                 )
-                const ydoc =
-                    doctable.gcDoc || doctable.nongcDoc || Y.encodeStateAsUpdate(new Y.Doc())
+                const ydoc = doctable.gcDoc || doctable.nongcDoc || Y.encodeStateAsUpdate(new Y.Doc())
                 if (user.isClosed) return
                 ws.cork(() => {
                     user.sendData(protocol.encodeSyncStep1(Y.encodeStateVectorFromUpdate(ydoc)))
@@ -835,17 +809,12 @@ const registerWebsocketServer = (yhub, app) => {
                             const awDecoder = decoding.createDecoder(update)
                             const alen = decoding.readVarUint(awDecoder) // number of awareness updates
                             const awId = decoding.readVarUint(awDecoder)
-                            if (
-                                alen === 1 &&
-                                (user.awarenessId === null || user.awarenessId === awId)
-                            ) {
+                            if (alen === 1 && (user.awarenessId === null || user.awarenessId === awId)) {
                                 // only update awareness if len=1
                                 user.awarenessId = awId
                                 user.awarenessLastClock = decoding.readVarUint(awDecoder)
                             }
-                            yhub.stream
-                                .addMessage(user.room, { type: 'awareness:v1', update })
-                                .catch(handleErr)
+                            yhub.stream.addMessage(user.room, { type: 'awareness:v1', update }).catch(handleErr)
                             break
                         }
                     }
@@ -859,19 +828,13 @@ const registerWebsocketServer = (yhub, app) => {
                     yhub.stream
                         .addMessage(user.room, {
                             type: 'awareness:v1',
-                            update: protocol.encodeAwarenessUserDisconnected(
-                                user.awarenessId,
-                                user.awarenessLastClock,
-                            ),
+                            update: protocol.encodeAwarenessUserDisconnected(user.awarenessId, user.awarenessLastClock),
                         })
                         .catch((err) => {
                             user.log.error({ err }, 'error adding message to redis')
                         })
                 user.isClosed = true
-                user.log.info(
-                    { code, message: Buffer.from(message).toString() },
-                    'client connection closed',
-                )
+                user.log.info({ code, message: Buffer.from(message).toString() }, 'client connection closed')
                 user.destroy()
             },
         }),

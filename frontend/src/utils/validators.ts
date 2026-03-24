@@ -3,7 +3,7 @@ type ValidationResult = {
     readonly msg?: string
 }
 
-export function validateFileName(name: string): ValidationResult {
+export function validateNodeName(name: string): ValidationResult {
     if (!name || name.trim().length === 0) {
         return { valid: false, msg: 'Name cannot be empty' }
     }

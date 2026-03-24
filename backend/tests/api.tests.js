@@ -132,10 +132,7 @@ export const testWorker = async (tc) => {
     t.info('created doc')
     provider.destroy()
     ydoc.destroy()
-    const streamName = stream.encodeRoomName(
-        { org, docid: ydoc.guid, branch: 'main' },
-        yhub.stream.prefix,
-    )
+    const streamName = stream.encodeRoomName({ org, docid: ydoc.guid, branch: 'main' }, yhub.stream.prefix)
     console.info('waiting for stream to be deleted', {
         conf: yhub.conf.redis,
         streamName,
@@ -247,10 +244,7 @@ export const testCustomAttributionsRollback = async (tc) => {
 
     // Verify current state: "hey hello beautiful world"
     const { ydoc: beforeRollback } = await createWsClient({ waitForSync: true })
-    t.compare(
-        beforeRollback.get().toDelta(),
-        delta.create(delta.$deltaAny).insert('hey hello beautiful world'),
-    )
+    t.compare(beforeRollback.get().toDelta(), delta.create(delta.$deltaAny).insert('hey hello beautiful world'))
 
     // Rollback without any filter should return an error
     const emptyRollback = await postYhubRequest(`/rollback/${org}/${initialDoc.guid}`, {})
@@ -266,10 +260,7 @@ export const testCustomAttributionsRollback = async (tc) => {
     // Verify: " beautiful" should be undone, "hey " should remain
     const { ydoc: afterRollback } = await createWsClient({ waitForSync: true })
     console.log('after rollback json', afterRollback.get().toDelta().toJSON())
-    t.compare(
-        afterRollback.get().toDelta(),
-        delta.create(delta.$deltaAny).insert('hey hello world'),
-    )
+    t.compare(afterRollback.get().toDelta(), delta.create(delta.$deltaAny).insert('hey hello world'))
 
     // Verify activity API filtering by custom attributions
     /**
@@ -288,9 +279,7 @@ export const testCustomAttributionsRollback = async (tc) => {
 
 const logMemoryUsed = (prefix = '') => {
     const heapUsed = process.memoryUsage().heapUsed
-    console.log(
-        `${prefix.length === 0 ? '' : `[${prefix}] `}Heap used: ${(heapUsed / 1024 / 1024).toFixed(2)} MB`,
-    )
+    console.log(`${prefix.length === 0 ? '' : `[${prefix}] `}Heap used: ${(heapUsed / 1024 / 1024).toFixed(2)} MB`)
     return heapUsed
 }
 
@@ -406,11 +395,7 @@ export const testLargeDoc = async (tc) => {
                 const beforeMemory = logMemoryUsed('before loading large ydoc')
                 Y.applyUpdate(c1.ydoc, largeDocBin)
                 const afterMem = logMemoryUsed('after loading large ydoc')
-                console.info(
-                    'memory used for large doc: ',
-                    (afterMem - beforeMemory) / 1000 / 1000,
-                    'mb',
-                )
+                console.info('memory used for large doc: ', (afterMem - beforeMemory) / 1000 / 1000, 'mb')
             })
             await t.measureTimeAsync('sync e2e with remote client', async () => {
                 const c2 = await createWsClient({
@@ -493,10 +478,7 @@ export const testActivityContentIdsFilter = async (tc) => {
     // Encode ContentIds derived from the captured 'someattr' update
     const filteredActivity = await getAttributeHistory(syncedYtype, 'someattr')
     console.log({ filteredActivity: JSON.stringify(filteredActivity) })
-    t.assert(
-        filteredActivity.length === 1,
-        'expected 1 activity entry when filtering by someattr contentIds',
-    )
+    t.assert(filteredActivity.length === 1, 'expected 1 activity entry when filtering by someattr contentIds')
     t.assert(
         filteredActivity[0].from === allActivity[0].from,
         'filtered entry should match the someattr change timestamp',

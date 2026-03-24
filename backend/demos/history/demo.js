@@ -123,16 +123,12 @@ elemToggleRenderVersion.addEventListener('change', () => {
 const yhubUrl = 'ws://localhost:3002/ws/' + org
 
 // request an auth token before trying to connect
-const authToken = await fetch(`http://${location.host}/auth/token`).then((request) =>
-    request.text(),
-)
+const authToken = await fetch(`http://${location.host}/auth/token`).then((request) => request.text())
 // The auth token expires eventually (by default in one hour)
 // Periodically pull a new auth token (e.g. every 30 minutes) and update the auth parameter
 const _updateAuthToken = async () => {
     try {
-        const updatedAuthToken = await fetch(`http://${location.host}/auth/token`).then((request) =>
-            request.text(),
-        )
+        const updatedAuthToken = await fetch(`http://${location.host}/auth/token`).then((request) => request.text())
         providerYdoc.params.yauth = updatedAuthToken
         providerYdocSuggestions.params.yauth = updatedAuthToken
     } catch (e) {
@@ -156,12 +152,9 @@ const providerYdoc = new WebsocketProvider(yhubUrl, docid, ydoc, {
 })
 elemToggleConnect.checked && providerYdoc.connectBc()
 const suggestionDoc = new Y.Doc({ isSuggestionDoc: true })
-const providerYdocSuggestions = new WebsocketProvider(
-    yhubUrl,
-    docid + '--suggestions',
-    suggestionDoc,
-    { params: { yauth: authToken, branch: 'suggestions' } },
-)
+const providerYdocSuggestions = new WebsocketProvider(yhubUrl, docid + '--suggestions', suggestionDoc, {
+    params: { yauth: authToken, branch: 'suggestions' },
+})
 elemToggleConnect.checked && providerYdocSuggestions.connectBc()
 const attributionManager = Y.createAttributionManagerFromDiff(ydoc, suggestionDoc)
 
@@ -437,9 +430,7 @@ const renderVersionList = () => {
  */
 const fetchActivity = async () => {
     try {
-        const response = await fetch(
-            `${yhubApiUrl}/activity/${org}/${docid}?yauth=${authToken}&delta=true`,
-        )
+        const response = await fetch(`${yhubApiUrl}/activity/${org}/${docid}?yauth=${authToken}&delta=true`)
         if (response.ok) {
             const arrayBuffer = await response.arrayBuffer()
             const data = buffer.decodeAny(new Uint8Array(arrayBuffer))

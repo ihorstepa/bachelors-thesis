@@ -1,5 +1,4 @@
 import type { Extension } from '@codemirror/state'
-
 import { EditorState } from '@codemirror/state'
 import {
     keymap,
@@ -12,33 +11,23 @@ import {
     lineNumbers,
     highlightActiveLineGutter,
 } from '@codemirror/view'
-import {
-    indentOnInput,
-    indentUnit,
-    bracketMatching,
-    foldGutter,
-    foldKeymap,
-} from '@codemirror/language'
+import { indentOnInput, indentUnit, bracketMatching, foldGutter, foldKeymap } from '@codemirror/language'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search'
-import {
-    autocompletion,
-    completionKeymap,
-    closeBrackets,
-    closeBracketsKeymap,
-} from '@codemirror/autocomplete'
+import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
 import { lintKeymap } from '@codemirror/lint'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { cpp } from '@codemirror/lang-cpp'
+import { yCollab } from 'y-codemirror.next'
 
-import collaboration from '@/components/Editor/extenstions/collaboration'
+import type { SharedFile } from '@/core/interfaces/fileSyncManager'
 
-export default function getExtensions(): Extension[] {
+function getExtensions(sharedFile: SharedFile): Extension[] {
     return [
         autocompletion(),
         bracketMatching(),
         closeBrackets(),
-        collaboration(),
+        yCollab(sharedFile.doc.getText(), sharedFile.awareness),
         cpp(),
         crosshairCursor(),
         drawSelection(),
@@ -66,3 +55,5 @@ export default function getExtensions(): Extension[] {
         rectangularSelection(),
     ]
 }
+
+export default getExtensions

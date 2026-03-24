@@ -48,9 +48,7 @@ await utils.createTestHub({
                 const auth = await jwt.verifyJwt(authPublicKey, authJwt)
                 const authInfo = s
                     .$object({
-                        rooms: s.$array(
-                            s.$object({ room: types.$room, accessType: types.$accessType }),
-                        ),
+                        rooms: s.$array(s.$object({ room: types.$room, accessType: types.$accessType })),
                         userid: s.$string,
                     })
                     .expect(auth.payload)

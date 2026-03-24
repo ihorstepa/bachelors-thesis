@@ -82,16 +82,12 @@ const createContentMap = (contentids, userid, customAttributions) => {
             [
                 Y.createContentAttribute('insert', userid),
                 Y.createContentAttribute('insertAt', now),
-                ...customAttributions.map((attr) =>
-                    Y.createContentAttribute('insert:' + attr.k, attr.v),
-                ),
+                ...customAttributions.map((attr) => Y.createContentAttribute('insert:' + attr.k, attr.v)),
             ],
             [
                 Y.createContentAttribute('delete', userid),
                 Y.createContentAttribute('deleteAt', now),
-                ...customAttributions.map((attr) =>
-                    Y.createContentAttribute('delete:' + attr.k, attr.v),
-                ),
+                ...customAttributions.map((attr) => Y.createContentAttribute('delete:' + attr.k, attr.v)),
             ],
         ),
     )
@@ -144,14 +140,7 @@ port.on(
                     withCustomAttributions,
                 )
                 const beforeContentIds = Y.createContentIdsFromContentMap(
-                    filterContentMap(
-                        contentmap,
-                        0,
-                        from != null ? from - 1 : undefined,
-                        undefined,
-                        undefined,
-                        null,
-                    ),
+                    filterContentMap(contentmap, 0, from != null ? from - 1 : undefined, undefined, undefined, null),
                 )
                 const afterContentIds = Y.createContentIdsFromContentMap(
                     filterContentMap(contentmap, 0, to ?? undefined, undefined, undefined, null),
@@ -319,14 +308,8 @@ port.on(
                         const afterContentIds = Y.createContentIdsFromContentMap(
                             filterContentMap(contentmap, 0, act.to, undefined, undefined, null),
                         )
-                        const prevDocUpdate = Y.intersectUpdateWithContentIds(
-                            nongcDocBin,
-                            beforeContentIds,
-                        )
-                        const nextDocUpdate = Y.intersectUpdateWithContentIds(
-                            nongcDocBin,
-                            afterContentIds,
-                        )
+                        const prevDocUpdate = Y.intersectUpdateWithContentIds(nongcDocBin, beforeContentIds)
+                        const nextDocUpdate = Y.intersectUpdateWithContentIds(nongcDocBin, afterContentIds)
                         const prevDoc = new Y.Doc()
                         const nextDoc = new Y.Doc()
                         Y.applyUpdate(prevDoc, prevDocUpdate)
@@ -362,10 +345,7 @@ port.on(
             case 'patchYdoc': {
                 const { update, currentDoc, userid, customAttributions = [] } = msg
                 const currentContentIds = Y.createContentIdsFromUpdate(currentDoc)
-                const newContentIds = Y.excludeContentIds(
-                    Y.createContentIdsFromUpdate(update),
-                    currentContentIds,
-                )
+                const newContentIds = Y.excludeContentIds(Y.createContentIdsFromUpdate(update), currentContentIds)
                 const diffedUpdate = /** @type {Uint8Array<ArrayBuffer>} */ (
                     Y.intersectUpdateWithContentIds(update, newContentIds)
                 )
@@ -375,10 +355,7 @@ port.on(
                         userid,
                         customAttributions,
                     )
-                    port.postMessage({ update: diffedUpdate, contentmap }, [
-                        diffedUpdate.buffer,
-                        contentmap.buffer,
-                    ])
+                    port.postMessage({ update: diffedUpdate, contentmap }, [diffedUpdate.buffer, contentmap.buffer])
                 } else {
                     port.postMessage(null)
                 }
@@ -421,10 +398,7 @@ port.on(
                         userid,
                         customAttributions,
                     )
-                    port.postMessage({ update, contentmap: resultContentmap }, [
-                        update.buffer,
-                        resultContentmap.buffer,
-                    ])
+                    port.postMessage({ update, contentmap: resultContentmap }, [update.buffer, resultContentmap.buffer])
                 } else {
                     port.postMessage({ update: null, contentmap: null })
                 }

@@ -75,9 +75,7 @@ export class YHub {
                                 taskLog.info('task completed (trim only)')
                                 return null
                             }
-                            this.conf.worker?.events?.docUpdate?.(
-                                object.assign({}, d, { references: null }),
-                            )
+                            this.conf.worker?.events?.docUpdate?.(object.assign({}, d, { references: null }))
                             await this.persistence.store(task.room, d)
                             await promise.all([
                                 this.persistence.deleteReferences(d.references),
@@ -130,40 +128,27 @@ export class YHub {
                     contentids: /** @type {const} */ (true),
                 }),
             ),
-            this.stream
-                .getMessages([{ room, clock: '0' }])
-                .then((ms) => ms[0] || { messages: [], lastClock: '0' }),
+            this.stream.getMessages([{ room, clock: '0' }]).then((ms) => ms[0] || { messages: [], lastClock: '0' }),
         ])
         const gcDoc = persistedDoc.gcDoc
         const nongcDoc = persistedDoc.nongcDoc
         const contentmap = persistedDoc.contentmap?.map(Y.decodeContentMap)
-        const contentids = /** @type {Array<Uint8Array>} */ (persistedDoc.contentids).map(
-            Y.decodeContentIds,
-        )
+        const contentids = /** @type {Array<Uint8Array>} */ (persistedDoc.contentids).map(Y.decodeContentIds)
         const references = persistedDoc.references
-        const awareness =
-            /** @type {Include['awareness'] extends true ? Uint8Array<ArrayBuffer> : null} */ (
-                includeContent.awareness
-                    ? protocol.mergeAwarenessUpdates(
-                          cachedMessages.messages
-                              .filter((m) => m.type === 'awareness:v1')
-                              .map((m) => m.update),
-                      )
-                    : null
-            )
+        const awareness = /** @type {Include['awareness'] extends true ? Uint8Array<ArrayBuffer> : null} */ (
+            includeContent.awareness
+                ? protocol.mergeAwarenessUpdates(
+                      cachedMessages.messages.filter((m) => m.type === 'awareness:v1').map((m) => m.update),
+                  )
+                : null
+        )
         const lastClock = strm.maxRedisClock(persistedDoc.lastClock, cachedMessages.lastClock)
         const mergedContentIds = Y.mergeContentIds(contentids)
         cachedMessages.messages.forEach((m) => {
             // only add update messages that are newer that what we currently know
-            if (
-                t.$updateMessage.check(m) &&
-                strm.isSmallerRedisClock(persistedDoc.lastClock, m.redisClock)
-            ) {
+            if (t.$updateMessage.check(m) && strm.isSmallerRedisClock(persistedDoc.lastClock, m.redisClock)) {
                 // attributions can only be assigned once. Filter out "known" attributions
-                const mcontentmap = Y.excludeContentMaps(
-                    Y.decodeContentMap(m.contentmap),
-                    mergedContentIds,
-                )
+                const mcontentmap = Y.excludeContentMaps(Y.decodeContentMap(m.contentmap), mergedContentIds)
                 const mcontentids = Y.createContentIdsFromContentMap(mcontentmap)
                 Y.insertIntoIdSet(mergedContentIds.inserts, mcontentids.inserts)
                 Y.insertIntoIdSet(mergedContentIds.deletes, mcontentids.deletes)
@@ -181,20 +166,15 @@ export class YHub {
                         : await this.computePool.mergeUpdates(gcDoc)
                     : null
             ),
-            nongcDoc:
-                /** @type {Include['nongc'] extends true ? Uint8Array<ArrayBuffer> : null} */ (
-                    nongcDoc ? await this.computePool.mergeUpdates(nongcDoc) : null
-                ),
-            contentmap:
-                /** @type {Include['contentmap'] extends true ? Uint8Array<ArrayBuffer> : null} */ (
-                    contentmap ? Y.encodeContentMap(Y.mergeContentMaps(contentmap)) : null
-                ),
-            contentids:
-                /** @type {Include['contentids'] extends true ? Uint8Array<ArrayBuffer> : null} */ (
-                    includeContent.contentids === true
-                        ? Y.encodeContentIds(Y.mergeContentIds(contentids))
-                        : null
-                ),
+            nongcDoc: /** @type {Include['nongc'] extends true ? Uint8Array<ArrayBuffer> : null} */ (
+                nongcDoc ? await this.computePool.mergeUpdates(nongcDoc) : null
+            ),
+            contentmap: /** @type {Include['contentmap'] extends true ? Uint8Array<ArrayBuffer> : null} */ (
+                contentmap ? Y.encodeContentMap(Y.mergeContentMaps(contentmap)) : null
+            ),
+            contentids: /** @type {Include['contentids'] extends true ? Uint8Array<ArrayBuffer> : null} */ (
+                includeContent.contentids === true ? Y.encodeContentIds(Y.mergeContentIds(contentids)) : null
+            ),
             lastClock,
             lastPersistedClock: persistedDoc.lastClock,
             references,
