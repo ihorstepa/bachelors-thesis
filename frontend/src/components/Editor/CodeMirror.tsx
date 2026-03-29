@@ -1,21 +1,24 @@
 import { useState, useRef, useLayoutEffect } from 'react'
 import ReactCodeMirror from '@uiw/react-codemirror'
 import type { EditorView } from '@codemirror/view'
+import type { JSX } from 'react'
 
-import { useService } from '@/core/ServiceContainer'
-import { IFileSyncManager } from '@/core/interfaces/fileSyncManager'
+import { useService } from '@/contextProviders/ServiceProvider'
+import { FileSyncManager } from '@/core/fileSyncManager'
+import { PresenceService } from '@/core/presenceService'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import getExtensions from '@/components/Editor/extensions'
 import Spinner from '@/components/Spinner/Spinner'
-import type { SharedFile } from '@/core/interfaces/fileSyncManager'
+import type { SharedFile } from '@/core/fileSyncManager'
 
 type Props = {
     fileId: string
     isActive: boolean
 }
 
-function CodeMirror({ fileId, isActive }: Props) {
-    const fileSyncManager = useService(IFileSyncManager)
+function CodeMirror({ fileId, isActive }: Props): JSX.Element {
+    const fileSyncManager = useService(FileSyncManager)
+    const presenceService = useService(PresenceService)
     const [file, setFile] = useState<SharedFile | null>(null)
     const [isSynced, setIsSynced] = useState(false)
     const editorViewRef = useRef<EditorView | null>(null)
@@ -47,9 +50,8 @@ function CodeMirror({ fileId, isActive }: Props) {
             file.awareness.setLocalState(null)
         } else {
             editorViewRef.current?.focus()
-            if (!file.awareness.getLocalState()) {
-                file.awareness.setLocalState({})
-            }
+            file.awareness.setLocalState({})
+            presenceService.setLocation(fileId)
         }
     }, [isActive, file])
 

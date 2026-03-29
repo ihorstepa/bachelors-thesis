@@ -5,7 +5,7 @@
         'sidebar tabs   ' 33px
         'sidebar editor ' 1fr
         'statusbar statusbar' 22px
-        / 220px 1fr;
+        / auto 1fr;
     height: 100vh;
     overflow: hidden;
     background: var(--bg-base);

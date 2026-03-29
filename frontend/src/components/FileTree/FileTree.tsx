@@ -1,40 +1,101 @@
-// import { useFileTreeState } from '@/hooks/useFileTreeState'
-// import FileTreeNode from '@/components/FileTree/FileTreeNode'
-// import useFileTree from '@/hooks/useFileTree'
-// import '@/components/FileTree/FileTree.css'
+import { useEffect } from 'react'
+import { DragDropProvider, useDroppable } from '@dnd-kit/react'
+import type { JSX } from 'react'
 
-// type FileTreeProps = {
-//     tree: ReturnType<typeof useFileTree>
-//     state: ReturnType<typeof useFileTreeState>
-// }
-
-// function FileTree({ tree, state }: FileTreeProps) {
-//     return (
-//         <div className='filetree'>
-//             <FileTreeNode node={tree} depth={-1} />
-
-//             {tree.children.length === 0 && !state.creating && <div className='filetree-empty'>No files yet</div>}
-//         </div>
-//     )
-// }
-
-// export default FileTree
-
-import { useFileTree } from '@/hooks/useFileTree'
-import FileTreeNode from '@/components/FileTree/FileTreeNode'
+import { useFileTree } from '@/contextProviders/FileTreeProvider'
+import { FileTreeItem } from '@/components/FileTree/FileTreeItem'
+import FileTreeToolBar from '@/components/FileTree/FileTreeToolBar'
+import { useService } from '@/contextProviders/ServiceProvider'
+import { FileSystemManager } from '@/core/fileSystemManager'
+import { useTabs } from '@/contextProviders/TabsProvider'
+import type { NullableString } from '@/utils/types'
 import '@/components/FileTree/FileTree.css'
 
-function FileTree() {
-    const state = useFileTree()
+function FileTree(): JSX.Element {
+    const fileSystemManager = useService(FileSystemManager)
+    const { tree, selectedId, fileTreeManager } = useFileTree()
+    const { activeId } = useTabs()
 
-    if (!state) return null
+    useEffect(() => {
+        if (!activeId) return
+        const meta = fileSystemManager.getMeta(activeId)
+        if (meta.type === 'file') {
+            fileTreeManager.selectItem(activeId)
+        }
+    }, [activeId, fileSystemManager, fileTreeManager])
 
-    const { tree, creating } = state
+    const { ref: rootDropRef, isDropTarget: isRootDropTarget } = useDroppable({
+        id: 'root',
+        data: { type: 'root' },
+    })
+
+    const handleDragEnd = (event: any) => {
+        const { source, target } = event.operation ?? {}
+        if (!source || !target) return
+
+        const sourceId = String(source.id)
+        const targetId = String(target.id)
+        let targetParentId: NullableString
+
+        if (targetId === 'root') {
+            targetParentId = null
+        } else {
+            const targetNode = fileSystemManager.getMeta(targetId)
+            targetParentId = targetNode.type === 'dir' ? targetId : targetNode.parentId
+        }
+
+        fileSystemManager.move(sourceId, targetParentId)
+    }
+
+    const handleCreateFile = () => {
+        const name = prompt('File name:')
+        if (name) {
+            fileSystemManager.create(name, 'file', fileTreeManager.getTargetParentId())
+        }
+    }
+
+    const handleCreateDir = () => {
+        const name = prompt('Directory name:')
+        if (name) {
+            fileSystemManager.create(name, 'dir', fileTreeManager.getTargetParentId())
+        }
+    }
+
+    const canRenameOrDelete = !!selectedId && selectedId !== 'root'
+
+    const handleRename = () => {
+        if (!canRenameOrDelete) return
+        const meta = fileSystemManager.getMeta(selectedId)
+        const newName = prompt('Rename to:', meta.name)
+        if (newName) {
+            fileSystemManager.rename(selectedId, newName)
+        }
+    }
+
+    const handleDelete = () => {
+        if (!canRenameOrDelete) return
+        const meta = fileSystemManager.getMeta(selectedId)
+        if (confirm(`Delete ${meta.name}?`)) {
+            fileSystemManager.delete(selectedId)
+        }
+    }
 
     return (
-        <div className='filetree'>
-            <FileTreeNode node={tree} depth={-1} />
-            {tree.children.length === 0 && !creating && <div className='filetree-empty'>No files yet</div>}
+        <div className='file-tree-container'>
+            <FileTreeToolBar
+                onCreateFile={handleCreateFile}
+                onCreateDir={handleCreateDir}
+                onRename={handleRename}
+                onDelete={handleDelete}
+                canRenameOrDelete={canRenameOrDelete}
+            />
+            <DragDropProvider onDragEnd={handleDragEnd as any}>
+                <div ref={rootDropRef} className={`tree-view ${isRootDropTarget ? 'root-drop-target' : ''}`}>
+                    {tree.map((node) => (
+                        <FileTreeItem key={node.id} node={node} level={0} />
+                    ))}
+                </div>
+            </DragDropProvider>
         </div>
     )
 }

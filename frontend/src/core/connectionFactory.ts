@@ -1,7 +1,7 @@
 import type { Doc } from 'yjs'
 import type { Awareness } from 'y-protocols/awareness'
 
-import { BaseService } from '@/core/interfaces/general'
+import { BaseService } from '@/core/general'
 
 export type Connection = {
     readonly room: string
@@ -18,6 +18,6 @@ export type ConnectionConfig = {
     autoconnect?: boolean
 }
 
-export abstract class IConnectionFactory extends BaseService {
+export abstract class ConnectionFactory extends BaseService {
     public abstract connect(room: string, config?: ConnectionConfig): Promise<Connection>
 }

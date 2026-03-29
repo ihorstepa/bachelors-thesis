@@ -3,40 +3,20 @@
     flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
-    background: #21252b;
+    background: var(--border);
     border-bottom: 1px solid #181a1f;
-    height: 37px;
-    scrollbar-width: thin;
-    scrollbar-color: #3e4451 transparent;
+    height: 36px;
     z-index: 1;
 }
 
-.tabs::-webkit-scrollbar {
-    height: 2px;
-    background: transparent;
-}
-
-.tabs::-webkit-scrollbar-thumb {
-    background: transparent;
-    border-radius: 10px;
-}
-
-.tabs:hover::-webkit-scrollbar-thumb {
-    background: #3e4451;
-}
-
-.tabs::-webkit-scrollbar-thumb:hover {
-    background: #528bff;
-}
-
 .tab {
+    background: var(--bg-panel);
     display: flex;
     flex-shrink: 0;
     align-items: center;
     gap: 6px;
     padding: 0 12px;
-    height: 35px;
-    font-size: 13px;
+    height: 34px;
     color: #636d83;
     border-right: 1px solid #181a1f;
     cursor: pointer;
@@ -71,7 +51,6 @@
     white-space: nowrap;
     flex: 1;
     min-width: 0;
-    line-height: 1;
 }
 
 .tab-close {

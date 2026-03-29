@@ -1,13 +1,13 @@
-import { IFileSyncManager } from '@/core/interfaces/fileSyncManager'
-import type { SharedFile } from '@/core/interfaces/fileSyncManager'
-import type { IConnectionFactory, Connection } from '@/core/interfaces/connectionFactory'
+import { FileSyncManager } from '@/core/fileSyncManager'
+import type { SharedFile } from '@/core/fileSyncManager'
+import type { ConnectionFactory, Connection } from '@/core/connectionFactory'
 
-class MultipleFileSyncManager extends IFileSyncManager {
-    private connectionFactory: IConnectionFactory
+class MultipleFileSyncManager extends FileSyncManager {
+    private connectionFactory: ConnectionFactory
     private connections: Map<string, Connection> = new Map()
     private activeId: string | null = null
 
-    public constructor(connectionFactory: IConnectionFactory) {
+    public constructor(connectionFactory: ConnectionFactory) {
         super()
         this.connectionFactory = connectionFactory
     }
@@ -20,10 +20,9 @@ class MultipleFileSyncManager extends IFileSyncManager {
 
     public async openFile(id: string): Promise<SharedFile> {
         if (this.activeId === id) {
-            console.log('files open', this.connections.size)
             return this.connections.get(id)!
         }
-        // TODO: fix or rework this
+        // TODO: fix or remove this
         if (this.activeId !== null) {
             // this.connections.get(this.activeId)!.disconnect()
         }
@@ -34,7 +33,6 @@ class MultipleFileSyncManager extends IFileSyncManager {
             this.connections.set(id, connection)
         }
         this.activeId = id
-        console.log('files open', this.connections.size)
         return this.connections.get(id)!
     }
 
@@ -46,7 +44,6 @@ class MultipleFileSyncManager extends IFileSyncManager {
         if (this.activeId === id) {
             this.activeId = null
         }
-        console.log('files open', this.connections.size)
     }
 
     public getActiveFile(): SharedFile | null {

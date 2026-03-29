@@ -2,12 +2,12 @@ import { useRef } from 'react'
 
 import '@/components/TextInput/TextInput.css'
 
-type TextInputProps = {
+type Props = {
     onConfirm: (name: string) => void
     onCancel: () => void
 }
 
-function TextInput({ onConfirm, onCancel }: TextInputProps) {
+function TextInput({ onConfirm, onCancel }: Props) {
     const ref = useRef<HTMLInputElement>(null)
 
     return (

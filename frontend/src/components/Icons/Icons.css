@@ -1,0 +1,27 @@
+.file-icon {
+    font-size: 14px;
+}
+
+.file-icon-default {
+    color: var(--text-primary);
+}
+
+.file-icon-h,
+.file-icon-hpp,
+.file-icon-hxx {
+    color: #c379bf;
+}
+
+.file-icon-c,
+.file-icon-cpp,
+.file-icon-cxx {
+    color: #61afef;
+}
+
+.file-icon-json {
+    color: #e5c07b;
+}
+
+.file-icon-md {
+    color: #797ac3;
+}

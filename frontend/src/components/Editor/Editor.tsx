@@ -1,11 +1,17 @@
-import { useTabs } from '@/hooks/useTabs'
+import type { JSX } from 'react'
+
+import { useTabs } from '@/contextProviders/TabsProvider'
 import CodeMirror from '@/components/Editor/CodeMirror'
+import { useService } from '@/contextProviders/ServiceProvider'
+import { PresenceService } from '@/core/presenceService'
 import '@/components/Editor/Editor.css'
 
-function Editor() {
+function Editor(): JSX.Element {
+    const presenceService = useService(PresenceService)
     const { tabs, activeId } = useTabs()
 
     if (tabs.length === 0) {
+        presenceService.setLocation(null)
         return <div className='ide-editor-empty'>Open a file to start editing</div>
     }
 

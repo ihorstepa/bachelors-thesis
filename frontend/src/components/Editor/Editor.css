@@ -19,28 +19,6 @@
     overflow: hidden;
 }
 
-.ide-editor .cm-scroller::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-.ide-editor .cm-scroller::-webkit-scrollbar-track {
-    background: var(--bg-base);
-}
-
-.ide-editor .cm-scroller::-webkit-scrollbar-thumb {
-    background: var(--bg-selection);
-    border-radius: 3px;
-}
-
-.ide-editor .cm-scroller::-webkit-scrollbar-thumb:hover {
-    background: var(--text-muted);
-}
-
-.ide-editor .cm-scroller::-webkit-scrollbar-corner {
-    background: var(--bg-base);
-}
-
 .ide-editor-empty {
     display: flex;
     align-items: center;

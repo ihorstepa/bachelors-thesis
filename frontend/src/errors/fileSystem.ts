@@ -1,5 +1,12 @@
 import type { NullableString } from '@/utils/types'
 
+export class RootConnectionError extends Error {
+    constructor() {
+        super('Root connection is missing')
+        this.name = 'RootConnectionError'
+    }
+}
+
 export class NodeNotFoundError extends Error {
     constructor(id: string) {
         super(`Node with id "${id}" does not exist`)
@@ -44,7 +51,7 @@ export class FileNotOpenError extends Error {
 
 export class MissingIndexError extends Error {
     constructor(id: NullableString) {
-        super(`Index missing for ${id ? 'root node' : 'node with id ' + id}`)
+        super(`Index missing for ${id ? 'node with id ' + id : 'root node'}`)
         this.name = 'MissingIndexError'
     }
 }

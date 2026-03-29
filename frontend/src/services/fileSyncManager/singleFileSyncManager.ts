@@ -1,12 +1,12 @@
-import { IFileSyncManager } from '@/core/interfaces/fileSyncManager'
-import type { SharedFile } from '@/core/interfaces/fileSyncManager'
-import type { IConnectionFactory, Connection } from '@/core/interfaces/connectionFactory'
+import { FileSyncManager } from '@/core/fileSyncManager'
+import type { SharedFile } from '@/core/fileSyncManager'
+import type { ConnectionFactory, Connection } from '@/core/connectionFactory'
 
-class FileSyncManager extends IFileSyncManager {
-    private connectionFactory: IConnectionFactory
+class SingleFileSyncManager extends FileSyncManager {
+    private connectionFactory: ConnectionFactory
     private connection: Connection | null = null
 
-    public constructor(connectionFactory: IConnectionFactory) {
+    public constructor(connectionFactory: ConnectionFactory) {
         super()
         this.connectionFactory = connectionFactory
     }
@@ -38,4 +38,4 @@ class FileSyncManager extends IFileSyncManager {
     }
 }
 
-export default FileSyncManager
+export default SingleFileSyncManager

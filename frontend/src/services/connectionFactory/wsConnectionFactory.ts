@@ -3,10 +3,10 @@ import { IndexeddbPersistence } from 'y-indexeddb'
 import { Doc } from 'yjs'
 
 import { WS_URL } from '@/config'
-import { IConnectionFactory } from '@/core/interfaces/connectionFactory'
-import type { Connection, ConnectionConfig } from '@/core/interfaces/connectionFactory'
+import { ConnectionFactory } from '@/core/connectionFactory'
+import type { Connection, ConnectionConfig } from '@/core/connectionFactory'
 
-class WSConnectionFactory extends IConnectionFactory {
+class WSConnectionFactory extends ConnectionFactory {
     public projectId: string
 
     public constructor(projectId: string) {
@@ -23,25 +23,42 @@ class WSConnectionFactory extends IConnectionFactory {
 
         const ws = new WebsocketProvider(`${WS_URL}/${this.projectId}`, room, doc, { connect: autoconnect })
         const awareness = ws.awareness
-        const synced = new Promise<void>((resolve) => {
-            ws.on('sync', () => {
-                console.log('synced', room)
-                resolve()
+
+        let syncedResolve: () => void
+        const createSyncedPromise = () =>
+            new Promise<void>((resolve) => {
+                syncedResolve = resolve
             })
+
+        let synced = createSyncedPromise()
+        ws.on('sync', (isSynced) => {
+            if (isSynced) {
+                syncedResolve()
+            }
         })
 
-        const connect = () => ws.connect()
+        const connect = () => {
+            synced = createSyncedPromise()
+            ws.connect()
+        }
         const disconnect = () => ws.disconnect()
         const destroy = () => {
-            console.log('destroying', room)
             awareness.setLocalState(null)
             ws.destroy()
             idb.destroy()
         }
 
-        console.log('connected to', room)
-
-        return { room, doc, awareness, synced, connect, disconnect, destroy }
+        return {
+            room,
+            doc,
+            awareness,
+            get synced() {
+                return synced
+            },
+            connect,
+            disconnect,
+            destroy,
+        }
     }
 }
 

@@ -20,7 +20,7 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import { cpp } from '@codemirror/lang-cpp'
 import { yCollab } from 'y-codemirror.next'
 
-import type { SharedFile } from '@/core/interfaces/fileSyncManager'
+import type { SharedFile } from '@/core/fileSyncManager'
 
 function getExtensions(sharedFile: SharedFile): Extension[] {
     return [

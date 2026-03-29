@@ -1,14 +1,20 @@
 import React, { createContext, useState, useContext } from 'react'
 
 import useAsyncEffect from '@/hooks/useAsyncEffect'
-import WSConnectionFactory from '@/core/services/wsConnectionFactory'
-import FileSystemManager from '@/core/services/fileSystemManager'
-import MultipleFileSyncManager from '@/core/services/multipleFileSyncManager'
-import { IConnectionFactory } from '@/core/interfaces/connectionFactory'
-import { IFileSystemManager } from '@/core/interfaces/fileSystemManager'
-import { IFileSyncManager } from '@/core/interfaces/fileSyncManager'
+import WSConnectionFactory from '@/services/connectionFactory/wsConnectionFactory'
+import SharedFileSystemManager from '@/services/fileSystemManager/sharedFileSystemManager'
+import FileSystemPresenceService from '@/services/presenceService/presenceService'
+import MultipleFileSyncManager from '@/services/fileSyncManager/multipleFileSyncManager'
+import PersistentTabManager from '@/services/tabManager/tabManager'
+import LocalFileTreeManager from '@/services/fileTreeManager/localFileTreeManager'
+import { ConnectionFactory } from '@/core/connectionFactory'
+import { FileSystemManager } from '@/core/fileSystemManager'
+import { PresenceService } from '@/core/presenceService'
+import { FileSyncManager } from '@/core/fileSyncManager'
+import { TabManager } from '@/core/tabManager'
+import { FileTreeManager } from '@/core/fileTreeManager'
 import type { AbstractClass } from '@/utils/types'
-import type { BaseService } from '@/core/interfaces/general'
+import type { BaseService } from '@/core/general'
 
 type ServiceRegistry = Map<AbstractClass<BaseService>, BaseService>
 
@@ -19,14 +25,23 @@ async function initServices(projectId?: string): Promise<ServiceRegistry> {
     projectId = projectId ?? 'default'
 
     const connectionFactory = new WSConnectionFactory(projectId)
-    services.set(IConnectionFactory, connectionFactory)
+    services.set(ConnectionFactory, connectionFactory)
 
-    const fileSystemManager = new FileSystemManager(connectionFactory)
-    services.set(IFileSystemManager, fileSystemManager)
+    const fileSystemManager = new SharedFileSystemManager(connectionFactory)
+    services.set(FileSystemManager, fileSystemManager)
     await fileSystemManager.init()
 
+    const presenceService = new FileSystemPresenceService(fileSystemManager)
+    services.set(PresenceService, presenceService)
+
     const fileSyncManager = new MultipleFileSyncManager(connectionFactory)
-    services.set(IFileSyncManager, fileSyncManager)
+    services.set(FileSyncManager, fileSyncManager)
+
+    const tabManager = new PersistentTabManager(fileSystemManager)
+    services.set(TabManager, tabManager)
+
+    const fileTreeManager = new LocalFileTreeManager(fileSystemManager)
+    services.set(FileTreeManager, fileTreeManager)
 
     return services
 }
@@ -45,7 +60,7 @@ type Props = {
     children: React.ReactNode
 }
 
-function ServiceContainer({ projectId, children }: Props): React.ReactNode {
+function ServiceProvider({ projectId, children }: Props): React.ReactNode {
     const [registry, setRegistry] = useState<ServiceRegistry>(new Map())
 
     useAsyncEffect(
@@ -66,4 +81,4 @@ function ServiceContainer({ projectId, children }: Props): React.ReactNode {
     return <ServiceContext value={registry}>{children}</ServiceContext>
 }
 
-export default ServiceContainer
+export default ServiceProvider

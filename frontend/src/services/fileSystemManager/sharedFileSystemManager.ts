@@ -2,18 +2,18 @@ import * as Y from 'yjs'
 
 import * as err from '@/errors/fileSystem'
 import { validateNodeName } from '@/utils/validators'
-import { IFileSystemManager } from '@/core/interfaces/fileSystemManager'
-import type { NodeMeta, NodeType } from '@/core/interfaces/fileSystemManager'
+import { FileSystemManager } from '@/core/fileSystemManager'
+import type { NodeMeta, NodeType } from '@/core/fileSystemManager'
 import type { NullableString } from '@/utils/types'
-import type { IConnectionFactory, Connection } from '@/core/interfaces/connectionFactory'
+import type { ConnectionFactory, Connection } from '@/core/connectionFactory'
 
 type IndexEntry = {
     ids: Set<string>
     names: Set<string>
 }
 
-class FileSystemManager extends IFileSystemManager {
-    private connectionFactory: IConnectionFactory
+class SharedFileSystemManager extends FileSystemManager {
+    private connectionFactory: ConnectionFactory
     private connection: Connection | null = null
     private rootDoc: Y.Doc = new Y.Doc()
     private metaMap: Y.Map<NodeMeta> = new Y.Map()
@@ -21,23 +21,25 @@ class FileSystemManager extends IFileSystemManager {
 
     private static readonly rootId: string = '__root__'
 
-    public constructor(connectionFactory: IConnectionFactory) {
+    public constructor(connectionFactory: ConnectionFactory) {
         super()
         this.connectionFactory = connectionFactory
     }
 
     public async init(): Promise<void> {
-        this.connection = await this.connectionFactory.connect(FileSystemManager.rootId)
+        this.connection = await this.connectionFactory.connect(SharedFileSystemManager.rootId)
         await this.connection.synced
 
         this.rootDoc = this.connection.doc
         this.metaMap = this.rootDoc.getMap('meta') as Y.Map<NodeMeta>
 
+        this.registerAsObserver()
         this.buildIndex()
     }
 
     public destroy(): void {
-        this.connection?.disconnect()
+        this.connection?.destroy()
+        this.index.clear()
     }
 
     public create(name: string, type: NodeType, parentId: NullableString): string {
@@ -51,7 +53,7 @@ class FileSystemManager extends IFileSystemManager {
         return id
     }
 
-    public remove(id: string): void {
+    public delete(id: string): void {
         const traverse = (id: string) => {
             const meta = this.requireMeta(id)
             if (meta.type === 'dir') {
@@ -95,6 +97,11 @@ class FileSystemManager extends IFileSystemManager {
         this.metaMap.set(nodeId, { ...node, parentId })
     }
 
+    public copy(nodeId: string, targetParentId: NullableString): string {
+        // TODO
+        return ''
+    }
+
     public exists(id: string): boolean {
         return this.metaMap.has(id)
     }
@@ -110,6 +117,51 @@ class FileSystemManager extends IFileSystemManager {
         return [...this.requireIndex(id).ids].map((id) => this.requireMeta(id))
     }
 
+    public getRootConnection(): Connection {
+        if (!this.connection) {
+            throw new err.RootConnectionError()
+        }
+        return this.connection
+    }
+
+    private registerAsObserver(): void {
+        this.metaMap.observe((event) => {
+            event.changes.keys.forEach((change, id) => {
+                const oldMeta = change.oldValue as NodeMeta | undefined
+                const newMeta = this.metaMap.get(id)
+
+                switch (change.action) {
+                    case 'add':
+                        if (newMeta) {
+                            this.addToIndex(newMeta)
+                            this.emit('create', newMeta)
+                        }
+                        break
+                    case 'delete':
+                        if (oldMeta) {
+                            this.removeFromIndex(oldMeta)
+                            this.emit('delete', oldMeta)
+                        }
+                        break
+                    case 'update':
+                        if (oldMeta && newMeta) {
+                            this.removeFromIndex(oldMeta)
+                            this.addToIndex(newMeta)
+
+                            if (oldMeta.parentId !== newMeta.parentId) {
+                                this.emit('move', id, oldMeta.parentId, newMeta.parentId)
+                            }
+                            if (oldMeta.name !== newMeta.name) {
+                                this.emit('rename', id, oldMeta.name, newMeta.name)
+                            }
+                        }
+                        break
+                }
+            })
+            this.emit('change')
+        })
+    }
+
     private buildIndex(): void {
         this.index.clear()
         this.ensureIndex(null)
@@ -117,18 +169,6 @@ class FileSystemManager extends IFileSystemManager {
         for (const meta of this.metaMap.values()) {
             this.addToIndex(meta)
         }
-
-        this.metaMap.observe((event) => {
-            event.changes.keys.forEach((change, key) => {
-                if (change.action !== 'add') {
-                    this.removeFromIndex(change.oldValue as NodeMeta)
-                }
-                if (change.action !== 'delete') {
-                    this.addToIndex(this.metaMap.get(key)!)
-                }
-            })
-            this.notifyObservers()
-        })
     }
 
     private addToIndex({ id, name, type, parentId }: NodeMeta): void {
@@ -142,9 +182,10 @@ class FileSystemManager extends IFileSystemManager {
 
     private removeFromIndex({ id, name, parentId }: NodeMeta): void {
         const entry = this.index.get(parentId)
-        if (!entry) return
-        entry.ids.delete(id)
-        entry.names.delete(name)
+        if (entry) {
+            entry.ids.delete(id)
+            entry.names.delete(name)
+        }
     }
 
     private ensureIndex(id: NullableString): IndexEntry {
@@ -196,4 +237,4 @@ class FileSystemManager extends IFileSystemManager {
     }
 }
 
-export default FileSystemManager
+export default SharedFileSystemManager
