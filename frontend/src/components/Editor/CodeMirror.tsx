@@ -50,8 +50,11 @@ function CodeMirror({ fileId, isActive }: Props): JSX.Element {
             file.awareness.setLocalState(null)
         } else {
             editorViewRef.current?.focus()
-            file.awareness.setLocalState({})
-            presenceService.setLocation(fileId)
+            const user = presenceService.setLocation(fileId)
+            file.awareness.setLocalStateField('user', {
+                name: user.name,
+                color: user.color,
+            })
         }
     }, [isActive, file])
 

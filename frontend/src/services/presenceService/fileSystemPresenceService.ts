@@ -39,8 +39,9 @@ class FileSystemPresenceService extends PresenceService {
         this.awareness.setLocalStateField('user', null)
     }
 
-    public setLocation(fileId: string | null): void {
+    public setLocation(fileId: string | null): UserStatus {
         this.awareness.setLocalStateField('user', { ...this.userStatus, activeFileId: fileId })
+        return this.userStatus
     }
 
     public getOnlineUsers(): { clientId: number; user: UserStatus }[] {

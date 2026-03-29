@@ -15,7 +15,7 @@ export type PresenceEvents = {
 const ClassBase = mixin(BaseService, Observable<PresenceEvents>)
 
 export abstract class PresenceService extends ClassBase {
-    public abstract setLocation(fileId: string | null): void
+    public abstract setLocation(fileId: string | null): UserStatus
     public abstract getUsersInBranch(nodeId: NullableString): { clientId: number; user: UserStatus }[]
     public abstract getOnlineUsers(): { clientId: number; user: UserStatus }[]
 }
