@@ -1,11 +1,13 @@
 .ide-statusbar {
     grid-area: statusbar;
     display: flex;
+    flex-direction: row;
     align-items: center;
+    justify-content: flex-end;
     padding: 0 12px;
     gap: 16px;
     font-size: 11px;
-    background: var(--accent);
+    background: var(--border);
     color: var(--text-bright);
     user-select: none;
 }

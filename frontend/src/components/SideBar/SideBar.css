@@ -27,7 +27,6 @@
 .actions-extra {
     display: flex;
     flex-direction: column;
-    margin-bottom: 8px;
 }
 
 .sidebar-action {
@@ -36,7 +35,6 @@
     background: none;
     border: none;
     cursor: pointer;
-    padding: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -93,19 +91,4 @@
     text-align: center;
     color: var(--text-muted);
     font-style: italic;
-}
-
-.search-input {
-    width: 100%;
-    padding: 6px 8px;
-    background: var(--bg-base);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    border-radius: 2px;
-    margin-bottom: 8px;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: var(--accent);
 }

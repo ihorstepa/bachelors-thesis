@@ -19,6 +19,7 @@ import { lintKeymap } from '@codemirror/lint'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { cpp } from '@codemirror/lang-cpp'
 import { yCollab } from 'y-codemirror.next'
+import { indentationMarkers } from '@replit/codemirror-indentation-markers'
 
 import type { SharedFile } from '@/core/fileSyncManager'
 
@@ -39,8 +40,12 @@ function getExtensions(sharedFile: SharedFile): Extension[] {
         highlightSelectionMatches(),
         highlightSpecialChars(),
         history(),
+        indentationMarkers({
+            highlightActiveBlock: false,
+            colors: { dark: '#3b3f46' },
+        }),
         indentOnInput(),
-        indentUnit.of('  '),
+        indentUnit.of('    '),
         keymap.of([
             ...closeBracketsKeymap,
             ...completionKeymap,

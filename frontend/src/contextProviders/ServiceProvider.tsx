@@ -1,11 +1,11 @@
-import React, { createContext, useState, useContext } from 'react'
+import React, { createContext, useState, useContext, useRef } from 'react'
 
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import WSConnectionFactory from '@/services/connectionFactory/wsConnectionFactory'
 import SharedFileSystemManager from '@/services/fileSystemManager/sharedFileSystemManager'
-import FileSystemPresenceService from '@/services/presenceService/presenceService'
+import FileSystemPresenceService from '@/services/presenceService/fileSystemPresenceService'
 import MultipleFileSyncManager from '@/services/fileSyncManager/multipleFileSyncManager'
-import PersistentTabManager from '@/services/tabManager/tabManager'
+import PersistentTabManager from '@/services/tabManager/persistentTabManager'
 import LocalFileTreeManager from '@/services/fileTreeManager/localFileTreeManager'
 import { ConnectionFactory } from '@/core/connectionFactory'
 import { FileSystemManager } from '@/core/fileSystemManager'
@@ -61,24 +61,27 @@ type Props = {
 }
 
 function ServiceProvider({ projectId, children }: Props): React.ReactNode {
-    const [registry, setRegistry] = useState<ServiceRegistry>(new Map())
+    const registryRef = useRef<ServiceRegistry>(new Map())
+    const [ready, setReady] = useState(false)
 
     useAsyncEffect(
         async (isAborted) => {
             const services = await initServices(projectId)
             if (isAborted()) return
-            setRegistry(services)
+            registryRef.current = services
+            setReady(true)
         },
         () => {
-            registry.forEach((service) => service.destroy?.())
-            setRegistry(new Map())
+            registryRef.current.forEach((service) => service.destroy?.())
+            registryRef.current = new Map()
+            setReady(false)
         },
         [projectId],
     )
 
-    if (registry.size === 0) return <div>Loading...</div>
+    if (!ready) return <div>Loading...</div>
 
-    return <ServiceContext value={registry}>{children}</ServiceContext>
+    return <ServiceContext value={registryRef.current}>{children}</ServiceContext>
 }
 
 export default ServiceProvider
