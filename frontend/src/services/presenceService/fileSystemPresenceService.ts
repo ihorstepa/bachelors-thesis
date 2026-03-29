@@ -66,6 +66,8 @@ class FileSystemPresenceService extends PresenceService {
         this.users = new Map()
 
         this.awareness.getStates().forEach((state, clientId) => {
+            if (clientId === this.awareness.clientID) return
+
             const user = state.user as UserStatus | undefined
             if (!user) return
 
