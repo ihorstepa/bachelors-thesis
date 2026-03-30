@@ -1,10 +1,16 @@
 import '@/components/StatusBar/StatusBar.css'
+import { useEditor } from '@/contextProviders/EditorProvider'
 
 function StatusBar() {
+    const { editorState } = useEditor()
+
     return (
         <div className='ide-statusbar'>
-            <span>Ln 1, Col 1</span>
-            <span>C++</span>
+            <span>
+                Ln {editorState.line}, Col {editorState.column}{' '}
+                {editorState.selected > 0 && ` (${editorState.selected} selected)`}
+            </span>
+            <span>{editorState.language || 'Plain Text'}</span>
         </div>
     )
 }

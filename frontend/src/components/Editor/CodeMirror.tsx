@@ -1,15 +1,18 @@
-import { useState, useRef, useLayoutEffect } from 'react'
+import { useState, useRef, useLayoutEffect, useMemo, useEffect } from 'react'
 import ReactCodeMirror from '@uiw/react-codemirror'
-import type { EditorView } from '@codemirror/view'
+import type { EditorView, ViewUpdate } from '@codemirror/view'
 import type { JSX } from 'react'
 
 import { useService } from '@/contextProviders/ServiceProvider'
 import { FileSyncManager } from '@/core/fileSyncManager'
 import { PresenceService } from '@/core/presenceService'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
-import getExtensions from '@/components/Editor/extensions'
-import Spinner from '@/components/Spinner/Spinner'
 import type { SharedFile } from '@/core/fileSyncManager'
+import ExtensionProvider from './extensionProvider'
+import { FileSystemManager, type NodeMeta } from '@/core/fileSystemManager'
+import { useEditor } from '@/contextProviders/EditorProvider'
+import Spinner from '@/components/Spinner/Spinner'
+import { getLanguageName } from './extensions/language'
 
 type Props = {
     fileId: string
@@ -17,20 +20,48 @@ type Props = {
 }
 
 function CodeMirror({ fileId, isActive }: Props): JSX.Element {
+    const fileSystemManager = useService(FileSystemManager)
     const fileSyncManager = useService(FileSyncManager)
     const presenceService = useService(PresenceService)
+
     const [file, setFile] = useState<SharedFile | null>(null)
+    const [meta, setMeta] = useState<NodeMeta | null>(null)
     const [isSynced, setIsSynced] = useState(false)
     const editorViewRef = useRef<EditorView | null>(null)
+    const { setEditorState } = useEditor()
+
+    const extensionProvider = useMemo(() => new ExtensionProvider(), [fileId])
+    const extensions = file && meta ? extensionProvider.getExtensions(file, meta) : []
+
+    useEffect(() => {
+        return fileSystemManager.on('rename', (id) => {
+            if (id === fileId) {
+                setMeta(fileSystemManager.getMeta(id))
+            }
+        })
+    }, [fileId])
+
+    useEffect(() => {
+        if (!isActive || !meta) return
+        setEditorState((prev) => ({ ...prev, language: getLanguageName(meta.name) }))
+    }, [isActive, meta])
+
+    useLayoutEffect(() => {
+        const view = editorViewRef.current
+        if (!view || !meta || !isSynced) return
+        view.dispatch({ effects: extensionProvider.reconfigure(meta) })
+    }, [meta, isSynced])
 
     useAsyncEffect(
         async (isAborted) => {
             setIsSynced(false)
-            const sharedFile = await fileSyncManager.openFile(fileId)
+            const file = await fileSyncManager.openFile(fileId)
 
             if (isAborted()) return
-            setFile(sharedFile)
-            await sharedFile.synced
+            setFile(file)
+            setMeta(fileSystemManager.getMeta(fileId))
+
+            await file.synced
 
             if (isAborted()) return
             setIsSynced(true)
@@ -38,6 +69,7 @@ function CodeMirror({ fileId, isActive }: Props): JSX.Element {
         () => {
             fileSyncManager.closeFile(fileId)
             setFile(null)
+            setMeta(null)
             setIsSynced(false)
         },
         [fileId],
@@ -66,6 +98,20 @@ function CodeMirror({ fileId, isActive }: Props): JSX.Element {
         )
     }
 
+    const onUpdate = (update: ViewUpdate) => {
+        if (!isActive) return
+        const state = update.state
+        const head = state.selection.main.head
+        const line = state.doc.lineAt(head)
+        const selected = state.selection.ranges.reduce((acc, r) => acc + r.to - r.from, 0)
+        setEditorState((prev) => ({
+            ...prev,
+            line: line.number,
+            column: head - line.from + 1,
+            selected,
+        }))
+    }
+
     return (
         <ReactCodeMirror
             value={file.doc.getText().toString()}
@@ -85,11 +131,12 @@ function CodeMirror({ fileId, isActive }: Props): JSX.Element {
             // indentWithTab={}
             // onChange={}
             // onStatistics={}
-            // onUpdate={}
+            onUpdate={onUpdate}
             onCreateEditor={(view) => {
                 editorViewRef.current = view
             }}
-            extensions={getExtensions(file)}
+            extensions={extensions}
+            // extensions={getExtensions(file)}
             // root={}
             // initialState={}
         />

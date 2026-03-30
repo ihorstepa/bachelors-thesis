@@ -12,5 +12,4 @@ export type SharedFile = {
 export abstract class FileSyncManager extends BaseService {
     public abstract openFile(id: string): Promise<SharedFile>
     public abstract closeFile(id: string): void
-    public abstract getActiveFile(): SharedFile | null
 }

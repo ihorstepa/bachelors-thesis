@@ -7,20 +7,23 @@ import Tabs from '@/components/Tabs/Tabs'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import TopBar from '@/components/TopBar/TopBar'
 import ServiceProvider from '@/contextProviders/ServiceProvider'
-import '@/pages/Ide/Ide.css'
 import FileTreeProvider from '@/contextProviders/FileTreeProvider'
+import EditorProvider from '@/contextProviders/EditorProvider'
+import '@/pages/Ide/Ide.css'
 
 function IdeInner() {
     return (
         <TabsProvider>
             <FileTreeProvider>
-                <div className='ide'>
-                    <TopBar />
-                    <Tabs />
-                    <SideBar />
-                    <Editor />
-                    <StatusBar />
-                </div>
+                <EditorProvider>
+                    <div className='ide'>
+                        <TopBar />
+                        <Tabs />
+                        <SideBar />
+                        <Editor />
+                        <StatusBar />
+                    </div>
+                </EditorProvider>
             </FileTreeProvider>
         </TabsProvider>
     )
