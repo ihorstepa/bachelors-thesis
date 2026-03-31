@@ -26,6 +26,7 @@ dist-ssr
 # Other
 tmp
 .env
+.env.docker
 .env.testing
 .env.save*
 .env.backup*
