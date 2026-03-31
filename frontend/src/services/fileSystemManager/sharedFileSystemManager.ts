@@ -97,7 +97,7 @@ class SharedFileSystemManager extends FileSystemManager {
         this.metaMap.set(nodeId, { ...node, parentId })
     }
 
-    public copy(nodeId: string, targetParentId: NullableString): string {
+    public copy(_: string, __: NullableString): string {
         // TODO
         return ''
     }
