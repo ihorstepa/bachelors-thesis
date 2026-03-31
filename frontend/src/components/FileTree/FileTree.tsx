@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { DragDropProvider, useDroppable } from '@dnd-kit/react'
+import { CollisionPriority, CollisionType } from '@dnd-kit/abstract'
 import type { JSX } from 'react'
 
 import { useFileTree } from '@/contextProviders/FileTreeProvider'
@@ -10,6 +11,7 @@ import { FileSystemManager } from '@/core/fileSystemManager'
 import { useTabs } from '@/contextProviders/TabsProvider'
 import type { NullableString } from '@/utils/types'
 import '@/components/FileTree/FileTree.css'
+import FileTreeRoot from './FileTreeRoot'
 
 function FileTree(): JSX.Element {
     const fileSystemManager = useService(FileSystemManager)
@@ -23,11 +25,6 @@ function FileTree(): JSX.Element {
             fileTreeManager.selectItem(activeId)
         }
     }, [activeId, fileSystemManager, fileTreeManager])
-
-    const { ref: rootDropRef, isDropTarget: isRootDropTarget } = useDroppable({
-        id: 'root',
-        data: { type: 'root' },
-    })
 
     const handleDragEnd = (event: any) => {
         const { source, target } = event.operation ?? {}
@@ -90,11 +87,11 @@ function FileTree(): JSX.Element {
                 canRenameOrDelete={canRenameOrDelete}
             />
             <DragDropProvider onDragEnd={handleDragEnd as any}>
-                <div ref={rootDropRef} className={`tree-view ${isRootDropTarget ? 'root-drop-target' : ''}`}>
+                <FileTreeRoot>
                     {tree.map((node) => (
                         <FileTreeItem key={node.id} node={node} level={0} />
                     ))}
-                </div>
+                </FileTreeRoot>
             </DragDropProvider>
         </div>
     )

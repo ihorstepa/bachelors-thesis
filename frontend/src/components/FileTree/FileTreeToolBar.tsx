@@ -24,7 +24,7 @@ function FileTreeToolBar({ onCreateFile, onCreateDir, onRename, onDelete, canRen
                 <GhostButton onClick={onRename} disabled={!canRenameOrDelete} title='Rename'>
                     <VscEdit />
                 </GhostButton>
-                <GhostButton onClick={onDelete} disabled={!canRenameOrDelete} title='Delete' className='delete-button'>
+                <GhostButton onClick={onDelete} disabled={!canRenameOrDelete} title='Delete' className='danger'>
                     <VscTrash />
                 </GhostButton>
             </div>

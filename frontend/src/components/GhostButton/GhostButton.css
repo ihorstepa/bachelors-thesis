@@ -15,11 +15,16 @@
         color 0.1s;
 }
 
-.ghost-btn:hover {
+.ghost-btn:hover:not(:disabled) {
     background: var(--bg-hover);
     color: var(--text-bright);
 }
 
-.ghost-btn.danger:hover {
+.ghost-btn.danger:hover:not(:disabled) {
     color: var(--text-error, #f48771);
+}
+
+.ghost-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }

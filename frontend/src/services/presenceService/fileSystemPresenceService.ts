@@ -76,9 +76,12 @@ class FileSystemPresenceService extends PresenceService {
 
             let currentId: NullableString = user.activeFileId
             while (currentId) {
+                if (!this.fileSystemManager.exists(currentId)) break
+
                 if (!this.index.has(currentId)) {
                     this.index.set(currentId, new Set())
                 }
+
                 this.index.get(currentId)!.add(clientId)
                 currentId = this.fileSystemManager.getMeta(currentId).parentId
             }

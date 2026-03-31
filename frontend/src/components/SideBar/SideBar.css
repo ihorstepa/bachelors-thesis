@@ -47,7 +47,7 @@
 }
 
 .sidebar-action.active {
-    color: var(--white);
+    color: var(--accent);
     border-left: 2px solid var(--accent);
     background-color: var(--bg-hover);
 }
@@ -64,7 +64,7 @@
 
 .sidebar-view {
     height: 100%;
-    min-width: 240px;
+    width: 240px;
     display: flex;
     flex-direction: column;
     overflow: hidden;

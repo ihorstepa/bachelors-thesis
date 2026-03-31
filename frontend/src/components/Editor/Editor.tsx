@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import type { JSX } from 'react'
 
 import { useTabs } from '@/contextProviders/TabsProvider'
@@ -10,8 +11,13 @@ function Editor(): JSX.Element {
     const presenceService = useService(PresenceService)
     const { tabs, activeId } = useTabs()
 
+    useEffect(() => {
+        if (tabs.length === 0) {
+            presenceService.setLocation(null)
+        }
+    }, [tabs.length, presenceService])
+
     if (tabs.length === 0) {
-        presenceService.setLocation(null)
         return <div className='ide-editor-empty'>Open a file to start editing</div>
     }
 

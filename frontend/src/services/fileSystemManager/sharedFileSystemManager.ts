@@ -55,9 +55,14 @@ class SharedFileSystemManager extends FileSystemManager {
 
     public delete(id: string): void {
         const traverse = (id: string) => {
-            const meta = this.requireMeta(id)
+            const meta = this.metaMap.get(id)
+            if (!meta) return
+
             if (meta.type === 'dir') {
-                ;[...this.requireIndex(id).ids].forEach((childId) => traverse(childId))
+                const entry = this.index.get(id)
+                if (entry) {
+                    ;[...entry.ids].forEach((childId) => traverse(childId))
+                }
             }
             this.metaMap.delete(id)
         }
@@ -89,7 +94,9 @@ class SharedFileSystemManager extends FileSystemManager {
                 if (current === nodeId) {
                     throw new err.CircularMoveError(parentId)
                 }
-                current = this.requireMeta(current).parentId
+                const meta = this.metaMap.get(current)
+                if (!meta) break
+                current = meta.parentId
             }
         }
         this.assertNoNameConflict(parentId, node.name)
@@ -114,7 +121,13 @@ class SharedFileSystemManager extends FileSystemManager {
         if (id !== null) {
             this.requireMeta(id)
         }
-        return [...this.requireIndex(id).ids].map((id) => this.requireMeta(id))
+
+        const entry = this.index.get(id)
+        if (!entry) return []
+
+        return Array.from(entry.ids)
+            .map((childId) => this.metaMap.get(childId))
+            .filter((meta): meta is NodeMeta => !!meta)
     }
 
     public getRootConnection(): Connection {
@@ -193,14 +206,6 @@ class SharedFileSystemManager extends FileSystemManager {
             this.index.set(id, { ids: new Set(), names: new Set() })
         }
         return this.index.get(id)!
-    }
-
-    private requireIndex(id: NullableString): IndexEntry {
-        const entry = this.index.get(id)
-        if (!entry) {
-            throw new err.MissingIndexError(id)
-        }
-        return entry
     }
 
     private requireMeta(id: string): NodeMeta {

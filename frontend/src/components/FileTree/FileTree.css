@@ -16,7 +16,7 @@
     background-color: var(--bg-panel);
 }
 
-.file-tree-toolbar .toolbar-project {
+.toolbar-project {
     font-weight: bold;
 }
 
@@ -25,22 +25,9 @@
     gap: 4px;
 }
 
-.file-tree-toolbar button:hover:not(:disabled) {
-    background-color: var(--bg-hover);
-    color: var(--text-primary);
-}
-
-.file-tree-toolbar button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.file-tree-toolbar .delete-button:hover:not(:disabled) {
-    color: #e06c75;
-}
-
 .tree-view {
     flex: 1;
+    height: 100%;
     overflow-y: auto;
 }
 
@@ -97,9 +84,9 @@
     white-space: nowrap;
 }
 
-.tree-node.drop-target {
+.drop-target {
     background-color: var(--bg-selection);
-    outline: 1px solid var(--accent);
+    /* outline: 1px solid var(--accent); */
 }
 
 .tree-node.dragging {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useDraggable, useDroppable } from '@dnd-kit/react'
 import { FaChevronRight, FaChevronDown } from 'react-icons/fa'
+import type { JSX } from 'react'
 
 import { useService } from '@/contextProviders/ServiceProvider'
 import { useFileTree } from '@/contextProviders/FileTreeProvider'
@@ -14,7 +15,7 @@ type Props = {
     level: number
 }
 
-export function FileTreeItem({ node, level }: Props) {
+export function FileTreeItem({ node, level }: Props): JSX.Element {
     const { expanded, selectedId, fileTreeManager } = useFileTree()
     const { tabManager } = useTabs()
     const presenceService = useService(PresenceService)
@@ -60,6 +61,7 @@ export function FileTreeItem({ node, level }: Props) {
                     dragRef(element)
                     dropRef(element)
                 }}
+                title={node.name}
                 className={`tree-node ${selectedId === node.id ? 'selected' : ''} ${isDropTarget ? 'drop-target' : ''} ${isDragging ? 'dragging' : ''}`}
                 style={{ paddingLeft: level * 20 + 8 }}
                 onClick={handleRowClick}

@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect, useMemo, useEffect } from 'react'
+import { useState, useRef, useMemo, useEffect } from 'react'
 import ReactCodeMirror from '@uiw/react-codemirror'
 import type { EditorView, ViewUpdate } from '@codemirror/view'
 import type { JSX } from 'react'
@@ -46,7 +46,7 @@ function CodeMirror({ fileId, isActive }: Props): JSX.Element {
         setEditorState((prev) => ({ ...prev, language: getLanguageName(meta.name) }))
     }, [isActive, meta])
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         const view = editorViewRef.current
         if (!view || !meta || !isSynced) return
         view.dispatch({ effects: extensionProvider.reconfigure(meta) })
@@ -75,7 +75,7 @@ function CodeMirror({ fileId, isActive }: Props): JSX.Element {
         [fileId],
     )
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         if (!file) return
 
         if (!isActive) {
@@ -83,9 +83,11 @@ function CodeMirror({ fileId, isActive }: Props): JSX.Element {
         } else {
             editorViewRef.current?.focus()
             const user = presenceService.setLocation(fileId)
-            file.awareness.setLocalStateField('user', {
-                name: user.name,
-                color: user.color,
+            file.awareness.setLocalState({
+                user: {
+                    name: user.name,
+                    color: user.color,
+                },
             })
         }
     }, [isActive, file])
