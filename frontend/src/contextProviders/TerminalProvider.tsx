@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { useService } from '@/contextProviders/ServiceProvider'
@@ -22,11 +22,21 @@ type Props = { children: ReactNode }
 function TerminalProvider({ children }: Props) {
     const codeRunner = useService(CodeRunner)
     const [terminalOpen, setTerminalOpen] = useState(false)
+    const hasAutoOpenedRef = useRef(false)
 
     useEffect(() => {
-        const unsubStdout = codeRunner.on('stdout', () => setTerminalOpen(true))
-        const unsubStderr = codeRunner.on('stderr', () => setTerminalOpen(true))
+        const unsubRun = codeRunner.on('change', (status) => {
+            if (status === 'compiling') hasAutoOpenedRef.current = false
+        })
+        const openOnce = () => {
+            if (hasAutoOpenedRef.current) return
+            hasAutoOpenedRef.current = true
+            setTerminalOpen(true)
+        }
+        const unsubStdout = codeRunner.on('stdout', openOnce)
+        const unsubStderr = codeRunner.on('stderr', openOnce)
         return () => {
+            unsubRun()
             unsubStdout()
             unsubStderr()
         }

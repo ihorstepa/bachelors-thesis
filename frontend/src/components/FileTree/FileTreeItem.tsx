@@ -63,7 +63,7 @@ export function FileTreeItem({ node, level }: Props): JSX.Element {
                 }}
                 title={node.name}
                 className={`tree-node ${selectedId === node.id ? 'selected' : ''} ${isDropTarget ? 'drop-target' : ''} ${isDragging ? 'dragging' : ''}`}
-                style={{ paddingLeft: level * 20 }}
+                style={{ paddingLeft: level * 20 + 12 }}
                 onClick={handleRowClick}
             >
                 <div className='tree-node-left'>

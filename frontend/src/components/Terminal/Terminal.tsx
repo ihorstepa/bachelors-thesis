@@ -8,14 +8,29 @@ import { useCodeRunner } from '@/contextProviders/CodeRunnerProvider'
 import { useTerminal } from '@/contextProviders/TerminalProvider'
 import '@/components/Terminal/Terminal.css'
 
+const ansi = {
+    dim: (text: string) => `\u001b[90m${text}\u001b[0m`,
+    red: (text: string) => `\u001b[31m${text}\u001b[0m`,
+} as const
+
+const messages = {
+    nothingRunning: `${ansi.dim('[nothing currently running]')}\n`,
+    stopped: `\n${ansi.dim('[stopped]')}\n`,
+    exit: (code: number) => `${ansi.dim(`[exit ${code}]`)}\n`,
+} as const
+
 function toTerminalText(text: string): string {
     return text.replace(/\r?\n/g, '\r\n')
+}
+
+function isActiveStatus(status: string): boolean {
+    return ['syncing', 'compiling', 'linking', 'running'].includes(status)
 }
 
 function Terminal() {
     const { canSendInput, status, runner } = useCodeRunner()
     const { terminalOpen, setTerminalOpen } = useTerminal()
-    const isActive = status === 'compiling' || status === 'linking' || status === 'running'
+    const isActive = isActiveStatus(status)
 
     const containerRef = useRef<HTMLDivElement | null>(null)
     const terminalRef = useRef<XTerm | null>(null)
@@ -50,6 +65,11 @@ function Terminal() {
         terminal.open(containerRef.current!)
         fitAddon.fit()
 
+        if (status === 'idle') {
+            terminal.write(toTerminalText(messages.nothingRunning))
+            placeholderShownRef.current = true
+        }
+
         const resizeObserver = new ResizeObserver(() => fitAddon.fit())
         resizeObserver.observe(containerRef.current!)
 
@@ -65,7 +85,6 @@ function Terminal() {
         })
 
         const disposable = terminal.onData((value) => {
-            // Ctrl+C chord is handled in onKey above; keep onData as a fallback.
             if (value === '\u0003' && isActiveRef.current) {
                 runner.stop()
                 return
@@ -88,7 +107,7 @@ function Terminal() {
                 terminal.clear()
                 placeholderShownRef.current = false
             }
-            terminal.write(toTerminalText(`\u001b[31m${text}\u001b[0m`))
+            terminal.write(toTerminalText(ansi.red(text)))
             hasOutputRef.current = true
         })
 
@@ -97,7 +116,7 @@ function Terminal() {
                 terminal.clear()
                 placeholderShownRef.current = false
             }
-            terminal.write(toTerminalText(`\n\u001b[90m[exit ${code}]\u001b[0m\n`))
+            terminal.write(toTerminalText(messages.exit(code)))
             hasOutputRef.current = true
         })
 
@@ -126,13 +145,8 @@ function Terminal() {
             terminal.focus()
         })
 
-        if (!hasOutputRef.current && status === 'idle' && !placeholderShownRef.current) {
-            terminal.write(toTerminalText('\u001b[90m[nothing currently running]\u001b[0m\n'))
-            placeholderShownRef.current = true
-        }
-
         return () => cancelAnimationFrame(handle)
-    }, [terminalOpen, status])
+    }, [terminalOpen])
 
     useEffect(() => {
         if (status !== 'idle' && placeholderShownRef.current) {
@@ -141,13 +155,12 @@ function Terminal() {
         }
     }, [status])
 
-    // show stopped message when a running build/run is killed (service sets status to 'idle')
     const prevStatusRef = useRef(status)
     useEffect(() => {
         const prev = prevStatusRef.current
-        const wasActive = prev === 'compiling' || prev === 'linking' || prev === 'running'
+        const wasActive = isActiveStatus(prev)
         if (wasActive && status === 'idle') {
-            terminalRef.current?.write(toTerminalText('\n\u001b[90m[stopped]\u001b[0m\n'))
+            terminalRef.current?.write(toTerminalText(messages.stopped))
         }
         prevStatusRef.current = status
     }, [status])
@@ -156,11 +169,8 @@ function Terminal() {
         terminalRef.current?.clear()
         terminalRef.current?.reset()
         hasOutputRef.current = false
-        if (status === 'idle') {
-            terminalRef.current?.write(toTerminalText('\u001b[90m[nothing currently running]\u001b[0m\n'))
-            placeholderShownRef.current = true
-        }
-    }, [status])
+        placeholderShownRef.current = false
+    }, [])
 
     return (
         <section className={`ide-terminal-panel ${terminalOpen ? 'open' : 'closed'}`}>
