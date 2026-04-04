@@ -5,19 +5,26 @@
     overflow: hidden;
     background-color: var(--bg-panel);
     color: var(--text-primary);
+    padding: 12px;
+    padding-top: 8px;
 }
 
 .file-tree-toolbar {
     flex-shrink: 0;
     display: flex;
     justify-content: space-between;
-    padding: 4px 8px;
+    padding-bottom: 4px;
+    margin-bottom: 4px;
     border-bottom: 1px solid var(--border);
     background-color: var(--bg-panel);
 }
 
 .toolbar-project {
-    font-weight: bold;
+    display: flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
 }
 
 .toolbar-buttons {

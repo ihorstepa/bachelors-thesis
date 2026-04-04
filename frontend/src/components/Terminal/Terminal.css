@@ -1,0 +1,60 @@
+.run-terminal {
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.run-terminal .xterm-screen {
+    padding: 0 12px;
+}
+
+.ide-terminal-panel {
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: 34px 1fr;
+    overflow: hidden;
+}
+
+.ide-terminal-body {
+    min-height: 0;
+    overflow: auto;
+}
+
+.ide-terminal-panel.closed {
+    display: none;
+}
+
+.ide-terminal-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    padding: 0 12px;
+    background-color: var(--bg-base);
+    border-top: 1px solid var(--text-muted);
+}
+
+.ide-terminal-title {
+    font-size: 11px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    font-weight: 600;
+    border-bottom: 1px solid var(--text-primary);
+    padding: 2px;
+}
+
+.ide-terminal-icon-btn:hover:enabled {
+    background-color: color-mix(in srgb, var(--bg-selection) 45%, var(--bg-hover));
+}
+
+.ide-terminal-icon-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.ide-terminal-header .ide-terminal-actions {
+    display: flex;
+    gap: 6px;
+    grid-column: 3;
+    justify-self: end;
+}

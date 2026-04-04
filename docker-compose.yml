@@ -1,5 +1,5 @@
 name: monorepo
 
 include:
-  - ./backend/docker-compose.yml
-  - ./frontend/docker-compose.yml
+    - ./backend/docker-compose.yml
+    - ./frontend/docker-compose.yml

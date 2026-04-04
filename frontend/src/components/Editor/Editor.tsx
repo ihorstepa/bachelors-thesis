@@ -27,7 +27,7 @@ function Editor(): JSX.Element {
                 <div
                     key={fileId}
                     className='ide-editor-container'
-                    style={{ display: fileId === activeId ? 'block' : 'none' }}
+                    style={{ display: fileId === activeId ? 'flex' : 'none' }}
                 >
                     <CodeMirror fileId={fileId} isActive={fileId === activeId} />
                 </div>

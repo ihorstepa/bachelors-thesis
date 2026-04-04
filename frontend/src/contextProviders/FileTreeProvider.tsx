@@ -39,7 +39,7 @@ function FileTreeProvider({ children }: Props): JSX.Element {
         () => fileTreeManager.getSelectedId(),
     )
 
-    const value = { tree, expanded, selectedId, fileTreeManager }
+    const value: FileTreeState = { tree, expanded, selectedId, fileTreeManager }
 
     return <FileTreeContext value={value}>{children}</FileTreeContext>
 }

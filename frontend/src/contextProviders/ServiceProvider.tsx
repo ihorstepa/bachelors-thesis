@@ -1,6 +1,10 @@
 import React, { createContext, useState, useContext, useRef } from 'react'
 
 import useAsyncEffect from '@/hooks/useAsyncEffect'
+import BrowserCodeRunner from '@/services/codeRunner/browserCodeRunner'
+import { CodeRunner } from '@/core/codeRunner'
+import { ProjectIndexService } from '@/core/projectIndexService'
+import LocalProjectIndexService from '@/services/projectIndexService/localProjectIndexService'
 import WSConnectionFactory from '@/services/connectionFactory/wsConnectionFactory'
 import SharedFileSystemManager from '@/services/fileSystemManager/sharedFileSystemManager'
 import FileSystemPresenceService from '@/services/presenceService/fileSystemPresenceService'
@@ -42,6 +46,12 @@ async function initServices(projectId?: string): Promise<ServiceRegistry> {
 
     const fileTreeManager = new LocalFileTreeManager(fileSystemManager)
     services.set(FileTreeManager, fileTreeManager)
+
+    const projectFileIndex = new LocalProjectIndexService(fileSystemManager)
+    services.set(ProjectIndexService, projectFileIndex)
+
+    const compilationService = new BrowserCodeRunner(fileSystemManager, fileSyncManager, projectFileIndex, tabManager)
+    services.set(CodeRunner, compilationService)
 
     return services
 }

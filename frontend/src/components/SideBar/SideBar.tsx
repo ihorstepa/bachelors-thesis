@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { VscFiles, VscSearch, VscSourceControl, VscRunAll, VscSettingsGear, VscAccount } from 'react-icons/vsc'
 
 import FileTree from '@/components/FileTree/FileTree'
+import RunPanel from '@/components/RunPanel/RunPanel'
 import '@/components/SideBar/SideBar.css'
 
 type View = 'explorer' | 'search' | 'run' | 'sourceControl' | 'account' | 'settings'
@@ -15,8 +16,8 @@ type Action = {
 
 const mainActions: Action[] = [
     { id: 'explorer', icon: VscFiles, title: 'Explorer', component: FileTree },
+    { id: 'run', icon: VscRunAll, title: 'Run', component: RunPanel },
     { id: 'search', icon: VscSearch, title: 'Search', component: null },
-    { id: 'run', icon: VscRunAll, title: 'Run', component: null },
     { id: 'sourceControl', icon: VscSourceControl, title: 'Source Control', component: null },
 ]
 

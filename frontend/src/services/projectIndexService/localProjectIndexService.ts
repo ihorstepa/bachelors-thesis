@@ -1,0 +1,52 @@
+import { ProjectIndexService } from '@/core/projectIndexService'
+import { FileSystemManager } from '@/core/fileSystemManager'
+import type { FileLocation } from '@/core/projectIndexService'
+
+class LocalProjectIndexService extends ProjectIndexService {
+    private fileSystemManager: FileSystemManager
+    private fileRefsAll: FileLocation[] = []
+
+    public constructor(fileSystemManager: FileSystemManager) {
+        super()
+        this.fileSystemManager = fileSystemManager
+
+        this.recompute = this.recompute.bind(this)
+        this.recompute()
+
+        this.fileSystemManager.on('change', () => {
+            this.recompute()
+            this.emit('change')
+        })
+    }
+
+    public destroy(): void {
+        this.fileSystemManager.off('change', this.recompute)
+    }
+
+    public getAllFilePaths(): FileLocation[] {
+        if (!this.fileRefsAll) this.recompute()
+        return this.fileRefsAll
+    }
+
+    private recompute(): void {
+        const allRefs: FileLocation[] = []
+
+        const traverse = (parentId: string | null, parentPath: string) => {
+            for (const child of this.fileSystemManager.getChildrenMeta(parentId)) {
+                const fullPath = parentPath ? `${parentPath}/${child.name}` : child.name
+                if (child.type === 'dir') {
+                    traverse(child.id, fullPath)
+                } else {
+                    allRefs.push({ id: child.id, path: fullPath })
+                }
+            }
+        }
+
+        traverse(null, '')
+        allRefs.sort((a, b) => a.path.localeCompare(b.path))
+
+        this.fileRefsAll = allRefs
+    }
+}
+
+export default LocalProjectIndexService

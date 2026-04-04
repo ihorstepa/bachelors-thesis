@@ -32,6 +32,7 @@ export function getLanguageName(filename: string): LanguageName {
     return extensionToNameMap[fileExt]
 }
 
+// TODO: JSON linter
 export function language(filename: string): Extension {
     const fileExt = filename.split('.').pop()?.toLowerCase() || ''
     const languageName = extensionToNameMap[fileExt]

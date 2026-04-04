@@ -6,12 +6,19 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
     plugins: [react(), babel({ presets: [reactCompilerPreset()] })],
+    optimizeDeps: {
+        exclude: ['@wasmer/sdk'],
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
         },
     },
     server: {
+        headers: {
+            'Cross-Origin-Opener-Policy': 'same-origin',
+            'Cross-Origin-Embedder-Policy': 'require-corp',
+        },
         proxy: {
             '/sync': {
                 target: 'ws://localhost:3002',
@@ -20,5 +27,8 @@ export default defineConfig({
                 rewrite: (path) => path.replace(/^\/sync/, 'ws'),
             },
         },
+    },
+    worker: {
+        format: 'es',
     },
 })

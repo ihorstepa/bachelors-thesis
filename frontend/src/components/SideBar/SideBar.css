@@ -58,7 +58,7 @@
     background: var(--bg-panel);
 }
 
-.ide-sidebar.collapsed .sidebar-content {
+.sidebar-content.collapsed {
     display: none;
 }
 

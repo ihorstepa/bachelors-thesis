@@ -32,9 +32,9 @@ function TabsProvider({ children }: Props) {
         () => tabManager.getActiveId(),
     )
 
-    const state = { tabs, activeId, tabManager }
+    const value: TabsState = { tabs, activeId, tabManager }
 
-    return <TabsContext value={state}>{children}</TabsContext>
+    return <TabsContext value={value}>{children}</TabsContext>
 }
 
 export default TabsProvider

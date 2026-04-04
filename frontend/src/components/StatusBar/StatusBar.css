@@ -4,24 +4,27 @@
     flex-direction: row;
     align-items: center;
     justify-content: flex-end;
-    padding: 0 12px;
-    gap: 16px;
-    font-size: 11px;
     background: var(--border);
     color: var(--text-bright);
     user-select: none;
+    gap: 6px;
 }
 
-.ide-statusbar span {
-    padding: 0 4px;
+.ide-statusbar button {
+    background: transparent;
+    color: var(--text-bright);
+    border: none;
+    padding: 4px 6px;
     cursor: pointer;
     opacity: 0.9;
+    border-radius: 0;
+    font-size: 12px;
+    min-width: 30px;
 }
 
-.ide-statusbar span:hover {
+.ide-statusbar button:hover {
     opacity: 1;
     background: rgba(255, 255, 255, 0.15);
-    border-radius: 3px;
 }
 
 .ide-statusbar-right {

@@ -31,3 +31,4 @@ tmp
 .env.save*
 .env.backup*
 *.test.ydoc
+.github

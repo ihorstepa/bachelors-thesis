@@ -33,7 +33,9 @@ function EditorProvider({ children }: Props) {
         selected: 0,
     })
 
-    return <EditorContext value={{ editorState, setEditorState }}>{children}</EditorContext>
+    const value: EditorContextType = { editorState, setEditorState }
+
+    return <EditorContext value={value}>{children}</EditorContext>
 }
 
 export default EditorProvider

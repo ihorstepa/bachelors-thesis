@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
-import { DragDropProvider, useDroppable } from '@dnd-kit/react'
-import { CollisionPriority, CollisionType } from '@dnd-kit/abstract'
+import { DragDropProvider } from '@dnd-kit/react'
 import type { JSX } from 'react'
 
 import { useFileTree } from '@/contextProviders/FileTreeProvider'

@@ -1,8 +1,8 @@
 services:
-  frontend:
-    build: .
-    ports:
-      - '80:80'
-    profiles: ['all']
-    depends_on:
-      - server
+    frontend:
+        build: .
+        ports:
+            - '80:80'
+        profiles: ['all']
+        depends_on:
+            - server
