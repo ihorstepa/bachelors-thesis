@@ -75,6 +75,32 @@ async function init(postgresUrl) {
         } else {
             log.info('yhub_ydoc_v1 table already exists')
         }
+
+        const usersTableExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM pg_tables
+        WHERE tablename = 'yhub_users'
+      );
+    `
+        if (!usersTableExists || usersTableExists.length === 0 || !usersTableExists[0].exists) {
+            log.info('creating yhub_users table')
+            await sql`
+        CREATE TABLE IF NOT EXISTS yhub_users (
+            id              BIGSERIAL PRIMARY KEY,
+            email           TEXT NOT NULL,
+            username        TEXT NOT NULL,
+            password_hash   TEXT NOT NULL,
+            created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+      `
+            log.info('yhub_users table created')
+        } else {
+            log.info('yhub_users table already exists')
+        }
+
+        await sql`CREATE UNIQUE INDEX IF NOT EXISTS yhub_users_email_unique_idx ON yhub_users ((LOWER(email)))`
+        await sql`CREATE UNIQUE INDEX IF NOT EXISTS yhub_users_username_unique_idx ON yhub_users ((LOWER(username)))`
+        await sql`CREATE INDEX IF NOT EXISTS yhub_users_created_at_idx ON yhub_users (created_at DESC)`
     } finally {
         await sql.end({ timeout: 5 })
     }

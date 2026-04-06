@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useRef } from 'react'
+import React, { createContext, useState, useContext, useMemo, useRef } from 'react'
 
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import BrowserCodeRunner from '@/services/codeRunner/browserCodeRunner'
@@ -17,6 +17,8 @@ import { PresenceService } from '@/core/presenceService'
 import { FileSyncManager } from '@/core/fileSyncManager'
 import { TabManager } from '@/core/tabManager'
 import { FileTreeManager } from '@/core/fileTreeManager'
+import { AuthManager } from '@/core/authManager'
+import UserAuthManager from '@/services/authManager/authHttpClient'
 import type { AbstractClass } from '@/utils/types'
 import type { BaseService } from '@/core/general'
 
@@ -24,11 +26,20 @@ type ServiceRegistry = Map<AbstractClass<BaseService>, BaseService>
 
 const ServiceContext = createContext<ServiceRegistry>(new Map())
 
-async function initServices(projectId?: string): Promise<ServiceRegistry> {
+function initGlobalServices(): ServiceRegistry {
     const services: ServiceRegistry = new Map()
+
+    services.set(AuthManager, new UserAuthManager())
+
+    return services
+}
+
+async function initIdeServices(projectId: string | undefined, authToken: string): Promise<ServiceRegistry> {
+    const services: ServiceRegistry = new Map()
+    // TODO: remove this
     projectId = projectId ?? 'default'
 
-    const connectionFactory = new WSConnectionFactory(projectId)
+    const connectionFactory = new WSConnectionFactory(projectId, authToken)
     services.set(ConnectionFactory, connectionFactory)
 
     const fileSystemManager = new SharedFileSystemManager(connectionFactory)
@@ -65,33 +76,57 @@ export function useService<T extends BaseService>(baseClass: AbstractClass<T>): 
     return service as T
 }
 
-type Props = {
-    projectId?: string
+type GlobalServiceProviderProps = {
     children: React.ReactNode
 }
 
-function ServiceProvider({ projectId, children }: Props): React.ReactNode {
+export function GlobalServiceProvider({ children }: GlobalServiceProviderProps): React.ReactNode {
+    const registry = useMemo(() => initGlobalServices(), [])
+
+    return <ServiceContext value={registry}>{children}</ServiceContext>
+}
+
+type IdeServiceProviderProps = {
+    projectId?: string
+    authToken: string
+    children: React.ReactNode
+}
+
+export function IdeServiceProvider({ projectId, authToken, children }: IdeServiceProviderProps): React.ReactNode {
+    const parentRegistry = useContext(ServiceContext)
     const registryRef = useRef<ServiceRegistry>(new Map())
+    const ideServiceKeysRef = useRef<Set<AbstractClass<BaseService>>>(new Set())
     const [ready, setReady] = useState(false)
 
     useAsyncEffect(
         async (isAborted) => {
-            const services = await initServices(projectId)
+            const ideServices = await initIdeServices(projectId, authToken)
+            ideServiceKeysRef.current = new Set(ideServices.keys())
+
+            parentRegistry.forEach((service, key) => {
+                if (!ideServices.has(key)) {
+                    ideServices.set(key, service)
+                }
+            })
+
             if (isAborted()) return
-            registryRef.current = services
+            registryRef.current = ideServices
             setReady(true)
         },
         () => {
-            registryRef.current.forEach((service) => service.destroy?.())
+            ideServiceKeysRef.current.forEach((key) => {
+                const service = registryRef.current.get(key)
+                service?.destroy?.()
+            })
+
             registryRef.current = new Map()
+            ideServiceKeysRef.current = new Set()
             setReady(false)
         },
-        [projectId],
+        [projectId, authToken, parentRegistry],
     )
 
     if (!ready) return <div>Loading...</div>
 
     return <ServiceContext value={registryRef.current}>{children}</ServiceContext>
 }
-
-export default ServiceProvider

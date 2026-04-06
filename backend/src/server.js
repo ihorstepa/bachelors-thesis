@@ -46,9 +46,9 @@ const createContentMapFromParams = (contentids, userid, customAttributions) => {
 const parseCustomAttributionsParam = (param) =>
     param
         ? param.split(',').map((entry) => {
-              const [k, ...rest] = entry.split(':')
-              return { k, v: rest.join(':') }
-          })
+            const [k, ...rest] = entry.split(':')
+            return { k, v: rest.join(':') }
+        })
         : []
 
 /**
@@ -95,7 +95,7 @@ export const createYHubServer = async (yhub, conf) => {
     const setCorsHeaders = (res) => {
         res.writeHeader('Access-Control-Allow-Origin', '*')
         res.writeHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS')
-        res.writeHeader('Access-Control-Allow-Headers', 'Content-Type')
+        res.writeHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
     }
 
     /**
@@ -108,8 +108,8 @@ export const createYHubServer = async (yhub, conf) => {
         encoding.writeAny(encoder, body)
         const response = encoding.toUint8Array(encoder)
         res.cork(() => {
-            setCorsHeaders(res)
             res.writeStatus(status)
+            setCorsHeaders(res)
             res.writeHeader('Content-Type', 'application/octet-stream')
             res.end(response)
         })
@@ -147,11 +147,15 @@ export const createYHubServer = async (yhub, conf) => {
     // Handle CORS preflight requests
     app.options('/*', (res, _req) => {
         res.cork(() => {
-            setCorsHeaders(res)
             res.writeStatus('204 No Content')
+            setCorsHeaders(res)
             res.end()
         })
     })
+
+    if (typeof conf.server?.setupApi === 'function') {
+        await conf.server.setupApi({ app, yhub, setCorsHeaders })
+    }
 
     // GET /ydoc/{org}/{docid} - Retrieve the Yjs document
     app.get('/ydoc/:org/:docid', async (res, req) => {
@@ -175,8 +179,8 @@ export const createYHubServer = async (yhub, conf) => {
             encoding.writeAny(encoder, { doc: ydoc })
             const response = encoding.toUint8Array(encoder)
             res.cork(() => {
-                setCorsHeaders(res)
                 res.writeStatus('200 OK')
+                setCorsHeaders(res)
                 res.writeHeader('Content-Type', 'application/octet-stream')
                 res.end(response)
             })
@@ -248,8 +252,8 @@ export const createYHubServer = async (yhub, conf) => {
                         })
                         const response = encoding.toUint8Array(encoder)
                         res.cork(() => {
-                            setCorsHeaders(res)
                             res.writeStatus('200 OK')
+                            setCorsHeaders(res)
                             res.writeHeader('Content-Type', 'application/octet-stream')
                             res.end(response)
                         })
@@ -361,8 +365,8 @@ export const createYHubServer = async (yhub, conf) => {
                         })
                         const response = encoding.toUint8Array(encoder)
                         res.cork(() => {
-                            setCorsHeaders(res)
                             res.writeStatus('200 OK')
+                            setCorsHeaders(res)
                             res.writeHeader('Content-Type', 'application/octet-stream')
                             res.end(response)
                         })
@@ -452,8 +456,8 @@ export const createYHubServer = async (yhub, conf) => {
         })
         if (!aborted) {
             res.cork(() => {
-                setCorsHeaders(res)
                 res.writeStatus('200 OK')
+                setCorsHeaders(res)
                 res.writeHeader('Content-Type', 'application/octet-stream')
                 res.end(responseData)
             })
@@ -526,8 +530,8 @@ export const createYHubServer = async (yhub, conf) => {
         })
         if (!aborted) {
             res.cork(() => {
-                setCorsHeaders(res)
                 res.writeStatus('200 OK')
+                setCorsHeaders(res)
                 res.writeHeader('Content-Type', 'application/octet-stream')
                 res.end(responseData)
             })
@@ -674,7 +678,7 @@ const registerWebsocketServer = (yhub, app) => {
     const maxDocSize = s.$number.cast(yhub.conf.server?.maxDocSize)
     app.ws(
         '/ws/:org/:docid',
-        /** @type {uws.WebSocketBehavior<{ user: WSUser }>} */ ({
+        /** @type {uws.WebSocketBehavior<{ user: WSUser }>} */({
             compression: uws.DISABLED,
             maxPayloadLength: maxDocSize,
             maxBackpressure: math.round(maxDocSize * 1.2),

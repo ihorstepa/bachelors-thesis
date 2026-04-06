@@ -284,6 +284,7 @@ export const $config = s.$object({
     server: s.$object({
         port: s.$number,
         auth: $authPlugin,
+        setupApi: s.$function.optional,
         /**
          * Maximum expected Ydoc size in bytes. Used as baseline to calculate WebSocket
          * maxPayloadLength and maxBackpressure. (default: 500MB)

@@ -12,6 +12,7 @@ import {
     VscAdd,
     VscSearch,
 } from 'react-icons/vsc'
+import { useAuth } from '@/contextProviders/AuthProvider'
 
 import '@/pages/Dashboard/Dashboard.css'
 
@@ -87,8 +88,11 @@ const NAV = [
 
 function Dashboard() {
     const navigate = useNavigate()
+    const auth = useAuth()
     const [activeNav, setActiveNav] = useState('all')
     const [search, setSearch] = useState('')
+
+    const userInitial = auth.user?.username?.[0]?.toUpperCase() ?? '?'
 
     const filtered = useMemo(() => {
         let list = MOCK_PROJECTS
@@ -102,10 +106,10 @@ function Dashboard() {
         <div className='dashboard'>
             <aside className='dashboard-sidebar'>
                 <div className='dashboard-sidebar-account'>
-                    <div className='dashboard-avatar'>Y</div>
+                    <div className='dashboard-avatar'>{userInitial}</div>
                     <div className='dashboard-account-info'>
-                        <span className='dashboard-account-name'>Your Name</span>
-                        <span className='dashboard-account-email'>you@example.com</span>
+                        <span className='dashboard-account-name'>{auth.user?.username ?? 'Anonymous'}</span>
+                        <span className='dashboard-account-email'>{auth.user?.email ?? ''}</span>
                     </div>
                 </div>
 
@@ -129,7 +133,13 @@ function Dashboard() {
                         </span>
                         Settings
                     </button>
-                    <button className='dashboard-nav-item'>
+                    <button
+                        className='dashboard-nav-item'
+                        onClick={() => {
+                            auth.logout()
+                            navigate('/auth')
+                        }}
+                    >
                         <span className='dashboard-nav-icon'>
                             <VscSignOut size={15} />
                         </span>

@@ -14,6 +14,7 @@
     --accent: #528bff;
     --accent-dark: #3a6ed8;
 
+    --color-black: #080808;
     --color-red: #e06c75;
 }
 
@@ -24,6 +25,7 @@ body,
     margin: 0;
     overflow: hidden;
     background-color: var(--bg-panel);
+    font-family: 'Segoe UI', sans-serif;
 }
 
 * {

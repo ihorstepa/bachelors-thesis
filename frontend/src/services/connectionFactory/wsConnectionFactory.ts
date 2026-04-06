@@ -8,10 +8,12 @@ import type { Connection, ConnectionConfig } from '@/core/connectionFactory'
 
 class WSConnectionFactory extends ConnectionFactory {
     public projectId: string
+    private authToken: string
 
-    public constructor(projectId: string) {
+    public constructor(projectId: string, authToken: string) {
         super()
         this.projectId = projectId
+        this.authToken = authToken
     }
 
     public async connect(
@@ -21,7 +23,12 @@ class WSConnectionFactory extends ConnectionFactory {
         const idb = new IndexeddbPersistence(`${this.projectId}/${room}`, doc)
         await idb.whenSynced
 
-        const ws = new WebsocketProvider(`${WS_URL}/${this.projectId}`, room, doc, { connect: autoconnect })
+        const ws = new WebsocketProvider(`${WS_URL}/${this.projectId}`, room, doc, {
+            connect: autoconnect,
+            params: {
+                auth: this.authToken,
+            },
+        })
         const awareness = ws.awareness
 
         let syncedResolve: () => void

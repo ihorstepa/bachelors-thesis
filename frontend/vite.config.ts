@@ -26,6 +26,10 @@ export default defineConfig({
                 changeOrigin: true,
                 rewrite: (path) => path.replace(/^\/sync/, 'ws'),
             },
+            '/api': {
+                target: 'http://localhost:3002',
+                changeOrigin: true,
+            },
         },
     },
     worker: {

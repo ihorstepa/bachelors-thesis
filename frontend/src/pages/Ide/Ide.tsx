@@ -7,11 +7,13 @@ import Tabs from '@/components/Tabs/Tabs'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import Terminal from '@/components/Terminal/Terminal'
 import TopBar from '@/components/TopBar/TopBar'
-import ServiceProvider from '@/contextProviders/ServiceProvider'
+import { IdeServiceProvider } from '@/contextProviders/ServiceProvider'
 import FileTreeProvider from '@/contextProviders/FileTreeProvider'
 import EditorProvider from '@/contextProviders/EditorProvider'
 import CodeRunnerProvider from '@/contextProviders/CodeRunnerProvider'
 import TerminalProvider, { useTerminal } from '@/contextProviders/TerminalProvider'
+import { useAuth } from '@/contextProviders/AuthProvider'
+import NestedProviders from '@/contextProviders/NestedProviders'
 import '@/pages/Ide/Ide.css'
 
 function IdeLayout() {
@@ -33,27 +35,26 @@ function IdeLayout() {
 
 function IdeInner() {
     return (
-        <TabsProvider>
-            <FileTreeProvider>
-                <EditorProvider>
-                    <CodeRunnerProvider>
-                        <TerminalProvider>
-                            <IdeLayout />
-                        </TerminalProvider>
-                    </CodeRunnerProvider>
-                </EditorProvider>
-            </FileTreeProvider>
-        </TabsProvider>
+        <NestedProviders
+            providers={[TabsProvider, FileTreeProvider, EditorProvider, CodeRunnerProvider, TerminalProvider]}
+        >
+            <IdeLayout />
+        </NestedProviders>
     )
 }
 
 function Ide() {
     const { projectId } = useParams()
+    const auth = useAuth()
+
+    if (auth.token == null) {
+        return <div>Authentication required</div>
+    }
 
     return (
-        <ServiceProvider projectId={projectId}>
+        <IdeServiceProvider projectId={projectId} authToken={auth.token}>
             <IdeInner />
-        </ServiceProvider>
+        </IdeServiceProvider>
     )
 }
 

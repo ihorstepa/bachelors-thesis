@@ -3,14 +3,15 @@
 import * as number from 'lib0/number'
 import * as env from 'lib0/environment'
 import * as yhub from '@y/hub'
-import * as random from 'lib0/random'
+import { createAuthModule } from '../src/auth/index.js'
 import { logger } from '../src/logger.js'
-
-const userIdChoices = ['Calvin Hobbes', 'Charlie Brown', 'Dilbert Adams', 'Garfield']
 
 const port = number.parseInt(env.getConf('port') || '3002')
 
-logger.info({ port }, 'starting worker')
+logger.info({ port }, 'starting server')
+
+const postgresUrl = env.ensureConf('postgres')
+const authModule = await createAuthModule({ postgresUrl })
 
 yhub.createYHub({
     redis: {
@@ -19,20 +20,22 @@ yhub.createYHub({
         taskDebounce: 10000,
         minMessageLifetime: 60000,
     },
-    postgres: env.ensureConf('postgres'),
+    postgres: postgresUrl,
     persistence: [],
     server: {
         port,
-        auth: {
-            // pick a "unique" userid
-            async readAuthInfo(req) {
-                return { userid: random.oneOf(userIdChoices) }
-            },
-            // always grant rw access
-            async getAccessType() {
-                return 'rw'
-            },
-        },
+        auth: authModule.authPlugin,
+        setupApi: authModule.setupApi,
     },
     worker: null,
+})
+
+process.on('SIGINT', () => {
+    authModule.destroy()
+    process.exit(0)
+})
+
+process.on('SIGTERM', () => {
+    authModule.destroy()
+    process.exit(0)
 })

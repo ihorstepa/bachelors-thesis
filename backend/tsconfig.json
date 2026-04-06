@@ -14,7 +14,7 @@
         "noImplicitAny": true,
         "emitDeclarationOnly": true,
         "moduleResolution": "nodenext",
-        "baseUrl": "./",
+        // "baseUrl": "./",
         "paths": {
             "@y/hub": ["./src/index.js"],
             "@y/hub/plugins/s3": ["./src/plugins/s3.js"]
