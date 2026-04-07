@@ -1,7 +1,8 @@
 import { API_BASE_URL } from '@/config'
 import { AuthManager } from '@/core/authManager'
-import { HttpError, httpErrorFromResponse, normalizeHttpError } from '@/errors/http'
+import { HttpError, httpErrorFromResponse } from '@/errors/http'
 import type { AuthUser } from '@/core/authManager'
+import { isObject, withTimeout } from '@/utils/functions'
 
 class UserAuthManager extends AuthManager {
     private static readonly requestTimeout = 12000
@@ -33,7 +34,7 @@ class UserAuthManager extends AuthManager {
         const token = this.getToken()
         if (!token) return null
 
-        return this.withTimeout(async (signal) => {
+        return withTimeout(UserAuthManager.requestTimeout, async (signal) => {
             const response = await fetch(`${API_BASE_URL}/auth/me`, {
                 method: 'GET',
                 signal,
@@ -67,7 +68,7 @@ class UserAuthManager extends AuthManager {
     }
 
     private async authRequest(path: string, init: RequestInit): Promise<{ token: string; user: AuthUser }> {
-        return this.withTimeout(async (signal) => {
+        return withTimeout(UserAuthManager.requestTimeout, async (signal) => {
             const response = await fetch(`${API_BASE_URL}${path}`, {
                 ...init,
                 signal,
@@ -85,7 +86,7 @@ class UserAuthManager extends AuthManager {
     }
 
     private decodeAuthResponsePayload(payload: unknown, status: number): { token: string; user: AuthUser } {
-        if (!this.isObject(payload)) {
+        if (!isObject(payload)) {
             throw new HttpError(status, 'INVALID_RESPONSE', 'Authentication response must be a JSON object')
         }
         const token = payload.token
@@ -97,33 +98,17 @@ class UserAuthManager extends AuthManager {
     }
 
     private decodeMeResponsePayload(payload: unknown, status: number): AuthUser {
-        if (!this.isObject(payload) || !this.isAuthUser(payload.user)) {
+        if (!isObject(payload) || !this.isAuthUser(payload.user)) {
             throw new HttpError(status, 'INVALID_RESPONSE', 'Profile response is missing user fields')
         }
         return payload.user
     }
 
     private isAuthUser(value: unknown): value is AuthUser {
-        if (!this.isObject(value)) {
+        if (!isObject(value)) {
             return false
         }
         return typeof value.id === 'string' && typeof value.email === 'string' && typeof value.username === 'string'
-    }
-
-    private isObject(value: unknown): value is Record<string, unknown> {
-        return value != null && typeof value === 'object'
-    }
-
-    private async withTimeout<T>(task: (signal: AbortSignal) => Promise<T>): Promise<T> {
-        const controller = new AbortController()
-        const timeout = setTimeout(() => controller.abort(), UserAuthManager.requestTimeout)
-        try {
-            return await task(controller.signal)
-        } catch (error) {
-            throw normalizeHttpError(error)
-        } finally {
-            clearTimeout(timeout)
-        }
     }
 }
 

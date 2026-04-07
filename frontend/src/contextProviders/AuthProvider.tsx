@@ -8,6 +8,7 @@ import useAsyncEffect from '@/hooks/useAsyncEffect'
 type AuthStatus = 'unknown' | 'authenticated' | 'anonymous'
 
 type AuthState = {
+    isInitializing: boolean
     isAuthenticated: boolean
     user: AuthUser | null
     token: string | null
@@ -97,6 +98,7 @@ function AuthProvider({ children }: Props) {
     const token = status === 'authenticated' ? authClient.getToken() : null
 
     const value: AuthState = {
+        isInitializing: status === 'unknown',
         isAuthenticated: status === 'authenticated' && token != null,
         user,
         token,

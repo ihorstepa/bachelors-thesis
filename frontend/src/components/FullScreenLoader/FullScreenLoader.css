@@ -1,0 +1,17 @@
+.fullscreen-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    background: color-mix(in srgb, var(--bg-panel) 88%, #000);
+}
+
+.fullscreen-loader-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+}

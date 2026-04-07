@@ -45,7 +45,6 @@ export const createAuthModule = async ({ postgresUrl }) => {
     const { jwtPrivateKey, jwtPublicKey } = await readAuthKeyPair()
 
     const repository = createUserRepository(postgresUrl)
-    await repository.initSchema()
 
     const authService = createAuthService({
         repository,
@@ -55,10 +54,8 @@ export const createAuthModule = async ({ postgresUrl }) => {
 
     const authApi = createAuthHttpApi({ authService })
 
-    /**
-     * @param {{ app: import('uws').TemplatedApp, setCorsHeaders: (res: import('uws').HttpResponse) => void }} ctx
-     */
-    const setupApi = (ctx) => authApi.registerRoutes(ctx.app, ctx.setCorsHeaders)
+    /** @param {{ app: import('uws').TemplatedApp }} ctx */
+    const setupApi = (ctx) => authApi.registerRoutes(ctx.app)
 
     const authPlugin = {
         /** @param {import('uws').HttpRequest} req */
@@ -71,8 +68,8 @@ export const createAuthModule = async ({ postgresUrl }) => {
         },
         /**
          * @param {{ userid: string }} _authInfo
-         * @param {import('../types.js').Room} _room
-         * @returns {Promise<import('../types.js').AccessType>}
+         * @param {import('../../types.js').Room} _room
+         * @returns {Promise<import('../../types.js').AccessType>}
          */
         async getAccessType(_authInfo, _room) {
             return /** @type {const} */ ('rw')
@@ -82,6 +79,8 @@ export const createAuthModule = async ({ postgresUrl }) => {
     return {
         authPlugin,
         setupApi,
+        /** @param {string} token */
+        verifyAccessToken: (token) => authService.verifyAccessToken(token),
         destroy: () => repository.destroy(),
     }
 }

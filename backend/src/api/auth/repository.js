@@ -1,5 +1,5 @@
 import postgres from 'postgres'
-import { logger } from '../logger.js'
+import { logger } from '../../logger.js'
 import { AuthConflictError, AUTH_ERROR_TYPE } from './errors.js'
 
 const log = logger.child({ module: 'auth-repository' })
@@ -34,22 +34,6 @@ export class UserRepository {
      */
     constructor(postgresUrl) {
         this.sql = postgres(postgresUrl, { connect_timeout: 60 })
-    }
-
-    async initSchema() {
-        await this.sql`
-            CREATE TABLE IF NOT EXISTS yhub_users (
-                id BIGSERIAL PRIMARY KEY,
-                email TEXT NOT NULL,
-                username TEXT NOT NULL,
-                password_hash TEXT NOT NULL,
-                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-            )
-        `
-
-        await this.sql`CREATE UNIQUE INDEX IF NOT EXISTS yhub_users_email_unique_idx ON yhub_users ((LOWER(email)))`
-        await this.sql`CREATE UNIQUE INDEX IF NOT EXISTS yhub_users_username_unique_idx ON yhub_users ((LOWER(username)))`
-        await this.sql`CREATE INDEX IF NOT EXISTS yhub_users_created_at_idx ON yhub_users (created_at DESC)`
     }
 
     /**

@@ -11,6 +11,9 @@ import FileSystemPresenceService from '@/services/presenceService/fileSystemPres
 import MultipleFileSyncManager from '@/services/fileSyncManager/multipleFileSyncManager'
 import PersistentTabManager from '@/services/tabManager/persistentTabManager'
 import LocalFileTreeManager from '@/services/fileTreeManager/localFileTreeManager'
+import UserAuthManager from '@/services/authManager/userAuthManager'
+import AuthedApiClient from '@/services/apiClient/authedApiClient'
+import UserProjectManager from '@/services/projectManager/userProjectManager'
 import { ConnectionFactory } from '@/core/connectionFactory'
 import { FileSystemManager } from '@/core/fileSystemManager'
 import { PresenceService } from '@/core/presenceService'
@@ -18,7 +21,8 @@ import { FileSyncManager } from '@/core/fileSyncManager'
 import { TabManager } from '@/core/tabManager'
 import { FileTreeManager } from '@/core/fileTreeManager'
 import { AuthManager } from '@/core/authManager'
-import UserAuthManager from '@/services/authManager/authHttpClient'
+import { ApiClient } from '@/core/apiClient'
+import { ProjectManager } from '@/core/projectManager'
 import type { AbstractClass } from '@/utils/types'
 import type { BaseService } from '@/core/general'
 
@@ -29,7 +33,14 @@ const ServiceContext = createContext<ServiceRegistry>(new Map())
 function initGlobalServices(): ServiceRegistry {
     const services: ServiceRegistry = new Map()
 
-    services.set(AuthManager, new UserAuthManager())
+    const authManager = new UserAuthManager()
+    services.set(AuthManager, authManager)
+
+    const apiClient = new AuthedApiClient(authManager)
+    services.set(ApiClient, apiClient)
+
+    const projectManager = new UserProjectManager(apiClient)
+    services.set(ProjectManager, projectManager)
 
     return services
 }

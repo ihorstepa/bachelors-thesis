@@ -11,6 +11,7 @@ import * as t from './types.js'
 import * as protocol from './protocol.js'
 import * as math from 'lib0/math'
 import * as buffer from 'lib0/buffer'
+import { setCorsHeaders } from './api/utils.js'
 import { logger } from './logger.js'
 
 const log = logger.child({ module: 'ws' })
@@ -91,15 +92,6 @@ export const createYHubServer = async (yhub, conf) => {
 
     /**
      * @param {uws.HttpResponse} res
-     */
-    const setCorsHeaders = (res) => {
-        res.writeHeader('Access-Control-Allow-Origin', '*')
-        res.writeHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS')
-        res.writeHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    }
-
-    /**
-     * @param {uws.HttpResponse} res
      * @param {string} status
      * @param {{ error: string }} body
      */
@@ -154,7 +146,7 @@ export const createYHubServer = async (yhub, conf) => {
     })
 
     if (typeof conf.server?.setupApi === 'function') {
-        await conf.server.setupApi({ app, yhub, setCorsHeaders })
+        await conf.server.setupApi({ app, yhub })
     }
 
     // GET /ydoc/{org}/{docid} - Retrieve the Yjs document

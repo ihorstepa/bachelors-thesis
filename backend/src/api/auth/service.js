@@ -2,11 +2,11 @@ import argon2 from 'argon2'
 import * as jwt from 'lib0/crypto/jwt'
 import * as s from 'lib0/schema'
 import * as time from 'lib0/time'
+import { parseLoginInput, parseRegisterInput } from './validators.js'
 import {
     AUTH_ERROR_TYPE,
     AuthConflictError,
     AuthInvalidCredentialsError,
-    AuthValidationError,
 } from './errors.js'
 
 export {
@@ -22,16 +22,6 @@ export {
     getAuthErrorStatus,
 } from './errors.js'
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const EMAIL_MAX_LEN = 256
-
-const PASSWORD_MIN_LEN = 8
-const PASSWORD_MAX_LEN = 256
-
-const USERNAME_RE = /^[a-zA-Z0-9_\-.]+$/
-const USERNAME_MIN_LEN = 2
-const USERNAME_MAX_LEN = 32
-
 const ARGON2_OPTIONS = Object.freeze({
     type: argon2.argon2id,
     memoryCost: 19456,
@@ -39,55 +29,6 @@ const ARGON2_OPTIONS = Object.freeze({
     parallelism: 1,
     hashLength: 32,
 })
-
-/**
- * @param {string} value
- */
-const normalizeEmail = (value) => value.trim().toLowerCase()
-
-/**
- * @param {string} value
- */
-const normalizeUsername = (value) => value.trim()
-
-/**
- * @param {string} value
- */
-const validateEmail = (value) => {
-    if (!EMAIL_RE.test(value) || value.length > EMAIL_MAX_LEN) {
-        throw new AuthValidationError('A valid email is required')
-    }
-}
-
-/**
- * @param {string} value
- */
-const validatePasswordForRegister = (value) => {
-    if (value.length < PASSWORD_MIN_LEN || value.length > PASSWORD_MAX_LEN) {
-        throw new AuthValidationError(`Password must be between ${PASSWORD_MIN_LEN} and ${PASSWORD_MAX_LEN} characters`)
-    }
-}
-
-/**
- * @param {string} value
- */
-const validatePasswordForLogin = (value) => {
-    if (value.length === 0 || value.length > PASSWORD_MAX_LEN) {
-        throw new AuthValidationError('Invalid password')
-    }
-}
-
-/**
- * @param {string} value
- */
-const validateUsername = (value) => {
-    if (value.length < USERNAME_MIN_LEN || value.length > USERNAME_MAX_LEN) {
-        throw new AuthValidationError(`Username must be between ${USERNAME_MIN_LEN} and ${USERNAME_MAX_LEN} characters`)
-    }
-    if (!USERNAME_RE.test(value)) {
-        throw new AuthValidationError('Username can only contain letters, numbers, underscores, dashes, and dots')
-    }
-}
 
 /**
  * @param {string} value
@@ -109,52 +50,9 @@ const verifyPassword = async (password, storedHash) => {
 }
 
 /**
- * @param {unknown} body
+ * @param {{ id: number|string, email: string, username: string }} user
  */
-const parseRegisterInput = (body) => {
-    const input = s
-        .$object({
-            email: s.$string,
-            password: s.$string,
-            username: s.$string,
-        })
-        .expect(/** @type {any} */(body))
-
-    const email = normalizeEmail(input.email)
-    const password = input.password
-    const username = normalizeUsername(input.username)
-
-    validateEmail(email)
-    validatePasswordForRegister(password)
-    validateUsername(username)
-
-    return { email, password, username }
-}
-
-/**
- * @param {unknown} body
- */
-const parseLoginInput = (body) => {
-    const input = s
-        .$object({
-            email: s.$string,
-            password: s.$string,
-        })
-        .expect(/** @type {any} */(body))
-
-    const email = normalizeEmail(input.email)
-    const password = input.password
-
-    validateEmail(email)
-    validatePasswordForLogin(password)
-
-    return { email, password }
-}
-
-/**
- * @param {{ id: number, email: string, username: string }} user
- */
-const publicUser = (user) => ({
+const serializeAuthUser = (user) => ({
     id: String(user.id),
     email: user.email,
     username: user.username,
@@ -219,7 +117,7 @@ export class AuthService {
 
         const user = await this.repository.createUser({ email, username, passwordHash })
         const token = await this.issueAccessToken(user)
-        return { token, user: publicUser(user) }
+        return { token, user: serializeAuthUser(user) }
     }
 
     /**
@@ -239,7 +137,7 @@ export class AuthService {
         }
 
         const token = await this.issueAccessToken(user)
-        return { token, user: publicUser(user) }
+        return { token, user: serializeAuthUser(user) }
     }
 
     /**
@@ -266,11 +164,11 @@ export class AuthService {
      */
     async getCurrentUser(token) {
         const payload = await this.verifyAccessToken(token)
-        return {
+        return serializeAuthUser({
             id: payload.userid,
             email: payload.email,
             username: payload.username,
-        }
+        })
     }
 }
 
