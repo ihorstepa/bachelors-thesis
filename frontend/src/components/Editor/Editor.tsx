@@ -7,7 +7,11 @@ import { useService } from '@/contextProviders/ServiceProvider'
 import { PresenceService } from '@/core/presenceService'
 import '@/components/Editor/Editor.css'
 
-function Editor(): JSX.Element {
+type Props = {
+    canWrite: boolean
+}
+
+function Editor({ canWrite }: Props): JSX.Element {
     const presenceService = useService(PresenceService)
     const { tabs, activeId } = useTabs()
 
@@ -29,7 +33,7 @@ function Editor(): JSX.Element {
                     className='ide-editor-container'
                     style={{ display: fileId === activeId ? 'flex' : 'none' }}
                 >
-                    <CodeMirror fileId={fileId} isActive={fileId === activeId} />
+                    <CodeMirror fileId={fileId} isActive={fileId === activeId} canWrite={canWrite} />
                 </div>
             ))}
         </>

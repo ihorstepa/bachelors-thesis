@@ -34,7 +34,8 @@ function formatRelativeTime(isoString: string): string {
 }
 
 function getMemberDisplay(project: ProjectPreview, currentUserId: string, currentUsername: string): string[] {
-    const previewInitials = project.memberPreviewUsernames
+    const previewUsernames = Array.isArray(project.memberPreviewUsernames) ? project.memberPreviewUsernames : []
+    const previewInitials = previewUsernames
         .map((name) => name.trim())
         .filter((name) => name.length > 0)
         .map((name) => name[0].toUpperCase())
@@ -42,7 +43,7 @@ function getMemberDisplay(project: ProjectPreview, currentUserId: string, curren
     if (previewInitials.length === 0) {
         if (project.ownerId === currentUserId && currentUsername.trim().length > 0) {
             previewInitials.push(currentUsername.trim()[0].toUpperCase())
-        } else if (project.ownerUsername.trim().length > 0) {
+        } else if (typeof project.ownerUsername === 'string' && project.ownerUsername.trim().length > 0) {
             previewInitials.push(project.ownerUsername.trim()[0].toUpperCase())
         }
     }

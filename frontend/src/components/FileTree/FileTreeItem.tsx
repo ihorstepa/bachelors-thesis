@@ -13,9 +13,10 @@ import type { TreeNode } from '@/core/fileTreeManager'
 type Props = {
     node: TreeNode
     level: number
+    canWrite: boolean
 }
 
-export function FileTreeItem({ node, level }: Props): JSX.Element {
+export function FileTreeItem({ node, level, canWrite }: Props): JSX.Element {
     const { expanded, selectedId, fileTreeManager } = useFileTree()
     const { tabManager } = useTabs()
     const presenceService = useService(PresenceService)
@@ -31,7 +32,7 @@ export function FileTreeItem({ node, level }: Props): JSX.Element {
 
     const { ref: dragRef, isDragging } = useDraggable({
         id: node.id,
-        disabled: node.id === 'root',
+        disabled: !canWrite || node.id === 'root',
         data: { type: node.type, parentId: node.parentId },
     })
 
@@ -87,14 +88,18 @@ export function FileTreeItem({ node, level }: Props): JSX.Element {
                                 className='presence-dot'
                                 style={{ backgroundColor: user.color }}
                                 title={user.name}
-                            />
+                            >
+                                {user.name.trim().slice(0, 1).toUpperCase() || '?'}
+                            </span>
                         ))}
                     </div>
                 )}
             </div>
             {isExpanded &&
                 hasChildren &&
-                node.children.map((child) => <FileTreeItem key={child.id} node={child} level={level + 1} />)}
+                node.children.map((child) => (
+                    <FileTreeItem key={child.id} node={child} level={level + 1} canWrite={canWrite} />
+                ))}
         </>
     )
 }

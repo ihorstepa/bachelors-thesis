@@ -14,7 +14,11 @@ const runButtonLabels: Partial<Record<CodeRunnerStatus, string>> = {
     running: 'Running...',
 }
 
-function RunPanel() {
+type Props = {
+    canWrite: boolean
+}
+
+function RunPanel({ canWrite }: Props) {
     const { status, hasConfig, targets, error, runner } = useCodeRunner()
     const { setTerminalOpen } = useTerminal()
     const isActive = ['syncing', 'compiling', 'linking', 'running'].includes(status)
@@ -86,7 +90,7 @@ function RunPanel() {
                         className='run-panel-link'
                         type='button'
                         onClick={() => runner.createConfig()}
-                        disabled={isActive}
+                        disabled={isActive || !canWrite}
                     >
                         create
                     </button>

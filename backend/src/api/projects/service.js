@@ -2,6 +2,8 @@ import {
     ProjectValidationError,
     ProjectNotFoundError,
     ProjectForbiddenError,
+    ProjectError,
+    PROJECT_ERROR_TYPE,
 } from './errors.js'
 import {
     normalizeProjectName,
@@ -114,7 +116,21 @@ export class ProjectService {
         const name = parseValidatedProjectName(body)
 
         const project = await this.repository.createProject({ ownerId: userId, name })
-        return { project: serializeProject(project) }
+        const ownerUser = await this.repository.getProjectOwnerUser(project.id)
+        if (ownerUser == null) {
+            throw new ProjectError(PROJECT_ERROR_TYPE.INTERNAL_ERROR, 'Project owner not found after creation')
+        }
+        const ownerUsername = ownerUser.username
+        return {
+            project: {
+                ...serializeProject(project),
+                ownerUsername,
+                memberPreviewUsernames: [ownerUsername],
+                accessType: 'rw',
+                favorited: false,
+                memberCount: 0,
+            },
+        }
     }
 
     /**

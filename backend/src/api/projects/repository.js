@@ -98,13 +98,21 @@ export class ProjectRepository {
      * @returns {Promise<Project|null>}
      */
     async getProjectById(id) {
-        const rows = await this.sql`
-            SELECT id, owner_id, name, created_at, updated_at
-            FROM yhub_projects
-            WHERE id = ${id}
-            LIMIT 1
-        `
-        return rows.length === 0 ? null : mapProjectRow(rows[0])
+        try {
+            const rows = await this.sql`
+                SELECT id, owner_id, name, created_at, updated_at
+                FROM yhub_projects
+                WHERE id = ${id}
+                LIMIT 1
+            `
+            return rows.length === 0 ? null : mapProjectRow(rows[0])
+        } catch (err) {
+            // Invalid UUID input should behave as "not found" for project routes.
+            if (typeof err === 'object' && err != null && 'code' in err && err.code === '22P02') {
+                return null
+            }
+            throw err
+        }
     }
 
     /**

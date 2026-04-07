@@ -45,7 +45,11 @@ function initGlobalServices(): ServiceRegistry {
     return services
 }
 
-async function initIdeServices(projectId: string | undefined, authToken: string): Promise<ServiceRegistry> {
+async function initIdeServices(
+    projectId: string | undefined,
+    authToken: string,
+    username?: string,
+): Promise<ServiceRegistry> {
     const services: ServiceRegistry = new Map()
     // TODO: remove this
     projectId = projectId ?? 'default'
@@ -57,7 +61,7 @@ async function initIdeServices(projectId: string | undefined, authToken: string)
     services.set(FileSystemManager, fileSystemManager)
     await fileSystemManager.init()
 
-    const presenceService = new FileSystemPresenceService(fileSystemManager)
+    const presenceService = new FileSystemPresenceService(fileSystemManager, username)
     services.set(PresenceService, presenceService)
 
     const fileSyncManager = new MultipleFileSyncManager(connectionFactory)
@@ -100,10 +104,16 @@ export function GlobalServiceProvider({ children }: GlobalServiceProviderProps):
 type IdeServiceProviderProps = {
     projectId?: string
     authToken: string
+    username?: string
     children: React.ReactNode
 }
 
-export function IdeServiceProvider({ projectId, authToken, children }: IdeServiceProviderProps): React.ReactNode {
+export function IdeServiceProvider({
+    projectId,
+    authToken,
+    username,
+    children,
+}: IdeServiceProviderProps): React.ReactNode {
     const parentRegistry = useContext(ServiceContext)
     const registryRef = useRef<ServiceRegistry>(new Map())
     const ideServiceKeysRef = useRef<Set<AbstractClass<BaseService>>>(new Set())
@@ -111,7 +121,7 @@ export function IdeServiceProvider({ projectId, authToken, children }: IdeServic
 
     useAsyncEffect(
         async (isAborted) => {
-            const ideServices = await initIdeServices(projectId, authToken)
+            const ideServices = await initIdeServices(projectId, authToken, username)
             ideServiceKeysRef.current = new Set(ideServices.keys())
 
             parentRegistry.forEach((service, key) => {
@@ -134,7 +144,7 @@ export function IdeServiceProvider({ projectId, authToken, children }: IdeServic
             ideServiceKeysRef.current = new Set()
             setReady(false)
         },
-        [projectId, authToken, parentRegistry],
+        [projectId, authToken, username, parentRegistry],
     )
 
     if (!ready) return <div>Loading...</div>

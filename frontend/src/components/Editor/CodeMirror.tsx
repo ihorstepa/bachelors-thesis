@@ -17,9 +17,10 @@ import { getLanguageName } from './extensions/language'
 type Props = {
     fileId: string
     isActive: boolean
+    canWrite: boolean
 }
 
-function CodeMirror({ fileId, isActive }: Props): JSX.Element {
+function CodeMirror({ fileId, isActive, canWrite }: Props): JSX.Element {
     const fileSystemManager = useService(FileSystemManager)
     const fileSyncManager = useService(FileSyncManager)
     const presenceService = useService(PresenceService)
@@ -128,8 +129,8 @@ function CodeMirror({ fileId, isActive }: Props): JSX.Element {
             // placeholder={}
             theme='none'
             basicSetup={false}
-            editable={true}
-            readOnly={false}
+            // editable={canWrite}
+            readOnly={!canWrite}
             // indentWithTab={}
             // onChange={}
             // onStatistics={}

@@ -13,13 +13,13 @@ class FileSystemPresenceService extends PresenceService {
     private index: Map<string, Set<number>> = new Map()
     private userStatus: UserStatus
 
-    constructor(fileSystemManager: FileSystemManager) {
+    constructor(fileSystemManager: FileSystemManager, username?: string) {
         super()
         this.fileSystemManager = fileSystemManager
         this.awareness = fileSystemManager.getRootConnection().awareness
 
         this.userStatus = {
-            name: generateRandomName(),
+            name: username ?? generateRandomName(),
             color: generateRandomColor(),
             activeFileId: null,
         }

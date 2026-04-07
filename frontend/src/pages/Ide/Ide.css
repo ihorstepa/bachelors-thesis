@@ -26,3 +26,43 @@
 .ide-workbench.with-terminal {
     grid-template-rows: minmax(0, 1fr) 220px;
 }
+
+.ide-route-state {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    text-align: center;
+    padding: 24px;
+}
+
+.ide-route-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.ide-route-message {
+    margin: 0;
+    color: var(--text-muted);
+    max-width: 440px;
+}
+
+.ide-route-button {
+    margin-top: 4px;
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.ide-route-button:hover {
+    background: var(--bg-hover);
+}

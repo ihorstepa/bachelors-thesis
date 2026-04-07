@@ -12,7 +12,11 @@ import type { NullableString } from '@/utils/types'
 import '@/components/FileTree/FileTree.css'
 import FileTreeRoot from './FileTreeRoot'
 
-function FileTree(): JSX.Element {
+type Props = {
+    canWrite: boolean
+}
+
+function FileTree({ canWrite }: Props): JSX.Element {
     const fileSystemManager = useService(FileSystemManager)
     const { tree, selectedId, fileTreeManager } = useFileTree()
     const { activeId } = useTabs()
@@ -26,6 +30,8 @@ function FileTree(): JSX.Element {
     }, [activeId, fileSystemManager, fileTreeManager])
 
     const handleDragEnd = (event: any) => {
+        if (!canWrite) return
+
         const { source, target } = event.operation ?? {}
         if (!source || !target) return
 
@@ -44,6 +50,7 @@ function FileTree(): JSX.Element {
     }
 
     const handleCreateFile = () => {
+        if (!canWrite) return
         const name = prompt('File name:')
         if (name) {
             fileSystemManager.create(name, 'file', fileTreeManager.getTargetParentId())
@@ -51,15 +58,17 @@ function FileTree(): JSX.Element {
     }
 
     const handleCreateDir = () => {
+        if (!canWrite) return
         const name = prompt('Directory name:')
         if (name) {
             fileSystemManager.create(name, 'dir', fileTreeManager.getTargetParentId())
         }
     }
 
-    const canRenameOrDelete = !!selectedId && selectedId !== 'root'
+    const canRenameOrDelete = canWrite && !!selectedId && selectedId !== 'root'
 
     const handleRename = () => {
+        if (!canWrite) return
         if (!canRenameOrDelete) return
         const meta = fileSystemManager.getMeta(selectedId)
         const newName = prompt('Rename to:', meta.name)
@@ -69,6 +78,7 @@ function FileTree(): JSX.Element {
     }
 
     const handleDelete = () => {
+        if (!canWrite) return
         if (!canRenameOrDelete) return
         const meta = fileSystemManager.getMeta(selectedId)
         if (confirm(`Delete ${meta.name}?`)) {
@@ -83,12 +93,13 @@ function FileTree(): JSX.Element {
                 onCreateDir={handleCreateDir}
                 onRename={handleRename}
                 onDelete={handleDelete}
+                canWrite={canWrite}
                 canRenameOrDelete={canRenameOrDelete}
             />
             <DragDropProvider onDragEnd={handleDragEnd as any}>
                 <FileTreeRoot>
                     {tree.map((node) => (
-                        <FileTreeItem key={node.id} node={node} level={0} />
+                        <FileTreeItem key={node.id} node={node} level={0} canWrite={canWrite} />
                     ))}
                 </FileTreeRoot>
             </DragDropProvider>

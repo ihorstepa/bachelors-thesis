@@ -7,18 +7,19 @@ interface Props {
     onCreateDir: () => void
     onRename: () => void
     onDelete: () => void
+    canWrite: boolean
     canRenameOrDelete: boolean
 }
 
-function FileTreeToolBar({ onCreateFile, onCreateDir, onRename, onDelete, canRenameOrDelete }: Props) {
+function FileTreeToolBar({ onCreateFile, onCreateDir, onRename, onDelete, canWrite, canRenameOrDelete }: Props) {
     return (
         <div className='file-tree-toolbar'>
             <span className='toolbar-project'>Project</span>
             <div className='toolbar-buttons'>
-                <GhostButton onClick={onCreateFile} title='New File'>
+                <GhostButton onClick={onCreateFile} disabled={!canWrite} title='New File'>
                     <VscNewFile />
                 </GhostButton>
-                <GhostButton onClick={onCreateDir} title='New Directory'>
+                <GhostButton onClick={onCreateDir} disabled={!canWrite} title='New Directory'>
                     <VscNewFolder />
                 </GhostButton>
                 <GhostButton onClick={onRename} disabled={!canRenameOrDelete} title='Rename'>

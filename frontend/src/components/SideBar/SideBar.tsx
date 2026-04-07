@@ -11,22 +11,26 @@ type Action = {
     id: View
     icon: React.ComponentType
     title: string
-    component: React.ComponentType | null
+    hasView: boolean
 }
 
 const mainActions: Action[] = [
-    { id: 'explorer', icon: VscFiles, title: 'Explorer', component: FileTree },
-    { id: 'run', icon: VscRunAll, title: 'Run', component: RunPanel },
-    { id: 'search', icon: VscSearch, title: 'Search', component: null },
-    { id: 'sourceControl', icon: VscSourceControl, title: 'Source Control', component: null },
+    { id: 'explorer', icon: VscFiles, title: 'Explorer', hasView: true },
+    { id: 'run', icon: VscRunAll, title: 'Run', hasView: true },
+    { id: 'search', icon: VscSearch, title: 'Search', hasView: false },
+    { id: 'sourceControl', icon: VscSourceControl, title: 'Source Control', hasView: false },
 ]
 
 const extraActions: Action[] = [
-    { id: 'account', icon: VscAccount, title: 'Account', component: null },
-    { id: 'settings', icon: VscSettingsGear, title: 'Settings', component: null },
+    { id: 'account', icon: VscAccount, title: 'Account', hasView: false },
+    { id: 'settings', icon: VscSettingsGear, title: 'Settings', hasView: false },
 ]
 
-function SideBar() {
+type Props = {
+    canWrite: boolean
+}
+
+function SideBar({ canWrite }: Props) {
     const [activeView, setActiveView] = useState<View | null>('explorer')
 
     const handleViewClick = (view: View) => {
@@ -35,7 +39,7 @@ function SideBar() {
 
     const renderView = () => {
         const activeAction = mainActions.find((a) => a.id === activeView)
-        if (!activeAction || !activeAction.component) {
+        if (!activeAction || !activeAction.hasView) {
             return activeView ? (
                 <div className='sidebar-view'>
                     <div className='sidebar-view-header'>{activeAction?.title}</div>
@@ -44,11 +48,17 @@ function SideBar() {
             ) : null
         }
 
-        const Component = activeAction.component
+        const content =
+            activeAction.id === 'explorer' ? (
+                <FileTree canWrite={canWrite} />
+            ) : activeAction.id === 'run' ? (
+                <RunPanel canWrite={canWrite} />
+            ) : null
+
         return (
             <div className='sidebar-view'>
                 <div className='sidebar-view-header'>{activeAction.title}</div>
-                <Component />
+                {content}
             </div>
         )
     }
