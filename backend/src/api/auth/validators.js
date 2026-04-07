@@ -68,7 +68,7 @@ export const parseRegisterInput = (body) => {
             password: s.$string,
             username: s.$string,
         })
-        .expect(/** @type {any} */(body))
+        .expect(/** @type {any} */ (body))
 
     const email = normalizeEmail(input.email)
     const password = input.password
@@ -90,7 +90,7 @@ export const parseLoginInput = (body) => {
             email: s.$string,
             password: s.$string,
         })
-        .expect(/** @type {any} */(body))
+        .expect(/** @type {any} */ (body))
 
     const email = normalizeEmail(input.email)
     const password = input.password

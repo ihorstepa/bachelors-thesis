@@ -7,9 +7,7 @@ import {
     getProjectErrorStatus,
 } from './errors.js'
 import { extractBearerToken } from '../auth/api.js'
-import {
-    createResponseContext,
-} from '../utils.js'
+import { createResponseContext } from '../utils.js'
 import { logger } from '../../logger.js'
 
 const log = logger.child({ module: 'projects-api' })
@@ -187,7 +185,9 @@ export const createProjectsApi = ({ projectService, verifyAccessToken }) => {
      */
     const registerRoutes = (app) => {
         registerAuthedJsonRoute(
-            app, 'post', ROUTES.PROJECTS,
+            app,
+            'post',
+            ROUTES.PROJECTS,
             (_req) => null,
             async (_params, response, userId, body) => {
                 const result = await projectService.createProject(userId, body)
@@ -196,42 +196,70 @@ export const createProjectsApi = ({ projectService, verifyAccessToken }) => {
             verifyAccessToken,
         )
 
-        registerAuthedRoute(app, 'get', ROUTES.PROJECTS,
+        registerAuthedRoute(
+            app,
+            'get',
+            ROUTES.PROJECTS,
             (_req) => null,
             async (_params, response, userId) => {
                 const result = await projectService.listProjects(userId)
                 response.sendJson('200 OK', result)
-            }, verifyAccessToken)
+            },
+            verifyAccessToken,
+        )
 
-        registerAuthedRoute(app, 'get', ROUTES.PROJECT,
+        registerAuthedRoute(
+            app,
+            'get',
+            ROUTES.PROJECT,
             (req) => getRequiredRouteParam(req, 0, 'id'),
             async (projectId, response, userId) => {
                 const result = await projectService.getProject(userId, projectId)
                 response.sendJson('200 OK', result)
-            }, verifyAccessToken)
+            },
+            verifyAccessToken,
+        )
 
-        registerAuthedJsonRoute(app, 'patch', ROUTES.PROJECT,
+        registerAuthedJsonRoute(
+            app,
+            'patch',
+            ROUTES.PROJECT,
             (req) => getRequiredRouteParam(req, 0, 'id'),
             async (projectId, response, userId, body) => {
                 const result = await projectService.updateProject(userId, projectId, body)
                 response.sendJson('200 OK', result)
-            }, verifyAccessToken)
+            },
+            verifyAccessToken,
+        )
 
-        registerAuthedRoute(app, 'del', ROUTES.PROJECT,
+        registerAuthedRoute(
+            app,
+            'del',
+            ROUTES.PROJECT,
             (req) => getRequiredRouteParam(req, 0, 'id'),
             async (projectId, response, userId) => {
                 await projectService.deleteProject(userId, projectId)
                 response.sendEmpty('204 No Content')
-            }, verifyAccessToken)
+            },
+            verifyAccessToken,
+        )
 
-        registerAuthedJsonRoute(app, 'post', ROUTES.PROJECT_MEMBERS,
+        registerAuthedJsonRoute(
+            app,
+            'post',
+            ROUTES.PROJECT_MEMBERS,
             (req) => getRequiredRouteParam(req, 0, 'id'),
             async (projectId, response, userId, body) => {
                 const result = await projectService.addMember(userId, projectId, body)
                 response.sendJson('200 OK', result)
-            }, verifyAccessToken)
+            },
+            verifyAccessToken,
+        )
 
-        registerAuthedRoute(app, 'del', ROUTES.PROJECT_MEMBER,
+        registerAuthedRoute(
+            app,
+            'del',
+            ROUTES.PROJECT_MEMBER,
             (req) => ({
                 projectId: getRequiredRouteParam(req, 0, 'id'),
                 targetUserId: getRequiredRouteParam(req, 1, 'userId'),
@@ -239,22 +267,33 @@ export const createProjectsApi = ({ projectService, verifyAccessToken }) => {
             async ({ projectId, targetUserId }, response, userId) => {
                 await projectService.removeMember(userId, projectId, targetUserId)
                 response.sendEmpty('204 No Content')
-            }, verifyAccessToken)
+            },
+            verifyAccessToken,
+        )
 
-        registerAuthedRoute(app, 'put', ROUTES.PROJECT_FAVORITE,
+        registerAuthedRoute(
+            app,
+            'put',
+            ROUTES.PROJECT_FAVORITE,
             (req) => getRequiredRouteParam(req, 0, 'id'),
             async (projectId, response, userId) => {
                 await projectService.favoriteProject(userId, projectId)
                 response.sendEmpty('204 No Content')
-            }, verifyAccessToken)
+            },
+            verifyAccessToken,
+        )
 
-        registerAuthedRoute(app, 'del', ROUTES.PROJECT_FAVORITE,
+        registerAuthedRoute(
+            app,
+            'del',
+            ROUTES.PROJECT_FAVORITE,
             (req) => getRequiredRouteParam(req, 0, 'id'),
             async (projectId, response, userId) => {
                 await projectService.unfavoriteProject(userId, projectId)
                 response.sendEmpty('204 No Content')
-            }, verifyAccessToken)
-
+            },
+            verifyAccessToken,
+        )
     }
 
     return { registerRoutes }

@@ -6,6 +6,7 @@ import { CodeRunner } from '@/core/codeRunner'
 import { ProjectIndexService } from '@/core/projectIndexService'
 import LocalProjectIndexService from '@/services/projectIndexService/localProjectIndexService'
 import WSConnectionFactory from '@/services/connectionFactory/wsConnectionFactory'
+import LocalConnectionFactory from '@/services/connectionFactory/localConnectionFactory'
 import SharedFileSystemManager from '@/services/fileSystemManager/sharedFileSystemManager'
 import FileSystemPresenceService from '@/services/presenceService/fileSystemPresenceService'
 import MultipleFileSyncManager from '@/services/fileSyncManager/multipleFileSyncManager'
@@ -51,10 +52,9 @@ async function initIdeServices(
     username?: string,
 ): Promise<ServiceRegistry> {
     const services: ServiceRegistry = new Map()
-    // TODO: remove this
-    projectId = projectId ?? 'default'
 
-    const connectionFactory = new WSConnectionFactory(projectId, authToken)
+    const connectionFactory =
+        projectId == null ? new LocalConnectionFactory() : new WSConnectionFactory(projectId, authToken)
     services.set(ConnectionFactory, connectionFactory)
 
     const fileSystemManager = new SharedFileSystemManager(connectionFactory)

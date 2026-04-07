@@ -184,7 +184,7 @@ export class ProjectRepository {
     }
 
     /**
-    * Returns all projects visible to the user (owned or member), with membership/favorite info.
+     * Returns all projects visible to the user (owned or member), with membership/favorite info.
      * @param {number} userId
      * @returns {Promise<ProjectListEntry[]>}
      */

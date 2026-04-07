@@ -6,9 +6,7 @@ import {
     AuthValidationError,
     getAuthErrorStatus,
 } from './errors.js'
-import {
-    createResponseContext,
-} from '../utils.js'
+import { createResponseContext } from '../utils.js'
 import { logger } from '../../logger.js'
 
 const log = logger.child({ module: 'auth-api' })
@@ -126,23 +124,15 @@ export const createAuthHttpApi = ({ authService }) => {
      * @param {import('uws').TemplatedApp} app
      */
     const registerRoutes = (app) => {
-        registerJsonBodyRoute(
-            app,
-            AUTH_ROUTE.REGISTER,
-            async (_req, response, body) => {
-                const result = await authService.register(body)
-                response.sendJson('201 Created', result)
-            },
-        )
+        registerJsonBodyRoute(app, AUTH_ROUTE.REGISTER, async (_req, response, body) => {
+            const result = await authService.register(body)
+            response.sendJson('201 Created', result)
+        })
 
-        registerJsonBodyRoute(
-            app,
-            AUTH_ROUTE.LOGIN,
-            async (_req, response, body) => {
-                const result = await authService.login(body)
-                response.sendJson('200 OK', result)
-            },
-        )
+        registerJsonBodyRoute(app, AUTH_ROUTE.LOGIN, async (_req, response, body) => {
+            const result = await authService.login(body)
+            response.sendJson('200 OK', result)
+        })
 
         registerRoute(app, 'get', AUTH_ROUTE.ME, async (req, response) => {
             const token = extractBearerToken(req.getHeader('authorization'))

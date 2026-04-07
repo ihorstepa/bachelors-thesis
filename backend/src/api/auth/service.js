@@ -3,11 +3,7 @@ import * as jwt from 'lib0/crypto/jwt'
 import * as s from 'lib0/schema'
 import * as time from 'lib0/time'
 import { parseLoginInput, parseRegisterInput } from './validators.js'
-import {
-    AUTH_ERROR_TYPE,
-    AuthConflictError,
-    AuthInvalidCredentialsError,
-} from './errors.js'
+import { AUTH_ERROR_TYPE, AuthConflictError, AuthInvalidCredentialsError } from './errors.js'
 
 export {
     AUTH_ERROR_TYPE as AUTH_ERROR_CODE,

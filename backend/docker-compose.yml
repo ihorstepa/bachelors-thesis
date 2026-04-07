@@ -25,7 +25,7 @@ services:
         image: valkey/valkey:alpine
         profiles: ['all', 'db']
         ports:
-        - '6379:6379'
+            - '6379:6379'
         healthcheck:
             test: ['CMD', 'valkey-cli', 'ping']
             interval: 5s
@@ -35,7 +35,7 @@ services:
         image: postgres:16-alpine
         profiles: ['all', 'db']
         ports:
-        - '5432:5432'
+            - '5432:5432'
         environment:
             POSTGRES_USER: yhub
             POSTGRES_PASSWORD: yhub

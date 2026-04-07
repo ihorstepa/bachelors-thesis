@@ -84,7 +84,7 @@ async function init(postgresUrl) {
                 contentmap      bytea,
                 contentids      bytea,
                 PRIMARY KEY     (org,docid,branch,t)
-            );`
+            );`,
         )
 
         await ensureTable(
@@ -96,7 +96,7 @@ async function init(postgresUrl) {
                 username        TEXT NOT NULL,
                 password_hash   TEXT NOT NULL,
                 created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
-            );`
+            );`,
         )
 
         await sql`CREATE UNIQUE INDEX IF NOT EXISTS yhub_users_email_unique_idx ON yhub_users ((LOWER(email)))`
@@ -112,7 +112,7 @@ async function init(postgresUrl) {
                 name            TEXT NOT NULL,
                 created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                 updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
-            );`
+            );`,
         )
 
         await sql`CREATE INDEX IF NOT EXISTS yhub_projects_owner_idx ON yhub_projects (owner_id)`
@@ -126,7 +126,7 @@ async function init(postgresUrl) {
                 user_id         BIGINT NOT NULL REFERENCES yhub_users(id) ON DELETE CASCADE,
                 access_type     TEXT NOT NULL CHECK (access_type IN ('r', 'rw')),
                 PRIMARY KEY     (project_id, user_id)
-            );`
+            );`,
         )
 
         await ensureTable(
@@ -136,7 +136,7 @@ async function init(postgresUrl) {
                 project_id      UUID NOT NULL REFERENCES yhub_projects(id) ON DELETE CASCADE,
                 user_id         BIGINT NOT NULL REFERENCES yhub_users(id) ON DELETE CASCADE,
                 PRIMARY KEY     (project_id, user_id)
-            );`
+            );`,
         )
 
         log.info('tables and indexes ensured')

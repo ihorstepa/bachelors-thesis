@@ -17,8 +17,7 @@ export const AUTH_ERROR_STATUS = Object.freeze({
 /**
  * @param {string} type
  */
-export const getAuthErrorStatus = (type) =>
-    getErrorStatus(AUTH_ERROR_STATUS, AUTH_ERROR_TYPE.INTERNAL_ERROR, type)
+export const getAuthErrorStatus = (type) => getErrorStatus(AUTH_ERROR_STATUS, AUTH_ERROR_TYPE.INTERNAL_ERROR, type)
 
 export class AuthError extends AppError {
     /**

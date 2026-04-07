@@ -47,9 +47,9 @@ const createContentMapFromParams = (contentids, userid, customAttributions) => {
 const parseCustomAttributionsParam = (param) =>
     param
         ? param.split(',').map((entry) => {
-            const [k, ...rest] = entry.split(':')
-            return { k, v: rest.join(':') }
-        })
+              const [k, ...rest] = entry.split(':')
+              return { k, v: rest.join(':') }
+          })
         : []
 
 /**
@@ -670,7 +670,7 @@ const registerWebsocketServer = (yhub, app) => {
     const maxDocSize = s.$number.cast(yhub.conf.server?.maxDocSize)
     app.ws(
         '/ws/:org/:docid',
-        /** @type {uws.WebSocketBehavior<{ user: WSUser }>} */({
+        /** @type {uws.WebSocketBehavior<{ user: WSUser }>} */ ({
             compression: uws.DISABLED,
             maxPayloadLength: maxDocSize,
             maxBackpressure: math.round(maxDocSize * 1.2),

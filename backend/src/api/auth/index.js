@@ -24,10 +24,7 @@ const readAuthKeyPair = async () => {
         privateKeyJwk = json.parse(env.ensureConf('auth-private-key'))
         publicKeyJwk = json.parse(env.ensureConf('auth-public-key'))
     } catch (err) {
-        throw new Error(
-            'Invalid AUTH_PRIVATE_KEY or AUTH_PUBLIC_KEY in environment',
-            { cause: err },
-        )
+        throw new Error('Invalid AUTH_PRIVATE_KEY or AUTH_PUBLIC_KEY in environment', { cause: err })
     }
 
     const [jwtPrivateKey, jwtPublicKey] = await Promise.all([

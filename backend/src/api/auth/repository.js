@@ -50,8 +50,7 @@ export class UserRepository {
             return mapUserRow(rows[0])
         } catch (err) {
             if (err != null && typeof err === 'object' && 'code' in err && err.code === '23505') {
-                const constraint =
-                    'constraint' in err && typeof err.constraint === 'string' ? err.constraint : null
+                const constraint = 'constraint' in err && typeof err.constraint === 'string' ? err.constraint : null
                 if (constraint === USERNAME_UNIQUE_INDEX) {
                     throw new AuthConflictError(AUTH_ERROR_TYPE.USERNAME_TAKEN, 'Username is already taken')
                 }
