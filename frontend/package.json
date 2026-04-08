@@ -23,6 +23,7 @@
         "@wasmer/sdk": "^0.10.0",
         "@xterm/addon-fit": "^0.11.0",
         "@xterm/xterm": "^6.0.0",
+        "nanoid": "^5.1.7",
         "nanotar": "^0.3.0",
         "path-browserify": "^1.0.1",
         "react": "^19.2.4",

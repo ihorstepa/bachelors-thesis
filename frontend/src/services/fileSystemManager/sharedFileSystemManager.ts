@@ -1,4 +1,5 @@
 import * as Y from 'yjs'
+import { nanoid } from 'nanoid'
 
 import * as err from '@/errors/fileSystem'
 import { validateNodeName } from '@/utils/validators'
@@ -47,7 +48,7 @@ class SharedFileSystemManager extends FileSystemManager {
         this.assertValidParent(parentId)
         this.assertNoNameConflict(parentId, name)
 
-        const id = crypto.randomUUID()
+        const id = nanoid()
         this.metaMap.set(id, { id, name, type, parentId })
 
         return id
