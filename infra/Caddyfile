@@ -1,0 +1,10 @@
+{
+    email {$ACME_EMAIL}
+}
+
+# Public HTTPS entrypoint for production.
+# DOMAIN must point to this host and resolve publicly for ACME HTTP-01.
+{$DOMAIN} {
+    encode gzip zstd
+    reverse_proxy frontend:80
+}
