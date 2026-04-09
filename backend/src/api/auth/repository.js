@@ -77,6 +77,20 @@ export class UserRepository {
     }
 
     /**
+     * @param {number} id
+     * @returns {Promise<AuthUser|null>}
+     */
+    async getUserById(id) {
+        const rows = await this.sql`
+            SELECT id, email, username, password_hash, created_at
+            FROM yhub_users
+            WHERE id = ${id}
+            LIMIT 1
+        `
+        return rows.length === 0 ? null : mapUserRow(rows[0])
+    }
+
+    /**
      * @param {string} username
      * @returns {Promise<AuthUser|null>}
      */

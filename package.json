@@ -4,7 +4,10 @@
     "description": "",
     "private": true,
     "scripts": {
-        "format": "prettier --write ."
+        "format": "prettier --write .",
+        "docker:all": "docker compose up -d --build",
+        "docker:backend": "docker compose up -d --build server worker init postgres valkey minio",
+        "frontend:dev": "npm --prefix frontend run dev"
     },
     "repository": {
         "type": "git",
