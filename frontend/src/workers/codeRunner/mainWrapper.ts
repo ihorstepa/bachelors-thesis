@@ -1,5 +1,7 @@
-// Current setup doesnt handle uncaught exceptions perfectly,
-// so we need to create a wrapper for the code, that'll emulate the typical behavior
+/**
+ * Current setup doesnt handle uncaught exceptions perfectly,
+ * so we need to create a wrapper for the code, that'll emulate the typical behavior
+ */
 const mainWrapper = `#include <cxxabi.h>
 #include <cstdlib>
 #include <exception>

@@ -4,7 +4,9 @@ import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 
 import TerminalHeader from '@/components/Terminal/TerminalHeader'
+import { TerminalInputController } from '@/components/Terminal/terminalInputController'
 import { useCodeRunner } from '@/contextProviders/CodeRunnerProvider'
+import type { CodeRunnerStatus } from '@/core/codeRunner'
 import { useTerminal } from '@/contextProviders/TerminalProvider'
 import '@/components/Terminal/Terminal.css'
 
@@ -19,25 +21,27 @@ const messages = {
     exit: (code: number) => `${ansi.dim(`[exit ${code}]`)}\n`,
 } as const
 
+const activeStatuses: ReadonlySet<CodeRunnerStatus> = new Set(['syncing', 'compiling', 'linking', 'running'])
+
 function toTerminalText(text: string): string {
     return text.replace(/\r?\n/g, '\r\n')
 }
 
-function isActiveStatus(status: string): boolean {
-    return ['syncing', 'compiling', 'linking', 'running'].includes(status)
+function isExecutionActive(status: CodeRunnerStatus): boolean {
+    return activeStatuses.has(status)
 }
 
 function Terminal() {
     const { canSendInput, status, runner } = useCodeRunner()
     const { terminalOpen, setTerminalOpen } = useTerminal()
-    const isActive = isActiveStatus(status)
+    const isActive = isExecutionActive(status)
 
     const containerRef = useRef<HTMLDivElement | null>(null)
     const terminalRef = useRef<XTerm | null>(null)
     const fitAddonRef = useRef<FitAddon | null>(null)
     const inputEnabledRef = useRef(canSendInput)
     const isActiveRef = useRef(isActive)
-    const hasOutputRef = useRef(false)
+    const inputControllerRef = useRef<TerminalInputController | null>(null)
     const placeholderShownRef = useRef(false)
 
     useEffect(() => {
@@ -60,6 +64,18 @@ function Terminal() {
             },
         })
         const fitAddon = new FitAddon()
+
+        const clearPlaceholder = () => {
+            if (!placeholderShownRef.current) return
+            terminal.clear()
+            placeholderShownRef.current = false
+        }
+
+        const writeOutput = (text: string) => {
+            clearPlaceholder()
+            terminal.write(text)
+            inputControllerRef.current?.reset()
+        }
 
         terminal.loadAddon(fitAddon)
         terminal.open(containerRef.current!)
@@ -84,40 +100,31 @@ function Terminal() {
             }
         })
 
+        inputControllerRef.current = new TerminalInputController({
+            terminal,
+            sendInput: (text) => runner.sendInput(text),
+            stop: () => runner.stop(),
+            canSendInput: () => inputEnabledRef.current,
+            isActive: () => isActiveRef.current,
+            onFirstInput: () => {
+                clearPlaceholder()
+            },
+        })
+
         const disposable = terminal.onData((value) => {
-            if (value === '\u0003' && isActiveRef.current) {
-                runner.stop()
-                return
-            }
-            if (!inputEnabledRef.current) return
-            runner.sendInput(value)
+            inputControllerRef.current?.handleData(value)
         })
 
         const unsubStdout = runner.on('stdout', (text) => {
-            if (placeholderShownRef.current) {
-                terminal.clear()
-                placeholderShownRef.current = false
-            }
-            terminal.write(toTerminalText(text))
-            hasOutputRef.current = true
+            writeOutput(toTerminalText(text))
         })
 
         const unsubStderr = runner.on('stderr', (text) => {
-            if (placeholderShownRef.current) {
-                terminal.clear()
-                placeholderShownRef.current = false
-            }
-            terminal.write(toTerminalText(ansi.red(text)))
-            hasOutputRef.current = true
+            writeOutput(toTerminalText(ansi.red(text)))
         })
 
         const unsubExit = runner.on('exit', (code) => {
-            if (placeholderShownRef.current) {
-                terminal.clear()
-                placeholderShownRef.current = false
-            }
-            terminal.write(toTerminalText(messages.exit(code)))
-            hasOutputRef.current = true
+            writeOutput(toTerminalText(messages.exit(code)))
         })
 
         terminalRef.current = terminal
@@ -133,6 +140,7 @@ function Terminal() {
             terminal.dispose()
             terminalRef.current = null
             fitAddonRef.current = null
+            inputControllerRef.current = null
         }
     }, [])
 
@@ -158,7 +166,7 @@ function Terminal() {
     const prevStatusRef = useRef(status)
     useEffect(() => {
         const prev = prevStatusRef.current
-        const wasActive = isActiveStatus(prev)
+        const wasActive = isExecutionActive(prev)
         if (wasActive && status === 'idle') {
             terminalRef.current?.write(toTerminalText(messages.stopped))
         }
@@ -168,7 +176,7 @@ function Terminal() {
     const handleClear = useCallback(() => {
         terminalRef.current?.clear()
         terminalRef.current?.reset()
-        hasOutputRef.current = false
+        inputControllerRef.current?.reset()
         placeholderShownRef.current = false
     }, [])
 

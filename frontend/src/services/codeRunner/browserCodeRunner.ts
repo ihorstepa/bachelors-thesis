@@ -27,6 +27,7 @@ class BrowserCodeRunner extends CodeRunner {
     private refreshTimer: number | null = null
     private observedConfigFileId: string | null = null
     private observedConfigText: Y.Text | null = null
+    private stopRequested = false
 
     private static readonly configName = 'run.config.json'
     private static readonly targetRefreshDelay = 500
@@ -62,6 +63,7 @@ class BrowserCodeRunner extends CodeRunner {
 
     public async run(targetName: string): Promise<void> {
         if (this.isExecutionActive()) return
+        this.stopRequested = false
         await this.refreshTargets()
         if (!this.hasConfig()) return
 
@@ -99,7 +101,10 @@ class BrowserCodeRunner extends CodeRunner {
 
     public stop(): void {
         if (this.status === 'idle') return
+
+        this.stopRequested = true
         this.killWorker()
+
         this.status = 'idle'
         this.canSendInput = false
         this.error = null
@@ -173,6 +178,7 @@ class BrowserCodeRunner extends CodeRunner {
         }
         worker.onerror = (e: ErrorEvent) => {
             if (this.worker !== worker) return
+            this.killWorker()
             this.setError(e.message ?? 'Code runner worker error')
         }
 
@@ -189,6 +195,13 @@ class BrowserCodeRunner extends CodeRunner {
     }
 
     private handleMessage(msg: WorkerOutMessage): void {
+        if (this.stopRequested) {
+            if (msg.type === 'done' || msg.type === 'error') {
+                this.stopRequested = false
+            }
+            return
+        }
+
         switch (msg.type) {
             case 'phase':
                 this.status = msg.phase
@@ -243,7 +256,7 @@ class BrowserCodeRunner extends CodeRunner {
         const excludedEntrypointPaths = new Set(
             Array.from(this.targets.entries())
                 .filter(([name]) => name !== targetName)
-                .map(([, targetEntrypoint]) => normalizePath(targetEntrypoint)),
+                .map(([, targetEntrypoint]) => targetEntrypoint),
         )
 
         const refs = this.projectFileIndex.getAllFilePaths()
@@ -260,7 +273,7 @@ class BrowserCodeRunner extends CodeRunner {
             )
 
             if (excludedEntrypointPaths.size === 0) return files
-            return files.filter((file) => !excludedEntrypointPaths.has(normalizePath(file.path)))
+            return files.filter((file) => !excludedEntrypointPaths.has(file.path))
         } finally {
             for (const id of openedIds) {
                 this.fileSyncManager.closeFile(id)
@@ -316,7 +329,7 @@ class BrowserCodeRunner extends CodeRunner {
     private findConfigId(): string | null {
         const rootChildren = this.fileSystemManager.getChildrenMeta(null)
         const configNode = rootChildren.find(
-            (node) => node.type === 'file' && normalizePath(node.name) === BrowserCodeRunner.configName,
+            (node) => node.type === 'file' && node.name === BrowserCodeRunner.configName,
         )
         return configNode?.id ?? null
     }

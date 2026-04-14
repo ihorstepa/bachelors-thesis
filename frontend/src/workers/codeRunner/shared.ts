@@ -1,11 +1,8 @@
-import type { Instance, Wasmer } from '@wasmer/sdk'
+import type { BinaryWASIFile, WASIExecutionResult, WASIFile } from '@runno/wasi'
 
 export type RunResult = { ok: boolean; code: number }
 export type ProjectFile = { path: string; content: string }
-export type ProjectIndex = {
-    filesByPath: Record<string, Uint8Array>
-    normalizedToPath: Map<string, string>
-}
+export type VFS = Record<string, WASIFile>
 
 export type WorkerInMessage =
     | { type: 'start'; files: ProjectFile[]; entrypoint: string }
@@ -18,9 +15,61 @@ export type WorkerOutMessage =
     | { type: 'done'; ok: boolean; code: number }
     | { type: 'error'; message: string }
 
-export const sourceExtensions = new Set(['.c', '.cc', '.cpp', '.cxx'])
+export type PipelineIo = {
+    readonly onStdout: (text: string) => void
+    readonly onStderr: (text: string) => void
+    readonly onStdinReady: () => void
+}
+
+export type CompilerInstanceInitMessage = {
+    type: 'init'
+    binary: Uint8Array
+    baseFs: VFS
+}
+
+export type CompilerInstanceRunMessage = {
+    type: 'run'
+    id: number
+    args: string[]
+    env: Record<string, string>
+    extraFs: VFS
+    outputPaths: string[]
+}
+
+export type CompilerInstanceInMessage = CompilerInstanceInitMessage | CompilerInstanceRunMessage
+
+export type CompilerInstanceOutMessage =
+    | { type: 'stdout'; id: number; text: string }
+    | { type: 'stderr'; id: number; text: string }
+    | { type: 'done'; id: number; exitCode: number; outputFiles: VFS }
+    | { type: 'error'; id: number; message: string }
+
 export const headerExtensions = new Set(['.h', '.hh', '.hpp', '.hxx'])
 export const wrappedMainPath = '__build__/__runtime__/__wrapped_main__.cpp'
+
+export function toBinaryFile(path: string, content: Uint8Array): BinaryWASIFile {
+    const now = new Date()
+    return {
+        path,
+        timestamps: { access: now, change: now, modification: now },
+        mode: 'binary',
+        content,
+    }
+}
+
+export function toTextFile(path: string, content: string): WASIFile {
+    const now = new Date()
+    return {
+        path,
+        timestamps: { access: now, change: now, modification: now },
+        mode: 'string',
+        content,
+    }
+}
+
+export function mapRunResult(result: WASIExecutionResult): RunResult {
+    return { ok: result.exitCode === 0, code: result.exitCode }
+}
 
 export function normalizePath(path: string): string {
     const parts: string[] = []
@@ -39,46 +88,6 @@ export function normalizePath(path: string): string {
     return parts.join('/')
 }
 
-export function buildProjectIndex(files: ProjectFile[]): ProjectIndex {
-    const filesByPath: Record<string, Uint8Array> = {}
-    const encoder = new TextEncoder()
-    const normalizedToPath = new Map<string, string>()
-
-    for (const { path, content } of files) {
-        filesByPath[path] = encoder.encode(content)
-
-        const index = path.lastIndexOf('.')
-        if (index < 0) continue
-
-        const ext = path.slice(index).toLowerCase()
-        if (!sourceExtensions.has(ext)) continue
-
-        const normalizedPath = normalizePath(path)
-        const existingPath = normalizedToPath.get(normalizedPath)
-        if (existingPath && existingPath !== path) {
-            throw new Error(
-                `Ambiguous source paths after normalization: "${existingPath}" and "${path}" both map to "${normalizedPath}"`,
-            )
-        }
-        normalizedToPath.set(normalizedPath, path)
-    }
-
-    return { filesByPath, normalizedToPath }
-}
-
-export function resolveEntrypoint(
-    entrypoint: string,
-    normalizedToPath: Map<string, string>,
-): { normalizedEntrypoint: string; resolvedEntrypointPath: string } {
-    const normalizedEntrypoint = normalizePath(entrypoint)
-    const resolvedEntrypointPath = normalizedToPath.get(normalizedEntrypoint)
-    if (!resolvedEntrypointPath) {
-        throw new Error(`Entrypoint "${entrypoint}" was not found in project source files`)
-    }
-
-    return { normalizedEntrypoint, resolvedEntrypointPath }
-}
-
 export function normalizeError(error: unknown): string {
     if (error instanceof Error) return error.message
     if (typeof error === 'string') return error
@@ -92,37 +101,4 @@ export function normalizeError(error: unknown): string {
         }
     }
     return 'Unknown error'
-}
-
-export function requireEntrypoint(module: Wasmer, name: string): NonNullable<Wasmer['entrypoint']> {
-    if (!module.entrypoint) throw new Error(`Loaded ${name} module has no entrypoint`)
-    return module.entrypoint
-}
-
-export type StreamCallback = (text: string) => void
-
-export function streamOutput(instance: Instance, onStdout: StreamCallback, onStderr: StreamCallback): void {
-    const pipe = (stream: ReadableStream<Uint8Array>, cb: StreamCallback) => {
-        void (async () => {
-            const decoder = new TextDecoder()
-            const reader = stream.getReader()
-            try {
-                while (true) {
-                    const { done, value } = await reader.read()
-                    if (done) break
-                    if (value) {
-                        const text = decoder.decode(value, { stream: true })
-                        if (text) cb(text)
-                    }
-                }
-                const tail = decoder.decode()
-                if (tail) cb(tail)
-            } finally {
-                reader.releaseLock()
-            }
-        })()
-    }
-
-    pipe(instance.stdout, onStdout)
-    pipe(instance.stderr, onStderr)
 }

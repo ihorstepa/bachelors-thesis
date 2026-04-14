@@ -1,96 +1,97 @@
-import { Compiler, computeCompileArgs, isCppFile } from '@/workers/codeRunner/compiler'
-import { Linker } from '@/workers/codeRunner/linker'
 import { ProjectFs } from '@/workers/codeRunner/projectFs'
-import { Runner } from '@/workers/codeRunner/runner'
 import { ToolchainLoader } from '@/workers/codeRunner/toolchainLoader'
-import { buildProjectIndex, normalizeError, resolveEntrypoint } from '@/workers/codeRunner/shared'
-import mainWrapper from '@/workers/codeRunner/mainWrapper'
-import { wrappedMainPath } from '@/workers/codeRunner/shared'
-import type { ProjectFile, WorkerInMessage, WorkerOutMessage } from '@/workers/codeRunner/shared'
+import { Compiler } from '@/workers/codeRunner/pipeline/compiler'
+import { Linker } from '@/workers/codeRunner/pipeline/linker'
+import { Runner } from '@/workers/codeRunner/pipeline/runner'
+import { normalizeError } from '@/workers/codeRunner/shared'
+import { assertNever } from '@/utils/functions'
+import type { PipelineIo, ProjectFile, WorkerInMessage, WorkerOutMessage } from '@/workers/codeRunner/shared'
 
-type PipelinePhase = 'loading toolchain' | 'preparing FS' | 'compiling' | 'linking' | 'running'
+type RunPhase = 'idle' | 'starting up' | 'loading toolchain' | 'preparing FS' | 'compiling' | 'linking' | 'running'
+
+type WorkerState = {
+    phase: RunPhase
+    compiler: Compiler | null
+    linker: Linker | null
+    runner: Runner | null
+}
+
+const stdinDecoder = new TextDecoder()
+
+const state: WorkerState = { phase: 'idle', compiler: null, linker: null, runner: null }
 
 const post = (msg: WorkerOutMessage) => self.postMessage(msg)
 
-const runner = new Runner(
-    (text) => post({ type: 'stdout', text }),
-    (text) => post({ type: 'stderr', text }),
-    () => post({ type: 'stdin_ready' }),
-)
+const io: PipelineIo = {
+    onStdout: (text: string) => post({ type: 'stdout', text }),
+    onStderr: (text: string) => post({ type: 'stderr', text }),
+    onStdinReady: () => post({ type: 'stdin_ready' }),
+}
 
-async function build(files: ProjectFile[], entrypoint: string): Promise<void> {
-    let phase: PipelinePhase = 'loading toolchain'
+async function run(files: ProjectFile[], entrypoint: string): Promise<void> {
     try {
-        const onStdout = (text: string) => post({ type: 'stdout', text })
-        const onStderr = (text: string) => post({ type: 'stderr', text })
+        state.phase = 'loading toolchain'
+        const { clangBinary, wasmLdBinary, sysrootFs } = await ToolchainLoader.load()
 
-        const { clang, wasmld, sysroot } = await ToolchainLoader.load()
-        const compiler = new Compiler(clang, sysroot, onStdout, onStderr)
-        const linker = new Linker(wasmld, sysroot, onStdout, onStderr)
+        state.phase = 'preparing FS'
+        const fs = new ProjectFs(files, entrypoint, sysrootFs)
+        state.compiler = new Compiler(clangBinary, fs.buildFs, io)
+        state.linker = new Linker(io, wasmLdBinary, sysrootFs)
+        state.runner = new Runner(io)
 
-        phase = 'preparing FS'
-        const { filesByPath, normalizedToPath } = buildProjectIndex(files)
-
-        if (normalizedToPath.size === 0) {
-            throw new Error('No C/C++ source files found in the project')
-        }
-        const { normalizedEntrypoint, resolvedEntrypointPath } = resolveEntrypoint(entrypoint, normalizedToPath)
-
-        const sourcePaths = Array.from(normalizedToPath.values()).sort()
-        const entrypointIsCpp = isCppFile(normalizedEntrypoint)
-
-        if (entrypointIsCpp) {
-            filesByPath[wrappedMainPath] = new TextEncoder().encode(mainWrapper)
-            sourcePaths.push(wrappedMainPath)
-        }
-
-        const fs = new ProjectFs(filesByPath, normalizedEntrypoint)
-        await fs.prepareDirs()
-
-        phase = 'compiling'
+        state.phase = 'compiling'
         post({ type: 'phase', phase: 'compiling' })
-        const objectFiles: string[] = []
-        for (const path of sourcePaths) {
-            const extraArgs = computeCompileArgs(path, resolvedEntrypointPath)
-            const result = await compiler.compile(path, fs, extraArgs)
-
-            if (!result.ok) {
-                post({ type: 'done', ok: false, code: result.code })
-                return
-            }
-
-            objectFiles.push(`/project/${fs.getObjectPath(path)}`)
-        }
-
-        phase = 'linking'
-        post({ type: 'phase', phase: 'linking' })
-        const linkResult = await linker.link(objectFiles, fs)
-        if (!linkResult.ok) {
-            post({ type: 'done', ok: false, code: linkResult.code })
+        const compileResult = await state.compiler.run(fs.sourcePaths, fs.entrypointPath, fs.objDir)
+        if (compileResult.failedCode !== null) {
+            post({ type: 'done', ok: false, code: compileResult.failedCode })
             return
         }
 
-        phase = 'running'
+        state.phase = 'linking'
+        post({ type: 'phase', phase: 'linking' })
+        const linkResult = await state.linker.linkObjects(
+            compileResult.objectFiles,
+            compileResult.objectFilesFs,
+            fs.wasmOutAbsPath,
+        )
+        if (linkResult.exitCode !== 0) {
+            post({ type: 'done', ok: false, code: linkResult.exitCode })
+            return
+        }
+
+        state.phase = 'running'
         post({ type: 'phase', phase: 'running' })
-        const runResult = await runner.run(fs)
-        post({ type: 'done', ok: runResult.ok, code: runResult.code })
+        const runFs = { ...fs.buildFs, ...linkResult.outputFs }
+        const runExitCode = await state.runner.run(runFs, fs.wasmOutAbsPath)
+        post({ type: 'done', ok: runExitCode === 0, code: runExitCode })
     } catch (e) {
-        post({ type: 'error', message: `Pipeline failed while ${phase}: ${normalizeError(e)}` })
+        post({ type: 'error', message: `Pipeline failed while ${state.phase}: ${normalizeError(e)}` })
+    } finally {
+        state.compiler?.destroy()
+        state.linker?.destroy()
+        state.runner?.destroy()
+        state.phase = 'idle'
+        state.compiler = null
+        state.linker = null
+        state.runner = null
     }
 }
 
 self.addEventListener('message', async (event: MessageEvent<WorkerInMessage>) => {
     const msg = event.data
 
-    if (msg.type === 'stdin') {
-        try {
-            await runner.writeStdin(msg.bytes)
-        } catch {
-            // Writer may be closed.
-        }
-        return
+    switch (msg.type) {
+        case 'start':
+            if (state.phase !== 'idle') return
+            state.phase = 'starting up'
+            run(msg.files, msg.entrypoint)
+            break
+        case 'stdin':
+            if (!state.runner) return
+            const text = stdinDecoder.decode(msg.bytes)
+            state.runner.pushStdin(text)
+            break
+        default:
+            return assertNever(msg)
     }
-
-    if (msg.type !== 'start') return
-    await build(msg.files, msg.entrypoint)
 })

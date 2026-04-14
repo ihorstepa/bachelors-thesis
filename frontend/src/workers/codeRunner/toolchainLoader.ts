@@ -1,43 +1,77 @@
-import { Directory, init, Wasmer } from '@wasmer/sdk'
 import { parseTar } from 'nanotar'
+import { toBinaryFile, type VFS } from '@/workers/codeRunner/shared'
 
-export type Toolchain = { clang: Wasmer; wasmld: Wasmer; sysroot: Directory }
+export type Toolchain = {
+    clangBinary: Uint8Array
+    wasmLdBinary: Uint8Array
+    sysrootFs: VFS
+}
 
 export class ToolchainLoader {
-    private static promise: Promise<Toolchain> | null = null
+    private static assetsPromise: Promise<Toolchain> | null = null
+    private static readonly cacheName = 'toolchain-v1'
 
-    static async load(): Promise<Toolchain> {
-        if (this.promise) return this.promise
+    public static async load(): Promise<Toolchain> {
+        if (this.assetsPromise) return this.assetsPromise
         try {
-            this.promise = this.fetch()
-            return await this.promise
+            this.assetsPromise = this.fetchAssets()
+            return await this.assetsPromise
         } catch (error) {
-            this.promise = null
+            this.assetsPromise = null
             throw error
         }
     }
 
-    private static async fetch(): Promise<Toolchain> {
-        await init()
-
-        const [clangBytes, wasmLdBytes, sysrootBytes] = await Promise.all([
-            this.fetchAndDecompress('/binaries/clang.wasm.gz'),
-            this.fetchAndDecompress('/binaries/wasm-ld.wasm.gz'),
-            this.fetchAndDecompress('/binaries/sysroot.tar.gz'),
+    private static async fetchAssets(): Promise<Toolchain> {
+        const [clangBinary, wasmLdBinary, sysrootBytes] = await Promise.all([
+            this.fetchCached('/binaries/clang.wasm.gz'),
+            this.fetchCached('/binaries/wasm-ld.wasm.gz'),
+            this.fetchCached('/binaries/sysroot.tar.gz'),
         ])
 
-        const clang = Wasmer.fromWasm(clangBytes)
-        const wasmld = Wasmer.fromWasm(wasmLdBytes)
         const files = parseTar(sysrootBytes)
-        const sysroot: Record<string, Uint8Array> = {}
+        const sysrootFs: VFS = {}
 
         for (const file of files) {
-            if (!file.data) continue
+            if (file.type !== 'file' || !file.data) continue
             const name = file.name.startsWith('./') ? file.name.slice(2) : file.name
-            if (name) sysroot[name] = file.data
+            if (!name) continue
+
+            const path = `/sysroot/${name}`
+            sysrootFs[path] = toBinaryFile(path, file.data)
         }
 
-        return { clang, wasmld, sysroot: new Directory(sysroot) }
+        return { clangBinary, wasmLdBinary, sysrootFs }
+    }
+
+    private static async fetchCached(path: string): Promise<Uint8Array> {
+        const cacheKey = `${path}?decompressed`
+
+        try {
+            const cache = await caches.open(this.cacheName)
+            const cached = await cache.match(cacheKey)
+            if (cached) {
+                return new Uint8Array(await cached.arrayBuffer())
+            }
+        } catch {
+            // Cache API may be unavailable (e.g. non-secure context). Fall through.
+        }
+
+        const bytes = await this.fetchAndDecompress(path)
+
+        try {
+            const cache = await caches.open(this.cacheName)
+            await cache.put(
+                cacheKey,
+                new Response(bytes.buffer as ArrayBuffer, {
+                    headers: { 'Content-Type': 'application/octet-stream' },
+                }),
+            )
+        } catch {
+            // Cache write failure is non-fatal.
+        }
+
+        return bytes
     }
 
     private static async fetchAndDecompress(path: string): Promise<Uint8Array> {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { VscTerminal } from 'react-icons/vsc'
 import { FaStop } from 'react-icons/fa'
 
@@ -19,10 +19,9 @@ type Props = {
 }
 
 function RunPanel({ canWrite }: Props) {
-    const { status, hasConfig, targets, error, runner } = useCodeRunner()
+    const { status, hasConfig, targets, selectedTarget, setSelectedTarget, error, runner } = useCodeRunner()
     const { setTerminalOpen } = useTerminal()
     const isActive = ['syncing', 'compiling', 'linking', 'running'].includes(status)
-    const [selectedTarget, setSelectedTarget] = useState<string>('')
 
     const selectedTargetValue = targets.includes(selectedTarget) ? selectedTarget : ''
 
@@ -34,7 +33,7 @@ function RunPanel({ canWrite }: Props) {
         } else {
             setSelectedTarget('')
         }
-    }, [selectedTargetValue, targets])
+    }, [selectedTargetValue, setSelectedTarget, targets])
 
     return (
         <div className='run-panel'>

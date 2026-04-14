@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 
 import { useService } from '@/contextProviders/ServiceProvider'
 import { CodeRunner } from '@/core/codeRunner'
+import type { CodeRunnerStatus } from '@/core/codeRunner'
 
 type TerminalState = {
     terminalOpen: boolean
@@ -24,19 +25,28 @@ function TerminalProvider({ children }: Props) {
     const [terminalOpen, setTerminalOpen] = useState(false)
     const hasAutoOpenedRef = useRef(false)
 
+    const isInteractiveStatus = (status: CodeRunnerStatus): boolean => status === 'running'
+
     useEffect(() => {
-        const unsubRun = codeRunner.on('change', (status) => {
-            if (status === 'compiling') hasAutoOpenedRef.current = false
-        })
         const openOnce = () => {
             if (hasAutoOpenedRef.current) return
             hasAutoOpenedRef.current = true
             setTerminalOpen(true)
         }
+
+        const unsubChange = codeRunner.on('change', (status) => {
+            if (status === 'compiling') hasAutoOpenedRef.current = false
+
+            if (isInteractiveStatus(status) || codeRunner.getCanSendInput()) {
+                openOnce()
+            }
+        })
+
         const unsubStdout = codeRunner.on('stdout', openOnce)
         const unsubStderr = codeRunner.on('stderr', openOnce)
+
         return () => {
-            unsubRun()
+            unsubChange()
             unsubStdout()
             unsubStderr()
         }

@@ -32,3 +32,8 @@ tmp
 .env.backup*
 *.test.ydoc
 .github
+
+# Frontend browser test artifacts
+frontend/.vitest-attachments/
+frontend/tests/**/__screenshots__/
+frontend/tests/**/__traces__/

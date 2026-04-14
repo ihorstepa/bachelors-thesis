@@ -15,3 +15,7 @@ export async function withTimeout<T>(timeoutMs: number, task: (signal: AbortSign
 export function isObject(value: unknown): value is Record<string, unknown> {
     return value != null && typeof value === 'object'
 }
+
+export function assertNever(value: never): never {
+    throw new Error(`Unexpected value: ${value}`)
+}

@@ -1,4 +1,4 @@
-import { createContext, useContext, useSyncExternalStore } from 'react'
+import { createContext, useContext, useState, useSyncExternalStore } from 'react'
 import type { ReactNode } from 'react'
 
 import { useService } from '@/contextProviders/ServiceProvider'
@@ -9,6 +9,8 @@ type CodeRunnerState = {
     canSendInput: boolean
     hasConfig: boolean
     targets: string[]
+    selectedTarget: string
+    setSelectedTarget: (target: string) => void
     error: string | null
     runner: CodeRunner
 }
@@ -25,6 +27,7 @@ type Props = { children: ReactNode }
 
 function CodeRunnerProvider({ children }: Props) {
     const codeRunner = useService(CodeRunner)
+    const [selectedTarget, setSelectedTarget] = useState('')
 
     const subscribe = (cb: () => void) => codeRunner.on('change', cb)
 
@@ -39,6 +42,8 @@ function CodeRunnerProvider({ children }: Props) {
         canSendInput,
         hasConfig,
         targets,
+        selectedTarget,
+        setSelectedTarget,
         error,
         runner: codeRunner,
     }
