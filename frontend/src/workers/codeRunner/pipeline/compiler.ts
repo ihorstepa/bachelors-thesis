@@ -27,11 +27,9 @@ export class Compiler {
     private static readonly cppExtensions = new Set(['.cc', '.cpp', '.cxx'])
 
     public constructor(clangBinary: Uint8Array, baseFs: VFS, io: PipelineIo) {
-        const workerScript = new URL('./compilerInstanceWorker.ts', import.meta.url)
-
         this.workerPool = Array.from(
             { length: Compiler.workerPoolSize },
-            (_, index) => new CompilerInstance(clangBinary, baseFs, io, workerScript, `compiler-${index}`),
+            (_, index) => new CompilerInstance(clangBinary, baseFs, io, `compiler-${index}`),
         )
     }
 

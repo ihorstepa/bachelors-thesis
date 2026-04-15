@@ -12,16 +12,14 @@ type HostRequest = {
 }
 
 export class CompilerInstance {
-    private workerScript: URL
     private io: PipelineIo
     private worker: Worker | null = null
     private activeRequest: HostRequest | null = null
     private workerName?: string
     private nextRequestId = 1
 
-    public constructor(binary: Uint8Array, baseFs: VFS, io: PipelineIo, workerScript: URL, workerName?: string) {
+    public constructor(binary: Uint8Array, baseFs: VFS, io: PipelineIo, workerName?: string) {
         this.io = io
-        this.workerScript = workerScript
         this.workerName = workerName
 
         const msg: CompilerInstanceInMessage = { type: 'init', binary, baseFs }
@@ -55,7 +53,10 @@ export class CompilerInstance {
 
     private ensureWorker(): Worker {
         if (this.worker) return this.worker
-        const worker = new Worker(this.workerScript, { type: 'module', name: this.workerName })
+        const worker = new Worker(new URL('./compilerInstanceWorker.ts', import.meta.url), {
+            type: 'module',
+            name: this.workerName,
+        })
         worker.addEventListener('message', this.handleMessage)
         worker.addEventListener('error', this.handleWorkerError)
         this.worker = worker
