@@ -66,6 +66,10 @@ class CppCodeRunner extends CodeRunner {
         this.stopRequested = false
 
         await this.refreshTargets()
+        if (this.stopRequested) {
+            this.stopRequested = false
+            return
+        }
         if (!this.hasConfig()) return
 
         const entrypoint = this.targets.get(targetName)
@@ -87,7 +91,10 @@ class CppCodeRunner extends CodeRunner {
         }
 
         // stop() may have been called while awaiting file collection.
-        if ((this.status as CodeRunnerStatus) === 'idle') return
+        if ((this.status as CodeRunnerStatus) === 'idle' || this.stopRequested) {
+            this.stopRequested = false
+            return
+        }
 
         const worker = this.getWorker()
         const message: WorkerInMessage = { type: 'start', files, entrypoint }
@@ -103,7 +110,10 @@ class CppCodeRunner extends CodeRunner {
     }
 
     public stop(): void {
-        if (this.status === 'idle') return
+        if (this.status === 'idle') {
+            this.stopRequested = true
+            return
+        }
 
         this.stopRequested = true
         this.killWorker()
