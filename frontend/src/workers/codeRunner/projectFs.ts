@@ -1,29 +1,31 @@
-import mainWrapper from '@/workers/codeRunner/mainWrapper'
-import { toBinaryFile, type ProjectFile, type VFS, wrappedMainPath } from '@/workers/codeRunner/shared'
+import type { WASIFS } from '@runno/wasi'
+
+import { mainWrapper, wrappedMainPath } from '@/workers/codeRunner/mainWrapper'
+import { toBinaryFile, isCppFile, isSourceFile, projectPath } from '@/workers/codeRunner/shared'
+import type { ProjectFile } from '@/workers/codeRunner/shared'
 
 export class ProjectFs {
+    readonly initialFs: WASIFS
     readonly sourcePaths: string[]
     readonly entrypointPath: string
-    readonly objDir: string
-    readonly wasmOutAbsPath: string
-    readonly buildFs: VFS
+    readonly objDirPath: string
+    readonly wasmOutPath: string
 
-    private static readonly cppExtensions = new Set(['.cc', '.cpp', '.cxx'])
-    private static readonly sourceExtensions = new Set(['.c', '.cc', '.cpp', '.cxx'])
-
-    constructor(files: ProjectFile[], entrypoint: string, sysrootFs: VFS) {
+    constructor(files: ProjectFile[], entrypoint: string, sysroot: WASIFS) {
         const { filesByPath, sourcePaths } = ProjectFs.buildProjectIndex(files)
+
         if (sourcePaths.length === 0) {
-            throw new Error('No C/C++ source files found in the project')
+            throw new Error('No source files found')
         }
-
         if (!sourcePaths.includes(entrypoint)) {
-            throw new Error(`Entrypoint "${entrypoint}" was not found in project source files`)
+            throw new Error(`Entrypoint "${entrypoint}" was not found in source files`)
         }
 
+        // Sort for deterministic processing order
         sourcePaths.sort()
 
-        if (ProjectFs.cppExtensions.has(ProjectFs.getExtension(entrypoint))) {
+        // C++ projects need an extra wrapper for certain features
+        if (isCppFile(entrypoint)) {
             filesByPath[wrappedMainPath] = new TextEncoder().encode(mainWrapper)
             sourcePaths.push(wrappedMainPath)
         }
@@ -33,14 +35,9 @@ export class ProjectFs {
 
         this.sourcePaths = sourcePaths
         this.entrypointPath = entrypoint
-        this.objDir = `/project/${buildDir}/obj`
-        this.wasmOutAbsPath = `/project/${buildDir}/main.wasm`
-        this.buildFs = ProjectFs.buildInitialFs(filesByPath, sysrootFs)
-    }
-
-    private static getExtension(path: string): string {
-        const index = path.lastIndexOf('.')
-        return index < 0 ? '' : path.slice(index).toLowerCase()
+        this.objDirPath = `${projectPath}/${buildDir}/obj`
+        this.wasmOutPath = `${projectPath}/${buildDir}/main.wasm`
+        this.initialFs = ProjectFs.buildInitialFs(filesByPath, sysroot)
     }
 
     private static buildProjectIndex(files: ProjectFile[]): {
@@ -53,21 +50,18 @@ export class ProjectFs {
 
         for (const { path, content } of files) {
             filesByPath[path] = encoder.encode(content)
-
-            const ext = ProjectFs.getExtension(path)
-            if (!ProjectFs.sourceExtensions.has(ext)) continue
-
+            if (!isSourceFile(path)) continue
             sourcePaths.push(path)
         }
 
         return { filesByPath, sourcePaths }
     }
 
-    private static buildInitialFs(projectFiles: Record<string, Uint8Array>, sysrootFs: VFS): VFS {
-        const fs: VFS = { ...sysrootFs }
+    private static buildInitialFs(projectFiles: Record<string, Uint8Array>, sysroot: WASIFS): WASIFS {
+        const fs: WASIFS = { ...sysroot }
 
         for (const [path, content] of Object.entries(projectFiles)) {
-            const absolutePath = `/project/${path}`
+            const absolutePath = `${projectPath}/${path}`
             fs[absolutePath] = toBinaryFile(absolutePath, content)
         }
 

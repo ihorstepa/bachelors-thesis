@@ -1,28 +1,18 @@
 import { parseTar } from 'nanotar'
-import { toBinaryFile, type VFS } from '@/workers/codeRunner/shared'
+import type { WASIFS } from '@runno/wasi'
+
+import { toBinaryFile } from '@/workers/codeRunner/shared'
 
 export type Toolchain = {
     clangBinary: Uint8Array
     wasmLdBinary: Uint8Array
-    sysrootFs: VFS
+    sysrootFs: WASIFS
 }
 
 export class ToolchainLoader {
-    private static assetsPromise: Promise<Toolchain> | null = null
     private static readonly cacheName = 'toolchain-v1'
 
     public static async load(): Promise<Toolchain> {
-        if (this.assetsPromise) return this.assetsPromise
-        try {
-            this.assetsPromise = this.fetchAssets()
-            return await this.assetsPromise
-        } catch (error) {
-            this.assetsPromise = null
-            throw error
-        }
-    }
-
-    private static async fetchAssets(): Promise<Toolchain> {
         const [clangBinary, wasmLdBinary, sysrootBytes] = await Promise.all([
             this.fetchCached('/binaries/clang.wasm.gz'),
             this.fetchCached('/binaries/wasm-ld.wasm.gz'),
@@ -30,7 +20,7 @@ export class ToolchainLoader {
         ])
 
         const files = parseTar(sysrootBytes)
-        const sysrootFs: VFS = {}
+        const sysrootFs: WASIFS = {}
 
         for (const file of files) {
             if (file.type !== 'file' || !file.data) continue

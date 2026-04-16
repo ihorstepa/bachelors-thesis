@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useMemo, useRef } from 'react'
 
 import useAsyncEffect from '@/hooks/useAsyncEffect'
-import BrowserCodeRunner from '@/services/codeRunner/browserCodeRunner'
+import CppCodeRunner from '@/services/codeRunner/cppCodeRunner'
 import { CodeRunner } from '@/core/codeRunner'
 import { ProjectIndexService } from '@/core/projectIndexService'
 import LocalProjectIndexService from '@/services/projectIndexService/localProjectIndexService'
@@ -76,7 +76,7 @@ async function initIdeServices(
     const projectFileIndex = new LocalProjectIndexService(fileSystemManager)
     services.set(ProjectIndexService, projectFileIndex)
 
-    const compilationService = new BrowserCodeRunner(fileSystemManager, fileSyncManager, projectFileIndex, tabManager)
+    const compilationService = new CppCodeRunner(fileSystemManager, fileSyncManager, projectFileIndex, tabManager)
     services.set(CodeRunner, compilationService)
 
     return services

@@ -1,8 +1,11 @@
-import { wrappedMainPath } from '@/workers/codeRunner/shared'
-import { CompilerInstance } from '@/workers/codeRunner/pipeline/compilerInstance'
-import type { PipelineIo, VFS } from '@/workers/codeRunner/shared'
+import type { WASIFS, WASIExecutionResult } from '@runno/wasi'
 
-export type CompilationResult = { objectFiles: string[]; objectFilesFs: VFS; failedCode: number | null }
+import { wrappedMainPath } from '@/workers/codeRunner/mainWrapper'
+import { CompilerInstance } from '@/workers/codeRunner/pipeline/compilerInstance'
+import { isCppFile, isSourceFile, projectPath } from '@/workers/codeRunner/shared'
+import type { PipelineIo } from '@/workers/codeRunner/shared'
+
+export type CompilationResult = WASIExecutionResult & { objectFilePaths: string[] }
 
 const clangCommonArgs = [
     '-isysroot',
@@ -17,67 +20,79 @@ const clangCommonArgs = [
     '-fexceptions',
     '-fwasm-exceptions',
     '-Wno-deprecated',
-    '-std=c++20',
+    '-Wall',
+    '-pedantic',
 ]
 
 export class Compiler {
-    private workerPool: CompilerInstance[]
+    private workerPool: CompilerInstance[] = []
+    private clangBinary: Uint8Array
+    private fs: WASIFS
+    private io: PipelineIo
 
-    private static readonly workerPoolSize = Math.min(8, navigator.hardwareConcurrency / 2)
-    private static readonly cppExtensions = new Set(['.cc', '.cpp', '.cxx'])
+    private static readonly defaultWorkerPoolSize = Math.min(8, navigator.hardwareConcurrency / 2)
 
-    public constructor(clangBinary: Uint8Array, baseFs: VFS, io: PipelineIo) {
-        this.workerPool = Array.from(
-            { length: Compiler.workerPoolSize },
-            (_, index) => new CompilerInstance(clangBinary, baseFs, io, `compiler-${index}`),
-        )
+    public constructor(clangBinary: Uint8Array, fs: WASIFS, io: PipelineIo) {
+        this.clangBinary = clangBinary
+        this.fs = fs
+        this.io = io
     }
 
     public async run(sourcePaths: string[], entrypointPath: string, objDir: string): Promise<CompilationResult> {
-        const objectFiles: string[] = new Array(sourcePaths.length)
-        const objectFilesFs: VFS = {}
-        let failedCode: number | null = null
+        const concurrency = Math.min(Compiler.defaultWorkerPoolSize, sourcePaths.length)
+        this.createWorkers(concurrency)
+
+        const objectFilePaths: string[] = new Array(sourcePaths.length)
+        const objectFiles: WASIFS = {}
+        let exitCode = 0
         let nextIndex = 0
 
         const runInstance = async (instance: CompilerInstance): Promise<void> => {
-            while (failedCode === null) {
+            while (exitCode === 0) {
+                // Each worker gets assigned an index of a source file using shared counter
                 const current = nextIndex
                 nextIndex += 1
                 if (current >= sourcePaths.length) return
 
                 const sourcePath = sourcePaths[current]
-                const objectAbsPath = this.getObjectPath(sourcePath, objDir)
-                const compileArgs = this.createCompileArgs(sourcePath, entrypointPath, objectAbsPath)
-                const result = await instance.run(compileArgs, {}, [objectAbsPath])
+                const objectPath = this.getObjectPath(sourcePath, objDir)
+                const compileArgs = this.createCompileArgs(sourcePath, entrypointPath, objectPath)
+                const result = await instance.run(compileArgs, objectPath)
 
                 if (result.exitCode !== 0) {
-                    failedCode = result.exitCode
+                    exitCode = result.exitCode
                     return
                 }
 
-                objectFiles[current] = objectAbsPath
-                for (const [path, file] of Object.entries(result.outputFiles)) {
-                    objectFilesFs[path] = file
-                }
+                objectFilePaths[current] = objectPath
+                objectFiles[objectPath] = result.objectFile
             }
         }
 
         await Promise.all(this.workerPool.map((instance) => runInstance(instance)))
+        this.killWorkers()
 
-        const compiledObjects = objectFiles.filter((path): path is string => typeof path === 'string')
-        return { objectFiles: compiledObjects, objectFilesFs, failedCode }
-    }
-
-    public destroy(): void {
-        for (const instance of this.workerPool) {
-            instance.destroy()
+        if (exitCode !== 0) {
+            return { exitCode, fs: {}, objectFilePaths: [] }
         }
+
+        this.fs = { ...this.fs, ...objectFiles }
+        return { exitCode, fs: this.fs, objectFilePaths }
     }
 
-    private isCppFile(path: string): boolean {
-        const index = path.lastIndexOf('.')
-        if (index < 0) return false
-        return Compiler.cppExtensions.has(path.slice(index).toLowerCase())
+    private createWorkers(count: number): void {
+        this.killWorkers()
+        this.workerPool = Array.from(
+            { length: count },
+            (_, index) => new CompilerInstance(this.clangBinary, this.fs, this.io, `compiler-${index}`),
+        )
+    }
+
+    private killWorkers(): void {
+        for (const instance of this.workerPool) {
+            instance.kill()
+        }
+        this.workerPool = []
     }
 
     private getObjectPath(sourcePath: string, objDir: string): string {
@@ -86,46 +101,37 @@ export class Compiler {
     }
 
     private getLangArgs(path: string): string[] {
-        const ext = path.slice(path.lastIndexOf('.')).toLowerCase()
-        switch (ext) {
-            case '.c':
-                return ['-x', 'c', '-std=c17']
-            case '.cc':
-            case '.cpp':
-            case '.cxx':
-                return ['-x', 'c++', '-std=c++2b']
-            default:
-                return []
+        if (isCppFile(path)) {
+            return ['-x', 'c++', '-std=c++2b']
         }
-    }
-
-    private getLocalIncludeArgs(sourcePath: string): string[] {
-        const idx = sourcePath.lastIndexOf('/')
-        if (idx < 0) return []
-        const sourceDir = sourcePath.slice(0, idx)
-        if (!sourceDir) return []
-        return ['-iquote', `/project/${sourceDir}`]
-    }
-
-    private computeCompileArgs(sourcePath: string, selectedEntrypointPath: string): string[] {
-        const isEntrypoint = sourcePath === selectedEntrypointPath
-        const entrypointIsCpp = this.isCppFile(selectedEntrypointPath)
-        if (entrypointIsCpp && isEntrypoint) return ['-Dmain=__wasm_user_main']
-        if (!isEntrypoint && sourcePath !== wrappedMainPath) return ['-Dmain=__wasm_non_entry_main']
+        if (isSourceFile(path)) {
+            return ['-x', 'c', '-std=c17']
+        }
         return []
     }
 
-    private createCompileArgs(sourcePath: string, entrypointPath: string, objectAbsPath: string): string[] {
+    private getExtraArgs(sourcePath: string, entrypointPath: string): string[] {
+        // We need to rename the main function for the C++ extra wrapper to work
+        if (isCppFile(entrypointPath)) {
+            if (sourcePath === entrypointPath) {
+                return ['-Dmain=__wasm_user_main']
+            } else if (sourcePath !== wrappedMainPath) {
+                return ['-Dmain=__wasm_non_entry_main']
+            }
+        }
+        return []
+    }
+
+    private createCompileArgs(sourcePath: string, entrypointPath: string, objectPath: string): string[] {
         return [
-            'clang++',
+            'clang',
             ...clangCommonArgs,
-            ...this.getLocalIncludeArgs(sourcePath),
             ...this.getLangArgs(sourcePath),
-            ...this.computeCompileArgs(sourcePath, entrypointPath),
+            ...this.getExtraArgs(sourcePath, entrypointPath),
             '-c',
-            `/project/${sourcePath}`,
+            `${projectPath}/${sourcePath}`,
             '-o',
-            objectAbsPath,
+            objectPath,
         ]
     }
 }

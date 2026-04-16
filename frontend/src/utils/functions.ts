@@ -12,6 +12,38 @@ export async function withTimeout<T>(timeoutMs: number, task: (signal: AbortSign
     }
 }
 
+export function normalizePath(path: string): string {
+    const parts: string[] = []
+    const cleaned = path.replace(/\\/g, '/')
+
+    for (const rawPart of cleaned.split('/')) {
+        const part = rawPart.trim()
+        if (!part || part === '.') continue
+
+        if (part === '..') {
+            if (parts.length) parts.pop()
+            continue
+        }
+        parts.push(part)
+    }
+    return parts.join('/')
+}
+
+export function normalizeError(error: unknown): string {
+    if (error instanceof Error) return error.message
+    if (typeof error === 'string') return error
+    if (error && typeof error === 'object') {
+        const msg = (error as { message?: unknown }).message
+        if (typeof msg === 'string' && msg.trim()) return msg
+        try {
+            return JSON.stringify(error)
+        } catch {
+            return String(error)
+        }
+    }
+    return 'Unknown error'
+}
+
 export function isObject(value: unknown): value is Record<string, unknown> {
     return value != null && typeof value === 'object'
 }

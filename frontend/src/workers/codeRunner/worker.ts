@@ -3,14 +3,16 @@ import { ToolchainLoader } from '@/workers/codeRunner/toolchainLoader'
 import { Compiler } from '@/workers/codeRunner/pipeline/compiler'
 import { Linker } from '@/workers/codeRunner/pipeline/linker'
 import { Runner } from '@/workers/codeRunner/pipeline/runner'
-import { normalizeError } from '@/workers/codeRunner/shared'
+import { normalizeError } from '@/utils/functions'
 import { assertNever } from '@/utils/functions'
+import type { Toolchain } from '@/workers/codeRunner/toolchainLoader'
 import type { PipelineIo, ProjectFile, WorkerInMessage, WorkerOutMessage } from '@/workers/codeRunner/shared'
 
 type RunPhase = 'idle' | 'starting up' | 'loading toolchain' | 'preparing FS' | 'compiling' | 'linking' | 'running'
 
 type WorkerState = {
     phase: RunPhase
+    fs: ProjectFs | null
     compiler: Compiler | null
     linker: Linker | null
     runner: Runner | null
@@ -18,7 +20,7 @@ type WorkerState = {
 
 const stdinDecoder = new TextDecoder()
 
-const state: WorkerState = { phase: 'idle', compiler: null, linker: null, runner: null }
+const state: WorkerState = { phase: 'idle', fs: null, compiler: null, linker: null, runner: null }
 
 const post = (msg: WorkerOutMessage) => self.postMessage(msg)
 
@@ -31,49 +33,58 @@ const io: PipelineIo = {
 async function run(files: ProjectFile[], entrypoint: string): Promise<void> {
     try {
         state.phase = 'loading toolchain'
-        const { clangBinary, wasmLdBinary, sysrootFs } = await ToolchainLoader.load()
+        let { clangBinary, wasmLdBinary, sysrootFs }: Partial<Toolchain> = await ToolchainLoader.load()
 
         state.phase = 'preparing FS'
-        const fs = new ProjectFs(files, entrypoint, sysrootFs)
-        state.compiler = new Compiler(clangBinary, fs.buildFs, io)
-        state.linker = new Linker(io, wasmLdBinary, sysrootFs)
+        state.fs = new ProjectFs(files, entrypoint, sysrootFs)
+        state.compiler = new Compiler(clangBinary, state.fs.initialFs, io)
+        state.linker = new Linker(wasmLdBinary, sysrootFs, io)
         state.runner = new Runner(io)
+
+        // Helps with early garbage collection
+        clangBinary = undefined
+        wasmLdBinary = undefined
+        sysrootFs = undefined
 
         state.phase = 'compiling'
         post({ type: 'phase', phase: 'compiling' })
-        const compileResult = await state.compiler.run(fs.sourcePaths, fs.entrypointPath, fs.objDir)
-        if (compileResult.failedCode !== null) {
-            post({ type: 'done', ok: false, code: compileResult.failedCode })
+        const compileResult = await state.compiler.run(
+            state.fs.sourcePaths,
+            state.fs.entrypointPath,
+            state.fs.objDirPath,
+        )
+        if (compileResult.exitCode !== 0) {
+            post({ type: 'done', ok: false, code: compileResult.exitCode })
             return
         }
+        // Helps with early garbage collection
+        state.compiler = null
 
         state.phase = 'linking'
         post({ type: 'phase', phase: 'linking' })
         const linkResult = await state.linker.linkObjects(
-            compileResult.objectFiles,
-            compileResult.objectFilesFs,
-            fs.wasmOutAbsPath,
+            compileResult.fs,
+            compileResult.objectFilePaths,
+            state.fs.wasmOutPath,
         )
         if (linkResult.exitCode !== 0) {
             post({ type: 'done', ok: false, code: linkResult.exitCode })
             return
         }
+        // Helps with early garbage collection
+        state.linker = null
 
         state.phase = 'running'
         post({ type: 'phase', phase: 'running' })
-        const runFs = { ...fs.buildFs, ...linkResult.outputFs }
-        const runExitCode = await state.runner.run(runFs, fs.wasmOutAbsPath)
+        const runExitCode = await state.runner.run(linkResult.fs, state.fs.wasmOutPath)
         post({ type: 'done', ok: runExitCode === 0, code: runExitCode })
     } catch (e) {
         post({ type: 'error', message: `Pipeline failed while ${state.phase}: ${normalizeError(e)}` })
     } finally {
-        state.compiler?.destroy()
-        state.linker?.destroy()
-        state.runner?.destroy()
-        state.phase = 'idle'
         state.compiler = null
         state.linker = null
         state.runner = null
+        state.phase = 'idle'
     }
 }
 

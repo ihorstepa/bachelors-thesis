@@ -1,8 +1,10 @@
+export const wrappedMainPath = '__build__/__runtime__/__wrapped_main__.cpp'
+
 /**
  * Current setup doesnt handle uncaught exceptions perfectly,
  * so we need to create a wrapper for the code, that'll emulate the typical behavior
  */
-const mainWrapper = `#include <cxxabi.h>
+export const mainWrapper = `#include <cxxabi.h>
 #include <cstdlib>
 #include <exception>
 #include <cstdio>
@@ -45,4 +47,3 @@ int main(int argc, char** argv) {
     }
 }
 `
-export default mainWrapper

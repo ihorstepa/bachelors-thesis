@@ -5,13 +5,13 @@ import { FileSyncManager } from '@/core/fileSyncManager'
 import { ProjectIndexService } from '@/core/projectIndexService'
 import { FileSystemManager } from '@/core/fileSystemManager'
 import { TabManager } from '@/core/tabManager'
-import { normalizePath } from '@/workers/codeRunner/shared'
+import { assertNever, normalizePath } from '@/utils/functions'
 import type { CodeRunnerStatus } from '@/core/codeRunner'
 import type { WorkerOutMessage, ProjectFile, WorkerInMessage } from '@/workers/codeRunner/shared'
 
 type RunConfig = { targets?: Record<string, { entry?: string }> }
 
-class BrowserCodeRunner extends CodeRunner {
+class CppCodeRunner extends CodeRunner {
     private fileSystemManager: FileSystemManager
     private fileSyncManager: FileSyncManager
     private projectFileIndex: ProjectIndexService
@@ -64,12 +64,13 @@ class BrowserCodeRunner extends CodeRunner {
     public async run(targetName: string): Promise<void> {
         if (this.isExecutionActive()) return
         this.stopRequested = false
+
         await this.refreshTargets()
         if (!this.hasConfig()) return
 
         const entrypoint = this.targets.get(targetName)
         if (!entrypoint) {
-            this.setError(`Selected target "${targetName}" is not defined in ${BrowserCodeRunner.configName}`)
+            this.setError(`Selected target "${targetName}" is not defined in ${CppCodeRunner.configName}`)
             return
         }
 
@@ -95,8 +96,10 @@ class BrowserCodeRunner extends CodeRunner {
 
     public sendInput(text: string): void {
         if (!this.canSendInput || !this.worker) return
+        this.canSendInput = false
         const message: WorkerInMessage = { type: 'stdin', bytes: new TextEncoder().encode(text) }
         this.worker.postMessage(message)
+        this.emit('change', this.status)
     }
 
     public stop(): void {
@@ -116,7 +119,7 @@ class BrowserCodeRunner extends CodeRunner {
 
         let id: string
         try {
-            id = this.fileSystemManager.create(BrowserCodeRunner.configName, 'file', null)
+            id = this.fileSystemManager.create(CppCodeRunner.configName, 'file', null)
         } catch (e) {
             this.setError(this.getErrorMessage(e))
             return
@@ -132,7 +135,7 @@ class BrowserCodeRunner extends CodeRunner {
             file.doc.transact(() => {
                 const length = text.length
                 if (length > 0) text.delete(0, length)
-                text.insert(0, JSON.stringify(BrowserCodeRunner.defaultConfig, null, 4))
+                text.insert(0, JSON.stringify(CppCodeRunner.defaultConfig, null, 4))
             })
 
             this.tabManager.open(id)
@@ -216,18 +219,23 @@ class BrowserCodeRunner extends CodeRunner {
                 this.emit('change', this.status)
                 break
             case 'stdin_ready':
+                if (this.canSendInput) break
                 this.canSendInput = true
                 this.emit('change', this.status)
                 break
             case 'done':
                 this.canSendInput = false
                 this.status = msg.ok ? 'success' : 'error'
+                this.killWorker()
                 this.emit('exit', msg.code, msg.ok)
                 this.emit('change', this.status)
                 break
             case 'error':
+                this.killWorker()
                 this.setError(msg.message)
                 break
+            default:
+                assertNever(msg)
         }
     }
 
@@ -253,10 +261,9 @@ class BrowserCodeRunner extends CodeRunner {
     }
 
     private async collectFiles(targetName: string): Promise<ProjectFile[]> {
+        const selectedEntrypoint = this.targets.get(targetName)
         const excludedEntrypointPaths = new Set(
-            Array.from(this.targets.entries())
-                .filter(([name]) => name !== targetName)
-                .map(([, targetEntrypoint]) => targetEntrypoint),
+            Array.from(this.targets.values()).filter((entry) => entry !== selectedEntrypoint),
         )
 
         const refs = this.projectFileIndex.getAllFilePaths()
@@ -305,7 +312,7 @@ class BrowserCodeRunner extends CodeRunner {
             this.error = null
             this.emit('change', this.status)
         } catch (e) {
-            const message = `Failed to parse ${BrowserCodeRunner.configName}: ${this.getErrorMessage(e)}`
+            const message = `Failed to parse ${CppCodeRunner.configName}: ${this.getErrorMessage(e)}`
             this.targets = new Map()
             this.targetsSnapshot = []
             this.setError(message)
@@ -317,7 +324,7 @@ class BrowserCodeRunner extends CodeRunner {
         this.refreshTimer = window.setTimeout(() => {
             this.refreshTimer = null
             void this.refreshTargets()
-        }, BrowserCodeRunner.targetRefreshDelay)
+        }, CppCodeRunner.targetRefreshDelay)
     }
 
     private clearRefreshTimer(): void {
@@ -328,9 +335,7 @@ class BrowserCodeRunner extends CodeRunner {
 
     private findConfigId(): string | null {
         const rootChildren = this.fileSystemManager.getChildrenMeta(null)
-        const configNode = rootChildren.find(
-            (node) => node.type === 'file' && node.name === BrowserCodeRunner.configName,
-        )
+        const configNode = rootChildren.find((node) => node.type === 'file' && node.name === CppCodeRunner.configName)
         return configNode?.id ?? null
     }
 
@@ -378,4 +383,4 @@ class BrowserCodeRunner extends CodeRunner {
     }
 }
 
-export default BrowserCodeRunner
+export default CppCodeRunner
