@@ -273,8 +273,7 @@
 }
 
 .cm-editor .cm-ySelectionInfo {
-    position: relative;
+    /* TODO: ??? */
     z-index: 10000;
     font-size: 12px;
-    pointer-events: none;
 }

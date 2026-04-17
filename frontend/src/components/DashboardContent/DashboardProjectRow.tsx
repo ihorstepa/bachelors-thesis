@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { VscLockSmall, VscStarFull } from 'react-icons/vsc'
+import { VscEye, VscStarFull } from 'react-icons/vsc'
 
 import type { ProjectPreview } from '@/core/projectManager'
 import DashboardProjectRowMenu from '@/components/DashboardContent/DashboardProjectRowMenu'
@@ -140,14 +140,14 @@ function DashboardProjectRow({
             <td>
                 {project.accessType === 'r' && (
                     <span className='project-readonly-icon' title='Read-only access'>
-                        <VscLockSmall size={13} />
+                        <VscEye size={13} />
                     </span>
                 )}
             </td>
             <td>
                 <div className='project-name-cell'>
                     <span className='project-name'>{project.name}</span>
-                    {project.favorited && <VscStarFull size={14} color='#e5c07b' />}
+                    {project.favorited && <VscStarFull size={14} className='project-favorited-icon' />}
                 </div>
             </td>
             <td>

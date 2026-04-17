@@ -30,7 +30,7 @@
     justify-content: center;
     gap: 12px;
     padding: 80px 0;
-    color: #e06c75;
+    color: var(--color-red);
     text-align: center;
     font-size: 13px;
     font-family: 'JetBrains Mono', monospace;
