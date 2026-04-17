@@ -9,16 +9,26 @@ import {
     crosshairCursor,
     lineNumbers,
     highlightActiveLineGutter,
+    scrollPastEnd,
+    placeholder,
 } from '@codemirror/view'
 import { indentOnInput, indentUnit, bracketMatching, foldGutter, foldKeymap } from '@codemirror/language'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
-import { searchKeymap, highlightSelectionMatches } from '@codemirror/search'
-import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
+import { search, searchKeymap, highlightSelectionMatches } from '@codemirror/search'
+import {
+    autocompletion,
+    completionKeymap,
+    closeBrackets,
+    closeBracketsKeymap,
+    completeAnyWord,
+} from '@codemirror/autocomplete'
 import { lintKeymap } from '@codemirror/lint'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { yCollab } from 'y-codemirror.next'
 import { indentationMarkers } from '@replit/codemirror-indentation-markers'
-import { language } from '@/components/Editor/extensions/language'
+import { language } from '@/components/IdeEditor/extensions/language'
+import { createFoldMarker } from '@/components/IdeEditor/extensions/foldMarker'
+import { createCustomSearchPanel } from '@/components/IdeEditor/customSearchPanel'
 import type { Extension } from '@codemirror/state'
 
 import type { SharedFile } from '@/core/fileSyncManager'
@@ -31,14 +41,17 @@ class ExtensionProvider {
 
     public getExtensions(file: SharedFile, meta: NodeMeta): Extension[] {
         return [
-            autocompletion(),
+            autocompletion({ override: [completeAnyWord] }),
             bracketMatching(),
             closeBrackets(),
             crosshairCursor(),
             drawSelection(),
             dropCursor(),
             EditorState.allowMultipleSelections.of(true),
-            foldGutter(),
+            lineNumbers(),
+            foldGutter({
+                markerDOM: createFoldMarker,
+            }),
             highlightActiveLine(),
             highlightActiveLineGutter(),
             highlightSelectionMatches(),
@@ -50,6 +63,11 @@ class ExtensionProvider {
             }),
             indentOnInput(),
             indentUnit.of('    '),
+            scrollPastEnd(),
+            search({
+                top: true,
+                createPanel: createCustomSearchPanel,
+            }),
             keymap.of([
                 ...closeBracketsKeymap,
                 ...completionKeymap,
@@ -59,8 +77,8 @@ class ExtensionProvider {
                 ...lintKeymap,
                 ...searchKeymap,
             ]),
-            lineNumbers(),
             oneDark,
+            placeholder('Start typing to edit...'),
             rectangularSelection(),
             this.compartments.language.of(language(meta.name)),
             yCollab(file.doc.getText(), file.awareness),

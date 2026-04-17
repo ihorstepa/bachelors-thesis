@@ -8,7 +8,7 @@ function RedirectIfAuthenticated() {
     const location = useLocation()
 
     if (auth.isInitializing) {
-        return <FullScreenLoader label='Loading session...' />
+        return <FullScreenLoader />
     }
 
     if (auth.isAuthenticated) {

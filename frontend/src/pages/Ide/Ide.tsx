@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router'
 
 import TabsProvider from '@/contextProviders/TabsProvider'
-import Editor from '@/components/Editor/Editor'
-import SideBar from '@/components/SideBar/SideBar'
-import Tabs from '@/components/Tabs/Tabs'
-import StatusBar from '@/components/StatusBar/StatusBar'
-import Terminal from '@/components/Terminal/Terminal'
-import TopBar from '@/components/TopBar/TopBar'
+import IdeEditor from '@/components/IdeEditor/IdeEditor'
+import IdeSideBar from '@/components/IdeSideBar/IdeSideBar'
+import IdeTabs from '@/components/IdeTabs/IdeTabs'
+import IdeStatusBar from '@/components/IdeStatusBar/IdeStatusBar'
+import IdeTerminal from '@/components/IdeTerminal/IdeTerminal'
+import IdeTopBar from '@/components/IdeTopBar/IdeTopBar'
 import { IdeServiceProvider } from '@/contextProviders/ServiceProvider'
 import FileTreeProvider from '@/contextProviders/FileTreeProvider'
 import EditorProvider from '@/contextProviders/EditorProvider'
@@ -24,35 +24,37 @@ import '@/pages/Ide/Ide.css'
 
 type IdeLayoutProps = {
     canWrite: boolean
+    projectName?: string
 }
 
-function IdeLayout({ canWrite }: IdeLayoutProps) {
+function IdeLayout({ canWrite, projectName }: IdeLayoutProps) {
     const { terminalOpen } = useTerminal()
 
     return (
         <div className='ide'>
-            <TopBar />
-            <Tabs />
-            <SideBar canWrite={canWrite} />
+            <IdeTopBar projectName={projectName} />
+            <IdeTabs />
+            <IdeSideBar canWrite={canWrite} />
             <div className={`ide-workbench ${terminalOpen ? 'with-terminal' : 'without-terminal'}`}>
-                <Editor canWrite={canWrite} />
-                <Terminal />
+                <IdeEditor canWrite={canWrite} />
+                <IdeTerminal />
             </div>
-            <StatusBar />
+            <IdeStatusBar />
         </div>
     )
 }
 
 type IdeInnerProps = {
     canWrite: boolean
+    projectName?: string
 }
 
-function IdeInner({ canWrite }: IdeInnerProps) {
+function IdeInner({ canWrite, projectName }: IdeInnerProps) {
     return (
         <NestedProviders
             providers={[TabsProvider, FileTreeProvider, EditorProvider, CodeRunnerProvider, TerminalProvider]}
         >
-            <IdeLayout canWrite={canWrite} />
+            <IdeLayout canWrite={canWrite} projectName={projectName} />
         </NestedProviders>
     )
 }
@@ -65,6 +67,7 @@ function Ide() {
     const authToken = auth.token
     const projectManager = useService(ProjectManager)
     const [canWrite, setCanWrite] = useState(projectId == null)
+    const [projectName, setProjectName] = useState<string | undefined>(undefined)
     const [checkingAccess, setCheckingAccess] = useState(projectId != null)
     const [accessError, setAccessError] = useState<HttpError | null>(null)
 
@@ -76,6 +79,7 @@ function Ide() {
 
             if (projectId == null) {
                 setCanWrite(true)
+                setProjectName(undefined)
                 setCheckingAccess(false)
                 setAccessError(null)
                 return
@@ -88,6 +92,7 @@ function Ide() {
                 if (isAborted()) return
 
                 setCanWrite(project.accessType === 'rw')
+                setProjectName(project.name)
                 setAccessError(null)
                 setCheckingAccess(false)
             } catch (error) {
@@ -100,6 +105,7 @@ function Ide() {
                 }
 
                 setAccessError(httpError)
+                setProjectName(undefined)
                 setCheckingAccess(false)
             }
         },
@@ -108,7 +114,7 @@ function Ide() {
     )
 
     if (auth.isInitializing) {
-        return <FullScreenLoader label='Loading session...' />
+        return <FullScreenLoader />
     }
 
     if (!auth.isAuthenticated) {
@@ -120,7 +126,7 @@ function Ide() {
     }
 
     if (checkingAccess) {
-        return <FullScreenLoader label='Loading project...' />
+        return <FullScreenLoader />
     }
 
     if (accessError != null) {
@@ -140,7 +146,7 @@ function Ide() {
 
     return (
         <IdeServiceProvider projectId={projectId} authToken={authToken} username={auth.user?.username ?? undefined}>
-            <IdeInner canWrite={canWrite} />
+            <IdeInner canWrite={canWrite} projectName={projectName} />
         </IdeServiceProvider>
     )
 }

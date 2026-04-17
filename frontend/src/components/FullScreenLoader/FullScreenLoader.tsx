@@ -6,11 +6,11 @@ type FullScreenLoaderProps = {
     label?: string
 }
 
-function FullScreenLoader({ label = 'Loading...' }: FullScreenLoaderProps) {
+function FullScreenLoader({ label }: FullScreenLoaderProps) {
     return (
         <div className='fullscreen-loader' role='status' aria-live='polite'>
             <Spinner size={30} />
-            <span className='fullscreen-loader-label'>{label}</span>
+            {label != null && label.trim().length > 0 && <span className='fullscreen-loader-label'>{label}</span>}
         </div>
     )
 }

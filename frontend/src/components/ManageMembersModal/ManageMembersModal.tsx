@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react'
-import { VscClose, VscTrash } from 'react-icons/vsc'
+import { useState } from 'react'
+import { VscClose } from 'react-icons/vsc'
 import type { AccessType, ProjectMember } from '@/core/projectManager'
 import Spinner from '@/components/Spinner/Spinner'
 import ModalShell from '@/components/ModalShell/ModalShell'
+import useAsyncEffect from '@/hooks/useAsyncEffect'
+import MemberRow from '@/components/ManageMembersModal/MemberRow'
+import MemberForm from '@/components/ManageMembersModal/MemberForm'
 
 import '@/components/ManageMembersModal/ManageMembersModal.css'
 
@@ -33,31 +36,33 @@ function ManageMembersModal({
     const [saving, setSaving] = useState(false)
     const [busyMemberId, setBusyMemberId] = useState<string | null>(null)
 
-    useEffect(() => {
-        let active = true
-        const load = async () => {
+    useAsyncEffect(
+        async (isAborted) => {
             setLoading(true)
             setError(null)
+
             try {
                 const list = await onLoadMembers()
-                if (active) {
-                    setMembers(list)
+                if (isAborted()) {
+                    return
                 }
+
+                setMembers(list)
             } catch (err) {
-                if (active) {
-                    setError(err instanceof Error ? err.message : 'Failed to load members')
+                if (isAborted()) {
+                    return
                 }
+
+                setError(err instanceof Error ? err.message : 'Failed to load members')
             } finally {
-                if (active) {
+                if (!isAborted()) {
                     setLoading(false)
                 }
             }
-        }
-        load()
-        return () => {
-            active = false
-        }
-    }, [onLoadMembers])
+        },
+        undefined,
+        [onLoadMembers],
+    )
 
     const findMemberByUsername = (username: string): ProjectMember | undefined => {
         const target = username.toLowerCase()
@@ -133,104 +138,41 @@ function ManageMembersModal({
                     </h2>
                     <p className='members-modal-subtitle'>{projectName}</p>
                 </div>
-                <button className='members-modal-close' onClick={onClose} aria-label='Close'>
+                <button type='button' className='members-modal-close' onClick={onClose} aria-label='Close'>
                     <VscClose size={18} />
                 </button>
             </div>
 
             {canManage && (
-                <form className='members-add-form' onSubmit={addOrUpdateMember}>
-                    <div className='members-field'>
-                        <label htmlFor='member-username'>Username</label>
-                        <input
-                            id='member-username'
-                            type='text'
-                            value={newUsername}
-                            onChange={(e) => setNewUsername(e.target.value)}
-                            placeholder='username'
-                            disabled={saving}
-                        />
-                    </div>
-                    <div className='members-field'>
-                        <label htmlFor='member-access'>Access</label>
-                        <select
-                            id='member-access'
-                            value={newAccessType}
-                            onChange={(e) => setNewAccessType(e.target.value as AccessType)}
-                            disabled={saving}
-                        >
-                            <option value='r'>Read only</option>
-                            <option value='rw'>Read / Write</option>
-                        </select>
-                    </div>
-                    <button
-                        className='members-add-btn'
-                        type='submit'
-                        disabled={saving || newUsername.trim().length === 0}
-                    >
-                        {saving && <Spinner size={14} />}
-                        {saving ? 'Saving...' : 'Add / Update'}
-                    </button>
-                </form>
+                <MemberForm
+                    username={newUsername}
+                    accessType={newAccessType}
+                    isSubmitting={saving}
+                    onUsernameChange={setNewUsername}
+                    onAccessTypeChange={setNewAccessType}
+                    onSubmit={addOrUpdateMember}
+                />
             )}
 
             {error != null && <p className='members-error'>{error}</p>}
 
             <div className='members-list'>
                 {loading ? (
-                    <div className='members-empty members-loading'>
-                        <Spinner size={16} /> Loading members...
+                    <div className='members-empty members-loading' aria-label='Fetching members'>
+                        <Spinner size={16} />
                     </div>
                 ) : members.length === 0 ? (
                     <p className='members-empty'>No members yet</p>
                 ) : (
                     members.map((member) => (
-                        <div key={member.userId} className='member-row'>
-                            <div className='member-main'>
-                                <div className='member-avatar'>{member.username.slice(0, 1).toUpperCase()}</div>
-                                <div>
-                                    <p className='member-username'>{member.username}</p>
-                                    <p className='member-email'>{member.email}</p>
-                                </div>
-                            </div>
-                            <div className='member-actions'>
-                                {canManage && !member.isOwner ? (
-                                    <>
-                                        <select
-                                            value={member.accessType}
-                                            onChange={(e) =>
-                                                updateAccess(member.username, e.target.value as AccessType)
-                                            }
-                                            disabled={busyMemberId === member.userId}
-                                        >
-                                            <option value='r'>Read</option>
-                                            <option value='rw'>Read / Write</option>
-                                        </select>
-                                        <button
-                                            type='button'
-                                            className='member-remove-btn'
-                                            title='Remove member'
-                                            disabled={busyMemberId === member.userId}
-                                            onClick={() => removeMember(member.userId)}
-                                        >
-                                            {busyMemberId === member.userId ? (
-                                                <Spinner size={14} />
-                                            ) : (
-                                                <VscTrash size={14} />
-                                            )}
-                                        </button>
-                                    </>
-                                ) : (
-                                    <span className='member-access-readonly'>
-                                        {member.isOwner
-                                            ? 'Owner'
-                                            : member.accessType === 'rw'
-                                              ? 'Read / Write'
-                                              : 'Read only'}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
+                        <MemberRow
+                            key={member.userId}
+                            member={member}
+                            canManage={canManage}
+                            isBusy={busyMemberId === member.userId}
+                            onUpdateAccess={updateAccess}
+                            onRemove={removeMember}
+                        />
                     ))
                 )}
             </div>

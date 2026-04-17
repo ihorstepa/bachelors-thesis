@@ -2,16 +2,16 @@ import { useEffect } from 'react'
 import type { JSX } from 'react'
 
 import { useTabs } from '@/contextProviders/TabsProvider'
-import CodeMirror from '@/components/Editor/CodeMirror'
+import CodeMirror from '@/components/IdeEditor/CodeMirror'
 import { useService } from '@/contextProviders/ServiceProvider'
 import { PresenceService } from '@/core/presenceService'
-import '@/components/Editor/Editor.css'
+import '@/components/IdeEditor/IdeEditor.css'
 
 type Props = {
     canWrite: boolean
 }
 
-function Editor({ canWrite }: Props): JSX.Element {
+function IdeEditor({ canWrite }: Props): JSX.Element {
     const presenceService = useService(PresenceService)
     const { tabs, activeId } = useTabs()
 
@@ -40,4 +40,4 @@ function Editor({ canWrite }: Props): JSX.Element {
     )
 }
 
-export default Editor
+export default IdeEditor

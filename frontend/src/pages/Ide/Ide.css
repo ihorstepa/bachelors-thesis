@@ -1,10 +1,13 @@
 .ide {
+    --ide-topbar-height: 36px;
+    --ide-tabs-height: 33px;
+    --ide-statusbar-height: 22px;
     display: grid;
     grid-template:
-        'topbar  topbar ' 36px
-        'sidebar tabs   ' 33px
+        'topbar  topbar ' var(--ide-topbar-height)
+        'sidebar tabs   ' var(--ide-tabs-height)
         'sidebar editor ' 1fr
-        'statusbar statusbar' 22px
+        'statusbar statusbar' var(--ide-statusbar-height)
         / auto 1fr;
     height: 100vh;
     overflow: hidden;
@@ -65,4 +68,15 @@
 
 .ide-route-button:hover {
     background: var(--bg-hover);
+}
+
+@media (max-width: 860px) {
+    .ide {
+        grid-template:
+            'topbar topbar' var(--ide-topbar-height)
+            'sidebar tabs' var(--ide-tabs-height)
+            'sidebar editor' 1fr
+            'statusbar statusbar' var(--ide-statusbar-height)
+            / 48px 1fr;
+    }
 }

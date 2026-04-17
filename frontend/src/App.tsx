@@ -26,7 +26,7 @@ function RouteTransitionOverlay() {
         return null
     }
 
-    return <FullScreenLoader label='Loading page...' />
+    return <FullScreenLoader />
 }
 
 function App() {

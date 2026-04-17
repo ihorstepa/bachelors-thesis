@@ -31,7 +31,7 @@ function CodeMirror({ fileId, isActive, canWrite }: Props): JSX.Element {
     const editorViewRef = useRef<EditorView | null>(null)
     const { setEditorState } = useEditor()
 
-    const extensionProvider = useMemo(() => new ExtensionProvider(), [fileId])
+    const extensionProvider = useMemo(() => new ExtensionProvider(), [])
     const extensions = file && meta ? extensionProvider.getExtensions(file, meta) : []
 
     useEffect(() => {
@@ -40,18 +40,18 @@ function CodeMirror({ fileId, isActive, canWrite }: Props): JSX.Element {
                 setMeta(fileSystemManager.getMeta(id))
             }
         })
-    }, [fileId])
+    }, [fileId, fileSystemManager])
 
     useEffect(() => {
         if (!isActive || !meta) return
         setEditorState((prev) => ({ ...prev, language: getLanguageName(meta.name) }))
-    }, [isActive, meta])
+    }, [isActive, meta, setEditorState])
 
     useEffect(() => {
         const view = editorViewRef.current
         if (!view || !meta || !isSynced) return
         view.dispatch({ effects: extensionProvider.reconfigure(meta) })
-    }, [meta, isSynced])
+    }, [meta, isSynced, extensionProvider])
 
     useAsyncEffect(
         async (isAborted) => {
@@ -91,7 +91,7 @@ function CodeMirror({ fileId, isActive, canWrite }: Props): JSX.Element {
                 },
             })
         }
-    }, [isActive, file])
+    }, [isActive, file, fileId, presenceService])
 
     if (!file || !isSynced) {
         return (

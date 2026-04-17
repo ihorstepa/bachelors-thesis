@@ -1,7 +1,7 @@
 import { useEditor } from '@/contextProviders/EditorProvider'
 import { useCodeRunner } from '@/contextProviders/CodeRunnerProvider'
 import type { CodeRunnerStatus } from '@/core/codeRunner'
-import '@/components/StatusBar/StatusBar.css'
+import '@/components/IdeStatusBar/IdeStatusBar.css'
 import { VscTerminal } from 'react-icons/vsc'
 import { useTerminal } from '@/contextProviders/TerminalProvider'
 
@@ -13,7 +13,7 @@ function getActiveStage(status: CodeRunnerStatus): string | null {
     return null
 }
 
-function StatusBar() {
+function IdeStatusBar() {
     const { editorState } = useEditor()
     const { status } = useCodeRunner()
     const { terminalOpen, setTerminalOpen } = useTerminal()
@@ -34,4 +34,4 @@ function StatusBar() {
     )
 }
 
-export default StatusBar
+export default IdeStatusBar

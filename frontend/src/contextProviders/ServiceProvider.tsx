@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useMemo, useRef } from 'react'
 
+import FullScreenLoader from '@/components/FullScreenLoader/FullScreenLoader'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import CppCodeRunner from '@/services/codeRunner/cppCodeRunner'
 import { CodeRunner } from '@/core/codeRunner'
@@ -147,7 +148,7 @@ export function IdeServiceProvider({
         [projectId, authToken, username, parentRegistry],
     )
 
-    if (!ready) return <div>Loading...</div>
+    if (!ready) return <FullScreenLoader />
 
     return <ServiceContext value={registryRef.current}>{children}</ServiceContext>
 }

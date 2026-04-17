@@ -1,106 +1,90 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
+
 import { useAuth } from '@/contextProviders/AuthProvider'
 import { useProjects } from '@/contextProviders/ProjectsProvider'
 import NewProjectModal from '@/components/NewProjectModal/NewProjectModal'
 import ManageMembersModal from '@/components/ManageMembersModal/ManageMembersModal'
 import type { ProjectPreview } from '@/core/projectManager'
-import DashboardSidebar from '@/components/Dashboard/DashboardSidebar'
-import DashboardTopBar from '@/components/Dashboard/DashboardTopBar'
-import DashboardContent from '@/components/Dashboard/DashboardContent'
-
+import DashboardSidebar from '@/components/DashboardSidebar/DashboardSidebar'
+import type { DashboardNav } from '@/components/DashboardSidebar/DashboardSidebar'
+import DashboardTopBar from '@/components/DashboardTopBar/DashboardTopBar'
+import DashboardContent from '@/components/DashboardContent/DashboardContent'
 import '@/pages/Dashboard/Dashboard.css'
 
 function Dashboard() {
     const navigate = useNavigate()
     const auth = useAuth()
-    const {
-        projects,
-        loading,
-        error,
-        reload,
-        createProject,
-        updateProject,
-        deleteProject,
-        toggleFavorite,
-        getProjectMembers,
-        addMember,
-        updateMemberAccess,
-        removeMember,
-    } = useProjects()
-    const [activeNav, setActiveNav] = useState<'all' | 'mine' | 'shared' | 'favorite'>('all')
+    const { reload, createProject, updateProject, getProjectMembers, addMember, updateMemberAccess, removeMember } =
+        useProjects()
+    const [activeNav, setActiveNav] = useState<DashboardNav>('all')
     const [search, setSearch] = useState('')
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [showNewProject, setShowNewProject] = useState(false)
     const [projectToRename, setProjectToRename] = useState<ProjectPreview | null>(null)
     const [projectToManageMembers, setProjectToManageMembers] = useState<ProjectPreview | null>(null)
-    const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
-    const [openMenuProjectId, setOpenMenuProjectId] = useState<string | null>(null)
 
     const userInitial = auth.user?.username?.[0]?.toUpperCase() ?? '?'
-    const username = auth.user?.username ?? 'Anonymous'
-    const email = auth.user?.email ?? ''
+    const username = auth.user?.username ?? '?'
+    const email = auth.user?.email ?? '?'
     const currentUserId = String(auth.user?.id ?? '')
 
-    useEffect(() => {
-        if (openMenuProjectId == null) return
+    const handleAddMember = async (projectId: string, memberUsername: string, accessType: 'r' | 'rw') => {
+        const member = await addMember(projectId, memberUsername, accessType)
+        await reload()
+        return member
+    }
 
-        const handlePointerDown = (event: PointerEvent) => {
-            const target = event.target
-            if (!(target instanceof Element)) return
-            if (target.closest('.project-menu-wrap') != null) return
-            setOpenMenuProjectId(null)
-        }
+    const handleUpdateMemberAccess = async (projectId: string, memberUsername: string, accessType: 'r' | 'rw') => {
+        const member = await updateMemberAccess(projectId, memberUsername, accessType)
+        await reload()
+        return member
+    }
 
-        window.addEventListener('pointerdown', handlePointerDown)
-        return () => window.removeEventListener('pointerdown', handlePointerDown)
-    }, [openMenuProjectId])
-
-    let filteredProjects = projects
-    if (activeNav === 'favorite') filteredProjects = filteredProjects.filter((p) => p.favorited)
-    if (activeNav === 'mine') filteredProjects = filteredProjects.filter((p) => p.ownerId === currentUserId)
-    if (activeNav === 'shared') filteredProjects = filteredProjects.filter((p) => p.ownerId !== currentUserId)
-    if (search) filteredProjects = filteredProjects.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
+    const handleRemoveMember = async (projectId: string, userId: string) => {
+        await removeMember(projectId, userId)
+        await reload()
+    }
 
     return (
-        <div className='dashboard'>
+        <div className={`dashboard ${isSidebarOpen ? 'sidebar-open' : ''}`}>
             <DashboardSidebar
                 userInitial={userInitial}
                 username={username}
                 email={email}
                 activeNav={activeNav}
-                onNavChange={setActiveNav}
+                onNavChange={(nav) => {
+                    setActiveNav(nav)
+                    setIsSidebarOpen(false)
+                }}
                 onSignOut={() => {
                     auth.logout()
+                    setIsSidebarOpen(false)
                     navigate('/auth')
                 }}
+            />
+
+            <button
+                type='button'
+                className='dashboard-sidebar-overlay'
+                aria-label='Close sidebar'
+                onClick={() => setIsSidebarOpen(false)}
             />
 
             <div className='dashboard-main'>
                 <DashboardTopBar
                     search={search}
+                    isSidebarOpen={isSidebarOpen}
                     onSearchChange={setSearch}
+                    onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
                     onOpenPlayground={() => navigate('/ide')}
                     onCreateProject={() => setShowNewProject(true)}
                 />
                 <DashboardContent
-                    loading={loading}
-                    error={error}
-                    projects={filteredProjects}
-                    selectedProjectId={selectedProjectId}
-                    currentUserId={currentUserId}
-                    currentUsername={username}
-                    openMenuProjectId={openMenuProjectId}
-                    onReload={reload}
-                    onToggleProjectMenu={(projectId) =>
-                        setOpenMenuProjectId((prev) => (prev === projectId ? null : projectId))
-                    }
-                    onCloseProjectMenu={() => setOpenMenuProjectId(null)}
-                    onSelectProject={setSelectedProjectId}
-                    onOpenProject={(projectId) => navigate(`/ide/${projectId}`)}
+                    activeNav={activeNav}
+                    search={search}
                     onOpenMembers={setProjectToManageMembers}
-                    onToggleFavorite={toggleFavorite}
                     onRenameProject={setProjectToRename}
-                    onDeleteProject={deleteProject}
                 />
             </div>
 
@@ -133,18 +117,13 @@ function Dashboard() {
                     canManage={projectToManageMembers.ownerId === currentUserId}
                     onLoadMembers={async () => getProjectMembers(projectToManageMembers.id)}
                     onAddMember={async (memberUsername, accessType) => {
-                        const member = await addMember(projectToManageMembers.id, memberUsername, accessType)
-                        await reload()
-                        return member
+                        return handleAddMember(projectToManageMembers.id, memberUsername, accessType)
                     }}
                     onUpdateMemberAccess={async (memberUsername, accessType) => {
-                        const member = await updateMemberAccess(projectToManageMembers.id, memberUsername, accessType)
-                        await reload()
-                        return member
+                        return handleUpdateMemberAccess(projectToManageMembers.id, memberUsername, accessType)
                     }}
                     onRemoveMember={async (userId) => {
-                        await removeMember(projectToManageMembers.id, userId)
-                        await reload()
+                        await handleRemoveMember(projectToManageMembers.id, userId)
                     }}
                     onClose={() => setProjectToManageMembers(null)}
                 />

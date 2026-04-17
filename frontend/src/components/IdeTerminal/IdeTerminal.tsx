@@ -3,12 +3,12 @@ import { Terminal as XTerm } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 
-import TerminalHeader from '@/components/Terminal/TerminalHeader'
-import { TerminalInputController } from '@/components/Terminal/terminalInputController'
+import TerminalHeader from '@/components/IdeTerminal/TerminalHeader'
+import { TerminalInputController } from '@/components/IdeTerminal/terminalInputController'
 import { useCodeRunner } from '@/contextProviders/CodeRunnerProvider'
 import type { CodeRunnerStatus } from '@/core/codeRunner'
 import { useTerminal } from '@/contextProviders/TerminalProvider'
-import '@/components/Terminal/Terminal.css'
+import '@/components/IdeTerminal/IdeTerminal.css'
 
 const ansi = {
     dim: (text: string) => `\u001b[90m${text}\u001b[0m`,
@@ -31,7 +31,7 @@ function isExecutionActive(status: CodeRunnerStatus): boolean {
     return activeStatuses.has(status)
 }
 
-function Terminal() {
+function IdeTerminal() {
     const { canSendInput, status, runner } = useCodeRunner()
     const { terminalOpen, setTerminalOpen } = useTerminal()
     const isActive = isExecutionActive(status)
@@ -195,4 +195,4 @@ function Terminal() {
     )
 }
 
-export default Terminal
+export default IdeTerminal

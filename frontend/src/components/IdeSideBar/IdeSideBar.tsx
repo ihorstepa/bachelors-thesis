@@ -3,7 +3,7 @@ import { VscFiles, VscSearch, VscSourceControl, VscRunAll, VscSettingsGear, VscA
 
 import FileTree from '@/components/FileTree/FileTree'
 import RunPanel from '@/components/RunPanel/RunPanel'
-import '@/components/SideBar/SideBar.css'
+import '@/components/IdeSideBar/IdeSideBar.css'
 
 type View = 'explorer' | 'search' | 'run' | 'sourceControl' | 'account' | 'settings'
 
@@ -30,7 +30,7 @@ type Props = {
     canWrite: boolean
 }
 
-function SideBar({ canWrite }: Props) {
+function IdeSideBar({ canWrite }: Props) {
     const [activeView, setActiveView] = useState<View | null>('explorer')
 
     const handleViewClick = (view: View) => {
@@ -91,4 +91,4 @@ function SideBar({ canWrite }: Props) {
     )
 }
 
-export default SideBar
+export default IdeSideBar

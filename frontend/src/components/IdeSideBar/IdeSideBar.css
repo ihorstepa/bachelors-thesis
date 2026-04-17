@@ -92,3 +92,32 @@
     color: var(--text-muted);
     font-style: italic;
 }
+
+@media (max-width: 860px) {
+    .ide-sidebar {
+        position: relative;
+        z-index: 2;
+        width: 48px;
+        overflow: visible;
+    }
+
+    .sidebar-content {
+        position: fixed;
+        top: var(--ide-topbar-height);
+        left: 48px;
+        bottom: var(--ide-statusbar-height);
+        width: 240px;
+        flex: none;
+        border-right: 1px solid var(--border);
+        z-index: 140;
+    }
+
+    .sidebar-content.collapsed {
+        display: none;
+    }
+
+    .sidebar-view {
+        width: 100%;
+        height: 100%;
+    }
+}

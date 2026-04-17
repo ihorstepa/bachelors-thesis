@@ -1,25 +1,27 @@
 import { VscFiles, VscOrganization, VscStarFull, VscSettingsGear, VscSignOut, VscFile } from 'react-icons/vsc'
 import type { ReactNode } from 'react'
 
-type DashboardNavId = 'all' | 'mine' | 'shared' | 'favorite'
+import '@/components/DashboardSidebar/DashboardSidebar.css'
 
-type DashboardSidebarProps = {
-    userInitial: string
-    username: string
-    email: string
-    activeNav: DashboardNavId
-    onNavChange(nav: DashboardNavId): void
-    onSignOut(): void
-}
+export type DashboardNav = 'all' | 'mine' | 'shared' | 'favorite'
 
-const NAV_ITEMS: Array<{ id: DashboardNavId; label: string; icon: ReactNode }> = [
+const navItems: Array<{ id: DashboardNav; label: string; icon: ReactNode }> = [
     { id: 'all', label: 'All Projects', icon: <VscFiles size={15} /> },
     { id: 'mine', label: 'My projects', icon: <VscFile size={15} /> },
     { id: 'shared', label: 'Shared with me', icon: <VscOrganization size={15} /> },
     { id: 'favorite', label: 'Favorites', icon: <VscStarFull size={15} /> },
 ]
 
-function DashboardSidebar({ userInitial, username, email, activeNav, onNavChange, onSignOut }: DashboardSidebarProps) {
+type Props = {
+    userInitial: string
+    username: string
+    email: string
+    activeNav: DashboardNav
+    onNavChange(nav: DashboardNav): void
+    onSignOut(): void
+}
+
+function DashboardSidebar({ userInitial, username, email, activeNav, onNavChange, onSignOut }: Props) {
     return (
         <aside className='dashboard-sidebar'>
             <div className='dashboard-sidebar-account'>
@@ -30,7 +32,7 @@ function DashboardSidebar({ userInitial, username, email, activeNav, onNavChange
                 </div>
             </div>
 
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
                 <button
                     type='button'
                     key={item.id}

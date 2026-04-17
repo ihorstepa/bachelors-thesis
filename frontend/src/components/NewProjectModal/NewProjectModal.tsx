@@ -52,7 +52,7 @@ function NewProjectModal({
                 <h2 className='new-project-title' id='new-project-title'>
                     {title}
                 </h2>
-                <button className='new-project-close' onClick={onClose} aria-label='Close'>
+                <button type='button' className='new-project-close' onClick={onClose} aria-label='Close'>
                     <VscClose size={18} />
                 </button>
             </div>

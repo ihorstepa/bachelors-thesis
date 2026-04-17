@@ -23,21 +23,23 @@ const extensionCreators: Record<LanguageName, () => Extension> = {
 const extensionToNameMap: Record<string, LanguageName> = {}
 for (const [name, exts] of Object.entries(languageExtensions)) {
     for (const ext of exts) {
-        extensionToNameMap[ext.toLowerCase()] = name as LanguageName
+        extensionToNameMap[ext.toLowerCase()] = name as keyof typeof languageExtensions
     }
 }
 
-export function getLanguageName(filename: string): LanguageName {
-    const fileExt = filename.split('.').pop()?.toLowerCase() || ''
-    return extensionToNameMap[fileExt]
+function getFileExtension(filename: string): string {
+    return filename.split('.').pop()?.toLowerCase() || ''
 }
 
-// TODO: JSON linter
-export function language(filename: string): Extension {
-    const fileExt = filename.split('.').pop()?.toLowerCase() || ''
-    const languageName = extensionToNameMap[fileExt]
+export function getLanguageName(filename: string): LanguageName | null {
+    const languageName = extensionToNameMap[getFileExtension(filename)]
+    return languageName ?? null
+}
 
-    if (languageName && extensionCreators[languageName]) {
+export function language(filename: string): Extension {
+    const languageName = extensionToNameMap[getFileExtension(filename)]
+
+    if (languageName != null) {
         return extensionCreators[languageName]()
     }
 

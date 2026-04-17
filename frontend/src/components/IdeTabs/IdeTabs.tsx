@@ -1,13 +1,13 @@
 import { DragDropProvider } from '@dnd-kit/react'
 import { isSortable } from '@dnd-kit/react/sortable'
 
-import TabItem from '@/components/Tabs/TabItem'
+import TabItem from '@/components/IdeTabs/TabItem'
 import { FileSystemManager } from '@/core/fileSystemManager'
 import { useService } from '@/contextProviders/ServiceProvider'
 import { useTabs } from '@/contextProviders/TabsProvider'
-import '@/components/Tabs/Tabs.css'
+import '@/components/IdeTabs/IdeTabs.css'
 
-function Tabs() {
+function IdeTabs() {
     const { tabs, activeId, tabManager } = useTabs()
     const fileSystemManager = useService(FileSystemManager)
 
@@ -49,4 +49,4 @@ function Tabs() {
     )
 }
 
-export default Tabs
+export default IdeTabs
