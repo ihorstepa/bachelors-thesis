@@ -83,6 +83,12 @@ async function initIdeServices(
     return services
 }
 
+function destroyServices(registry: ServiceRegistry): void {
+    registry.forEach((service) => {
+        service.destroy?.()
+    })
+}
+
 export function useService<T extends BaseService>(baseClass: AbstractClass<T>): T {
     const registry = useContext(ServiceContext)
     const service = registry.get(baseClass)
@@ -123,6 +129,10 @@ export function IdeServiceProvider({
     useAsyncEffect(
         async (isAborted) => {
             const ideServices = await initIdeServices(projectId, authToken, username)
+            if (isAborted()) {
+                destroyServices(ideServices)
+                return
+            }
             ideServiceKeysRef.current = new Set(ideServices.keys())
 
             parentRegistry.forEach((service, key) => {
@@ -130,8 +140,6 @@ export function IdeServiceProvider({
                     ideServices.set(key, service)
                 }
             })
-
-            if (isAborted()) return
             registryRef.current = ideServices
             setReady(true)
         },
