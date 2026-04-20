@@ -78,7 +78,6 @@ class ExtensionProvider {
                 ...searchKeymap,
             ]),
             oneDark,
-            placeholder('Start typing to edit...'),
             rectangularSelection(),
             this.compartments.language.of(language(meta.name)),
             yCollab(file.doc.getText(), file.awareness),

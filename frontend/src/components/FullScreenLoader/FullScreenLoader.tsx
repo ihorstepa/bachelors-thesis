@@ -2,11 +2,11 @@ import Spinner from '@/components/Spinner/Spinner'
 
 import '@/components/FullScreenLoader/FullScreenLoader.css'
 
-type FullScreenLoaderProps = {
+type Props = {
     label?: string
 }
 
-function FullScreenLoader({ label }: FullScreenLoaderProps) {
+function FullScreenLoader({ label }: Props) {
     return (
         <div className='fullscreen-loader' role='status' aria-live='polite'>
             <Spinner size={30} />

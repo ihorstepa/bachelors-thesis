@@ -93,6 +93,11 @@ class LocalFileTreeManager extends FileTreeManager {
         }
         traverse(null)
 
+        if (this.selectedId !== null && !this.fileSystemManager.exists(this.selectedId)) {
+            this.selectedId = null
+            this.emit('select', null)
+        }
+
         this.tree = this.buildTree(nodes)
         this.emit('change', this.tree)
     }

@@ -38,9 +38,10 @@ type Props = {
     search: string
     onOpenMembers(project: ProjectPreview): void
     onRenameProject(project: ProjectPreview): void
+    onDeleteProject(project: ProjectPreview): void
 }
 
-function DashboardContent({ activeNav, search, onOpenMembers, onRenameProject }: Props) {
+function DashboardContent({ activeNav, search, onOpenMembers, onRenameProject, onDeleteProject }: Props) {
     const auth = useAuth()
     const { projects, loading, error, reload } = useProjects()
     const currentUserId = String(auth.user?.id ?? '')
@@ -86,6 +87,7 @@ function DashboardContent({ activeNav, search, onOpenMembers, onRenameProject }:
                 projects={filteredProjects}
                 onOpenMembers={onOpenMembers}
                 onRenameProject={onRenameProject}
+                onDeleteProject={onDeleteProject}
             />
         </div>
     )

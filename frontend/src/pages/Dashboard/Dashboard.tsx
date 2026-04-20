@@ -5,6 +5,7 @@ import { useAuth } from '@/contextProviders/AuthProvider'
 import { useProjects } from '@/contextProviders/ProjectsProvider'
 import NewProjectModal from '@/components/NewProjectModal/NewProjectModal'
 import ManageMembersModal from '@/components/ManageMembersModal/ManageMembersModal'
+import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import type { ProjectPreview } from '@/core/projectManager'
 import DashboardSidebar from '@/components/DashboardSidebar/DashboardSidebar'
 import type { DashboardNav } from '@/components/DashboardSidebar/DashboardSidebar'
@@ -15,13 +16,22 @@ import '@/pages/Dashboard/Dashboard.css'
 function Dashboard() {
     const navigate = useNavigate()
     const auth = useAuth()
-    const { reload, createProject, updateProject, getProjectMembers, addMember, updateMemberAccess, removeMember } =
-        useProjects()
+    const {
+        reload,
+        createProject,
+        updateProject,
+        deleteProject,
+        getProjectMembers,
+        addMember,
+        updateMemberAccess,
+        removeMember,
+    } = useProjects()
     const [activeNav, setActiveNav] = useState<DashboardNav>('all')
     const [search, setSearch] = useState('')
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [showNewProject, setShowNewProject] = useState(false)
     const [projectToRename, setProjectToRename] = useState<ProjectPreview | null>(null)
+    const [projectToDelete, setProjectToDelete] = useState<ProjectPreview | null>(null)
     const [projectToManageMembers, setProjectToManageMembers] = useState<ProjectPreview | null>(null)
 
     const userInitial = auth.user?.username?.[0]?.toUpperCase() ?? '?'
@@ -85,8 +95,22 @@ function Dashboard() {
                     search={search}
                     onOpenMembers={setProjectToManageMembers}
                     onRenameProject={setProjectToRename}
+                    onDeleteProject={setProjectToDelete}
                 />
             </div>
+
+            {projectToDelete != null && (
+                <ConfirmModal
+                    title='Delete project'
+                    message={`Are you sure you want to delete "${projectToDelete.name}"? This action cannot be undone.`}
+                    confirmLabel='Delete project'
+                    pendingLabel='Deleting...'
+                    onConfirm={async () => {
+                        await deleteProject(projectToDelete.id)
+                    }}
+                    onClose={() => setProjectToDelete(null)}
+                />
+            )}
 
             {showNewProject && (
                 <NewProjectModal

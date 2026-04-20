@@ -4,11 +4,11 @@ import { VscClose } from 'react-icons/vsc'
 import GhostButton from '@/components/GhostButton/GhostButton'
 import '@/components/IdeTopBar/IdeTopBar.css'
 
-type IdeTopBarProps = {
+type Props = {
     projectName?: string
 }
 
-function IdeTopBar({ projectName }: IdeTopBarProps) {
+function IdeTopBar({ projectName }: Props) {
     const navigate = useNavigate()
     const { projectId } = useParams()
 

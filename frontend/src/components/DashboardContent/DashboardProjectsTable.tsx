@@ -12,12 +12,13 @@ type Props = {
     projects: ProjectPreview[]
     onOpenMembers(project: ProjectPreview): void
     onRenameProject(project: ProjectPreview): void
+    onDeleteProject(project: ProjectPreview): void
 }
 
-function DashboardProjectsTable({ projects, onOpenMembers, onRenameProject }: Props) {
+function DashboardProjectsTable({ projects, onOpenMembers, onRenameProject, onDeleteProject }: Props) {
     const navigate = useNavigate()
     const auth = useAuth()
-    const { deleteProject, toggleFavorite } = useProjects()
+    const { toggleFavorite } = useProjects()
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
     const [openMenuProjectId, setOpenMenuProjectId] = useState<string | null>(null)
     const currentUserId = String(auth.user?.id ?? '')
@@ -83,9 +84,7 @@ function DashboardProjectsTable({ projects, onOpenMembers, onRenameProject }: Pr
                                 void toggleFavorite(id, nextFavorited)
                             }}
                             onRenameProject={onRenameProject}
-                            onDeleteProject={(id) => {
-                                void deleteProject(id)
-                            }}
+                            onDeleteProject={() => onDeleteProject(project)}
                         />
                     )
                 })}

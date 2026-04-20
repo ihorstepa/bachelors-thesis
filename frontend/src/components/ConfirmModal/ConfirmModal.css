@@ -1,0 +1,116 @@
+.confirm-modal {
+    width: min(420px, 100%);
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    padding: 24px;
+    animation: modal-in 0.18s ease both;
+    font-family: 'Bricolage Grotesque', sans-serif;
+}
+
+@keyframes modal-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.confirm-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.confirm-modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.confirm-modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: 4px;
+    transition:
+        color 0.15s,
+        background 0.15s;
+}
+
+.confirm-modal-close:hover:not(:disabled) {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+
+.confirm-modal-message {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0 0 20px 0;
+    line-height: 1.5;
+}
+
+.confirm-modal-error {
+    font-size: 13px;
+    color: var(--color-danger, #e05252);
+    margin: 0 0 12px 0;
+}
+
+.confirm-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.confirm-modal-cancel {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    transition:
+        background 0.15s,
+        color 0.15s;
+}
+
+.confirm-modal-cancel:hover:not(:disabled) {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.confirm-modal-confirm {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    background: var(--color-danger, #e05252);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.15s;
+}
+
+.confirm-modal-confirm:hover:not(:disabled) {
+    opacity: 0.85;
+}
+
+.confirm-modal-confirm:disabled,
+.confirm-modal-cancel:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
