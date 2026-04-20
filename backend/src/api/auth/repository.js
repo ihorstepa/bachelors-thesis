@@ -13,8 +13,8 @@ const log = logger.child({ module: 'auth-repository' })
  * @property {Date} createdAt
  */
 
-const EMAIL_UNIQUE_INDEX = 'yhub_users_email_unique_idx'
-const USERNAME_UNIQUE_INDEX = 'yhub_users_username_unique_idx'
+const EMAIL_UNIQUE_INDEX = 'users_email_unique_idx'
+const USERNAME_UNIQUE_INDEX = 'users_username_unique_idx'
 
 /**
  * @param {any} row
@@ -43,7 +43,7 @@ export class UserRepository {
     async createUser({ email, username, passwordHash }) {
         try {
             const rows = await this.sql`
-                INSERT INTO yhub_users (email, username, password_hash)
+                INSERT INTO users (email, username, password_hash)
                 VALUES (${email}, ${username}, ${passwordHash})
                 RETURNING id, email, username, password_hash, created_at
             `
@@ -69,7 +69,7 @@ export class UserRepository {
     async getUserByEmail(email) {
         const rows = await this.sql`
             SELECT id, email, username, password_hash, created_at
-            FROM yhub_users
+            FROM users
             WHERE LOWER(email) = LOWER(${email})
             LIMIT 1
         `
@@ -83,7 +83,7 @@ export class UserRepository {
     async getUserById(id) {
         const rows = await this.sql`
             SELECT id, email, username, password_hash, created_at
-            FROM yhub_users
+            FROM users
             WHERE id = ${id}
             LIMIT 1
         `
@@ -97,7 +97,7 @@ export class UserRepository {
     async getUserByUsername(username) {
         const rows = await this.sql`
             SELECT id, email, username, password_hash, created_at
-            FROM yhub_users
+            FROM users
             WHERE LOWER(username) = LOWER(${username})
             LIMIT 1
         `

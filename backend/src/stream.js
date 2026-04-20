@@ -197,7 +197,7 @@ export class Stream {
                 }),
             },
         })
-        this.redis.on('error', /** @param {Error} err */ (err) => log.error({ err }, 'Redis client error'))
+        this.redis.on('error', /** @param {Error} err */(err) => log.error({ err }, 'Redis client error'))
         /**
          * Second instance to fetch things concurrent to the other connection.
          *
@@ -215,6 +215,54 @@ export class Stream {
         return this.redis.keys(`${this.prefix}:room:*`)
     }
 
+    /**
+     * @param {string} taskId
+     * @returns {Promise<void>}
+     */
+    async discardTask(taskId) {
+        const multi = this.redis.multi()
+        multi.xAck(this.workerStreamName, this.workerGroupName, taskId)
+        multi.xDel(this.workerStreamName, taskId)
+        await multi.exec()
+    }
+
+    /**
+     * @param {string} org
+     * @returns {Promise<t.Room[]>}
+     */
+    async listRoomsByOrg(org) {
+        const encodedOrg = encodeURIComponent(org)
+        const streamNames = await this.redis.keys(`${this.prefix}:room:${encodedOrg}:*`)
+        return streamNames.map((streamName) => decodeRoomName(streamName, this.prefix))
+    }
+
+    /**
+     * @param {t.Room} room
+     * @returns {Promise<void>}
+     */
+    async deleteRoom(room) {
+        const streamName = encodeRoomName(room, this.prefix)
+        this.subs.delete(streamName)
+        this.subUpdates.delete(streamName)
+        await this.redis.del(streamName)
+    }
+
+    /**
+     * @param {string} org
+     * @returns {Promise<void>}
+     */
+    async deleteOrg(org) {
+        const rooms = await this.listRoomsByOrg(org)
+        const streamNames = rooms.map((room) => encodeRoomName(room, this.prefix))
+        streamNames.forEach((streamName) => {
+            this.subs.delete(streamName)
+            this.subUpdates.delete(streamName)
+        })
+        if (streamNames.length > 0) {
+            await this.redis.del(streamNames)
+        }
+    }
+
     async _runSub() {
         if (!this._subRunning) {
             this._subRunning = true
@@ -222,7 +270,7 @@ export class Stream {
                 this.redisSubscriptions = redis.createClient(this.redisClientConf)
                 this.redisSubscriptions.on(
                     'error',
-                    /** @param {Error} err */ (err) => log.error({ err }, 'Redis subscription client error'),
+                    /** @param {Error} err */(err) => log.error({ err }, 'Redis subscription client error'),
                 )
                 await this.redisSubscriptions.connect()
             }
@@ -314,7 +362,7 @@ export class Stream {
                 messages: stream.messages
                     .filter((m) => m.message.m != null)
                     .map((message) => {
-                        const dm = buffer.decodeAny(/** @type {Uint8Array<ArrayBuffer>} */ (message.message.m))
+                        const dm = buffer.decodeAny(/** @type {Uint8Array<ArrayBuffer>} */(message.message.m))
                         dm.redisClock = message.id.toString()
                         return dm
                     }),

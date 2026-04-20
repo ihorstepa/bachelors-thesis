@@ -5,6 +5,7 @@ import * as env from 'lib0/environment'
 import * as yhub from '@y/hub'
 import { createAuthModule } from '../src/api/auth/index.js'
 import { createProjectsModule } from '../src/api/projects/index.js'
+import { createPersistencePlugins } from './persistence.js'
 import { logger } from '../src/logger.js'
 
 const port = number.parseInt(env.getConf('port') || '3002')
@@ -12,11 +13,24 @@ const port = number.parseInt(env.getConf('port') || '3002')
 logger.info({ port }, 'starting server')
 
 const postgresUrl = env.ensureConf('postgres')
+const persistence = createPersistencePlugins()
+
 const authModule = await createAuthModule({ postgresUrl })
 const projectsModule = await createProjectsModule({
     postgresUrl,
     verifyAccessToken: authModule.verifyAccessToken,
 })
+
+const authPlugin = {
+    ...authModule.authPlugin,
+    ...projectsModule.authPolicy,
+}
+
+/** @param {{ app: import('uws').TemplatedApp, yhub: import('@y/hub').YHub }} ctx */
+const setupApi = async (ctx) => {
+    await authModule.setupApi(ctx)
+    projectsModule.setupApi(ctx)
+}
 
 yhub.createYHub({
     redis: {
@@ -26,15 +40,12 @@ yhub.createYHub({
         minMessageLifetime: 60000,
     },
     postgres: postgresUrl,
-    persistence: [],
+    persistence,
     server: {
         port,
-        auth: authModule.authPlugin,
-        /** @param {{ app: import('uws').TemplatedApp }} ctx */
-        setupApi: async (ctx) => {
-            await authModule.setupApi(ctx)
-            projectsModule.setupApi(ctx)
-        },
+        auth: authPlugin,
+        onRoomUpdated: projectsModule.onRoomUpdated,
+        setupApi,
     },
     worker: null,
 })

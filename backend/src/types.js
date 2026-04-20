@@ -222,6 +222,8 @@ export const $authPlugin = /** @type {s.Schema<AuthPlugin<any>>} */ (
     s.$object({
         readAuthInfo: /** @type {any} */ (s.$function),
         getAccessType: /** @type {any} */ (s.$function),
+        canAccessRoom: /** @type {any} */ (s.$function).optional,
+        canWriteToRoom: /** @type {any} */ (s.$function).optional,
     })
 )
 
@@ -234,6 +236,8 @@ export const $authPlugin = /** @type {s.Schema<AuthPlugin<any>>} */ (
  * @typedef {object} AuthPlugin
  * @property {(req:import('uws').HttpRequest) => Promise<AuthInfo>} AuthPlugin.readAuthInfo
  * @property {(authInfo: AuthInfo, room: Room) => Promise<AccessType>} AuthPlugin.getAccessType:
+ * @property {((authInfo: AuthInfo, room: Room) => Promise<{ ok: true } | { ok: false, status: string, error: string }>)=} AuthPlugin.canAccessRoom
+ * @property {((authInfo: AuthInfo, room: Room) => Promise<{ ok: true } | { ok: false, status: string, error: string }>)=} AuthPlugin.canWriteToRoom
  */
 
 /**
@@ -285,6 +289,7 @@ export const $config = s.$object({
         port: s.$number,
         auth: $authPlugin,
         setupApi: s.$function.optional,
+        onRoomUpdated: s.$function.optional,
         /**
          * Maximum expected Ydoc size in bytes. Used as baseline to calculate WebSocket
          * maxPayloadLength and maxBackpressure. (default: 500MB)

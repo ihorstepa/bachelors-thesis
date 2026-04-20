@@ -17,11 +17,11 @@ const sql = postgres(env.ensureConf('postgres'))
 const tableExists = await sql`
   SELECT EXISTS (
     SELECT FROM pg_tables
-    WHERE tablename = 'yhub_ydoc_v1'
+        WHERE tablename = 'ydoc_v1'
   );
 `
 if (tableExists?.[0]?.exists) {
-    await sql`DELETE from yhub_ydoc_v1`
+    await sql`DELETE from ydoc_v1`
 }
 
 const yhubPort = number.parseInt(env.getConf('port') || '9999')
@@ -76,7 +76,7 @@ export const yhub = await createYHub({
                 MKSTREAM: true,
             })
             .exec()
-    } catch (_) {}
+    } catch (_) { }
 }
 
 /**

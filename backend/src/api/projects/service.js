@@ -62,14 +62,14 @@ const serializeProjectMembers = (ownerUser, members) => {
         ownerUser == null
             ? []
             : [
-                  serializeMember({
-                      userId: ownerUser.id,
-                      username: ownerUser.username,
-                      email: ownerUser.email,
-                      accessType: /** @type {'rw'} */ ('rw'),
-                      isOwner: true,
-                  }),
-              ]
+                serializeMember({
+                    userId: ownerUser.id,
+                    username: ownerUser.username,
+                    email: ownerUser.email,
+                    accessType: /** @type {'rw'} */ ('rw'),
+                    isOwner: true,
+                }),
+            ]
 
     return [...ownerMember, ...members.map((member) => serializeMember({ ...member, isOwner: false }))]
 }
@@ -91,17 +91,21 @@ const requireObjectBody = (body) => {
  */
 const parseValidatedProjectName = (body) => {
     const { name: rawName } = requireObjectBody(body)
-    const name = normalizeProjectName(/** @type {string} */ (rawName ?? ''))
+    const name = normalizeProjectName(/** @type {string} */(rawName ?? ''))
     validateProjectName(name)
     return name
 }
 
 export class ProjectService {
     /**
-     * @param {{ repository: import('./repository.js').ProjectRepository }} params
+     * @param {{
+     *   repository: import('./repository.js').ProjectRepository,
+     *   onProjectDeleted?: ((projectId: string) => Promise<void>) | null
+     * }} params
      */
-    constructor({ repository }) {
+    constructor({ repository, onProjectDeleted = null }) {
         this.repository = repository
+        this.onProjectDeleted = onProjectDeleted
     }
 
     /**
@@ -183,7 +187,16 @@ export class ProjectService {
      */
     async deleteProject(userId, projectId) {
         await this._requireProjectOwner(userId, projectId)
+        await this.onProjectDeleted?.(projectId)
         await this.repository.deleteProject(projectId)
+    }
+
+    /**
+     * @param {string} projectId
+     * @returns {Promise<boolean>}
+     */
+    async projectExists(projectId) {
+        return (await this.repository.getProjectById(projectId)) != null
     }
 
     /**
@@ -290,6 +303,9 @@ export class ProjectService {
 }
 
 /**
- * @param {{ repository: import('./repository.js').ProjectRepository }} params
+ * @param {{
+ *   repository: import('./repository.js').ProjectRepository,
+ *   onProjectDeleted?: ((projectId: string) => Promise<void>) | null
+ * }} params
  */
 export const createProjectService = (params) => new ProjectService(params)

@@ -69,12 +69,43 @@ async function init(postgresUrl) {
     log.info('ensuring tables and indexes exist')
     const sql = postgres(postgresUrl, { max: 1 })
     try {
+        await ensureTable(
+            sql,
+            'users',
+            `CREATE TABLE IF NOT EXISTS users (
+                id              BIGSERIAL PRIMARY KEY,
+                email           TEXT NOT NULL,
+                username        TEXT NOT NULL,
+                password_hash   TEXT NOT NULL,
+                created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );`,
+        )
+
+        await sql`CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique_idx ON users ((LOWER(email)))`
+        await sql`CREATE UNIQUE INDEX IF NOT EXISTS users_username_unique_idx ON users ((LOWER(username)))`
+        await sql`CREATE INDEX IF NOT EXISTS users_created_at_idx ON users (created_at DESC)`
+
+        await ensureTable(
+            sql,
+            'projects',
+            `CREATE TABLE IF NOT EXISTS projects (
+                id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                owner_id        BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                name            TEXT NOT NULL,
+                created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );`,
+        )
+
+        await sql`CREATE INDEX IF NOT EXISTS projects_owner_idx ON projects (owner_id)`
+        await sql`CREATE INDEX IF NOT EXISTS projects_updated_at_idx ON projects (updated_at DESC)`
+
         // @todo move contentmap and sv to another table!
         await ensureTable(
             sql,
-            'yhub_ydoc_v1',
-            `CREATE TABLE IF NOT EXISTS yhub_ydoc_v1 (
-                org             text,
+            'ydoc_v1',
+            `CREATE TABLE IF NOT EXISTS ydoc_v1 (
+                org             UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
                 docid           text,
                 branch          text,
                 t               text,
@@ -89,41 +120,10 @@ async function init(postgresUrl) {
 
         await ensureTable(
             sql,
-            'yhub_users',
-            `CREATE TABLE IF NOT EXISTS yhub_users (
-                id              BIGSERIAL PRIMARY KEY,
-                email           TEXT NOT NULL,
-                username        TEXT NOT NULL,
-                password_hash   TEXT NOT NULL,
-                created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
-            );`,
-        )
-
-        await sql`CREATE UNIQUE INDEX IF NOT EXISTS yhub_users_email_unique_idx ON yhub_users ((LOWER(email)))`
-        await sql`CREATE UNIQUE INDEX IF NOT EXISTS yhub_users_username_unique_idx ON yhub_users ((LOWER(username)))`
-        await sql`CREATE INDEX IF NOT EXISTS yhub_users_created_at_idx ON yhub_users (created_at DESC)`
-
-        await ensureTable(
-            sql,
-            'yhub_projects',
-            `CREATE TABLE IF NOT EXISTS yhub_projects (
-                id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                owner_id        BIGINT NOT NULL REFERENCES yhub_users(id) ON DELETE CASCADE,
-                name            TEXT NOT NULL,
-                created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
-            );`,
-        )
-
-        await sql`CREATE INDEX IF NOT EXISTS yhub_projects_owner_idx ON yhub_projects (owner_id)`
-        await sql`CREATE INDEX IF NOT EXISTS yhub_projects_updated_at_idx ON yhub_projects (updated_at DESC)`
-
-        await ensureTable(
-            sql,
-            'yhub_project_members',
-            `CREATE TABLE IF NOT EXISTS yhub_project_members (
-                project_id      UUID NOT NULL REFERENCES yhub_projects(id) ON DELETE CASCADE,
-                user_id         BIGINT NOT NULL REFERENCES yhub_users(id) ON DELETE CASCADE,
+            'project_members',
+            `CREATE TABLE IF NOT EXISTS project_members (
+                project_id      UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+                user_id         BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 access_type     TEXT NOT NULL CHECK (access_type IN ('r', 'rw')),
                 PRIMARY KEY     (project_id, user_id)
             );`,
@@ -131,13 +131,47 @@ async function init(postgresUrl) {
 
         await ensureTable(
             sql,
-            'yhub_project_favorites',
-            `CREATE TABLE IF NOT EXISTS yhub_project_favorites (
-                project_id      UUID NOT NULL REFERENCES yhub_projects(id) ON DELETE CASCADE,
-                user_id         BIGINT NOT NULL REFERENCES yhub_users(id) ON DELETE CASCADE,
+            'project_favorites',
+            `CREATE TABLE IF NOT EXISTS project_favorites (
+                project_id      UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+                user_id         BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 PRIMARY KEY     (project_id, user_id)
             );`,
         )
+
+        await sql.unsafe(`
+            CREATE OR REPLACE FUNCTION validate_project_favorite_access()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM projects p
+                    WHERE p.id = NEW.project_id
+                      AND (
+                          p.owner_id = NEW.user_id
+                          OR EXISTS (
+                              SELECT 1
+                              FROM project_members pm
+                              WHERE pm.project_id = NEW.project_id
+                                AND pm.user_id = NEW.user_id
+                          )
+                      )
+                ) THEN
+                    RAISE EXCEPTION 'User % has no access to favorite project %', NEW.user_id, NEW.project_id
+                        USING ERRCODE = '23514';
+                END IF;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+        `)
+
+        await sql.unsafe('DROP TRIGGER IF EXISTS trg_project_favorites_validate_access ON project_favorites')
+        await sql.unsafe(`
+            CREATE TRIGGER trg_project_favorites_validate_access
+            BEFORE INSERT OR UPDATE ON project_favorites
+            FOR EACH ROW
+            EXECUTE FUNCTION validate_project_favorite_access();
+        `)
 
         log.info('tables and indexes ensured')
     } finally {

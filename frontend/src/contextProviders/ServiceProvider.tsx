@@ -65,7 +65,7 @@ async function initIdeServices(
     const presenceService = new FileSystemPresenceService(fileSystemManager, username)
     services.set(PresenceService, presenceService)
 
-    const fileSyncManager = new MultipleFileSyncManager(connectionFactory)
+    const fileSyncManager = new MultipleFileSyncManager(connectionFactory, fileSystemManager)
     services.set(FileSyncManager, fileSyncManager)
 
     const tabManager = new PersistentTabManager(fileSystemManager)

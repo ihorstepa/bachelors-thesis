@@ -16,6 +16,18 @@ export { logger } from './logger.js'
 const log = logger.child({ module: 'worker' })
 
 /**
+ * @param {unknown} err
+ * @returns {boolean}
+ */
+const isDeletedProjectFkViolation = (err) => {
+    if (err == null || typeof err !== 'object') {
+        return false
+    }
+    const maybeErr = /** @type {{ code?: string, constraint_name?: string }} */ (err)
+    return maybeErr.code === '23503' && maybeErr.constraint_name === 'ydoc_v1_org_fkey'
+}
+
+/**
  * @template {t.YHubConfig} [Conf=t.YHubConfig]
  */
 export class YHub {
@@ -44,7 +56,7 @@ export class YHub {
     async startWorker() {
         if (this._workerCtx.shouldRun || this.conf.worker == null) return
         // create new worker context
-        const ctx = (this._ctx = {
+        const ctx = (this._workerCtx = {
             shouldRun: true,
         })
         while (ctx.shouldRun) {
@@ -76,7 +88,19 @@ export class YHub {
                                 return null
                             }
                             this.conf.worker?.events?.docUpdate?.(object.assign({}, d, { references: null }))
-                            await this.persistence.store(task.room, d)
+                            try {
+                                await this.persistence.store(task.room, d)
+                            } catch (err) {
+                                if (isDeletedProjectFkViolation(err)) {
+                                    taskLog.warn({ err }, 'project no longer exists, deleting room stream')
+                                    await promise.all([
+                                        this.stream.deleteRoom(task.room),
+                                        this.stream.discardTask(task.redisClock),
+                                    ])
+                                    return null
+                                }
+                                throw err
+                            }
                             await promise.all([
                                 this.persistence.deleteReferences(d.references),
                                 this.stream.trimMessages(
@@ -138,8 +162,8 @@ export class YHub {
         const awareness = /** @type {Include['awareness'] extends true ? Uint8Array<ArrayBuffer> : null} */ (
             includeContent.awareness
                 ? protocol.mergeAwarenessUpdates(
-                      cachedMessages.messages.filter((m) => m.type === 'awareness:v1').map((m) => m.update),
-                  )
+                    cachedMessages.messages.filter((m) => m.type === 'awareness:v1').map((m) => m.update),
+                )
                 : null
         )
         const lastClock = strm.maxRedisClock(persistedDoc.lastClock, cachedMessages.lastClock)
@@ -216,6 +240,38 @@ export class YHub {
             contentids: Y.encodeContentIds(contentids),
             contentmap: Y.encodeContentMap(contentmap),
         })
+    }
+
+    /**
+     * @param {string} org
+     * @returns {Promise<t.Room[]>}
+     */
+    async listRoomsByOrg(org) {
+        const [persistedRooms, streamedRooms] = await promise.all([
+            this.persistence.listRoomsByOrg(org),
+            this.stream.listRoomsByOrg(org),
+        ])
+        const uniqueRooms = new Map()
+            ;[...persistedRooms, ...streamedRooms].forEach((room) => {
+                uniqueRooms.set(`${room.org}:${room.docid}:${room.branch}`, room)
+            })
+        return Array.from(uniqueRooms.values())
+    }
+
+    /**
+     * @param {t.Room} room
+     * @returns {Promise<void>}
+     */
+    async deleteRoom(room) {
+        await promise.all([this.persistence.deleteRoom(room), this.stream.deleteRoom(room)])
+    }
+
+    /**
+     * @param {string} org
+     * @returns {Promise<void>}
+     */
+    async deleteOrg(org) {
+        await promise.all([this.persistence.deleteOrg(org), this.stream.deleteOrg(org)])
     }
 }
 

@@ -1,21 +1,28 @@
 import { FileSyncManager } from '@/core/fileSyncManager'
 import type { SharedFile } from '@/core/fileSyncManager'
 import type { ConnectionFactory, Connection } from '@/core/connectionFactory'
+import { FileSystemManager, type NodeMeta } from '@/core/fileSystemManager'
 
 class MultipleFileSyncManager extends FileSyncManager {
     private connectionFactory: ConnectionFactory
+    private fileSystemManager: FileSystemManager
     private connections: Map<string, Connection> = new Map()
     private pendingConnections: Map<string, Promise<Connection>> = new Map()
     private refCounts: Map<string, number> = new Map()
     private destroyed = false
 
-    public constructor(connectionFactory: ConnectionFactory) {
+    public constructor(connectionFactory: ConnectionFactory, fileSystemManager: FileSystemManager) {
         super()
         this.connectionFactory = connectionFactory
+        this.fileSystemManager = fileSystemManager
+
+        this.handleDelete = this.handleDelete.bind(this)
+        this.fileSystemManager.on('delete', this.handleDelete)
     }
 
     public destroy(): void {
         this.destroyed = true
+        this.fileSystemManager.off('delete', this.handleDelete)
         this.connections.forEach((connection) => connection.destroy())
         this.pendingConnections.clear()
         this.connections.clear()
@@ -78,6 +85,15 @@ class MultipleFileSyncManager extends FileSyncManager {
             return
         }
         this.refCounts.set(id, current - 1)
+    }
+
+    private handleDelete(node: NodeMeta): void {
+        const connection = this.connections.get(node.id)
+        if (connection) {
+            connection.destroy()
+            this.connections.delete(node.id)
+        }
+        this.refCounts.delete(node.id)
     }
 }
 

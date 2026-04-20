@@ -4,6 +4,9 @@ import * as env from 'lib0/environment'
 import { createAuthHttpApi, extractBearerToken } from './api.js'
 import { createUserRepository } from './repository.js'
 import { createAuthService } from './service.js'
+import { logger } from '../../logger.js'
+
+const log = logger.child({ module: 'auth-module' })
 
 /**
  * @param {import('uws').HttpRequest} req
@@ -24,6 +27,7 @@ const readAuthKeyPair = async () => {
         privateKeyJwk = json.parse(env.ensureConf('auth-private-key'))
         publicKeyJwk = json.parse(env.ensureConf('auth-public-key'))
     } catch (err) {
+        log.error({ err }, 'failed to parse auth keys from environment')
         throw new Error('Invalid AUTH_PRIVATE_KEY or AUTH_PUBLIC_KEY in environment', { cause: err })
     }
 
@@ -39,6 +43,7 @@ const readAuthKeyPair = async () => {
  * @param {{ postgresUrl: string }} params
  */
 export const createAuthModule = async ({ postgresUrl }) => {
+    log.info('initializing auth module')
     const { jwtPrivateKey, jwtPublicKey } = await readAuthKeyPair()
 
     const repository = createUserRepository(postgresUrl)
@@ -52,16 +57,25 @@ export const createAuthModule = async ({ postgresUrl }) => {
     const authApi = createAuthHttpApi({ authService })
 
     /** @param {{ app: import('uws').TemplatedApp }} ctx */
-    const setupApi = (ctx) => authApi.registerRoutes(ctx.app)
+    const setupApi = (ctx) => {
+        log.info('registering auth api routes')
+        authApi.registerRoutes(ctx.app)
+    }
 
     const authPlugin = {
         /** @param {import('uws').HttpRequest} req */
         async readAuthInfo(req) {
             const token = getTokenFromRequest(req)
             if (token == null) {
+                log.debug('authentication failed: missing auth token')
                 throw new Error('missing auth token')
             }
-            return authService.verifyAccessToken(token)
+            try {
+                return await authService.verifyAccessToken(token)
+            } catch (err) {
+                log.debug({ err }, 'authentication failed: invalid access token')
+                throw err
+            }
         },
         /**
          * @param {{ userid: string }} _authInfo
@@ -78,6 +92,9 @@ export const createAuthModule = async ({ postgresUrl }) => {
         setupApi,
         /** @param {string} token */
         verifyAccessToken: (token) => authService.verifyAccessToken(token),
-        destroy: () => repository.destroy(),
+        destroy: () => {
+            log.info('destroying auth module resources')
+            repository.destroy()
+        },
     }
 }

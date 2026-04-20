@@ -75,12 +75,20 @@ const tryPersistencePluginRetrieve = async (plugins, assetId, asset) => {
  */
 const tryPersistencePluginDelete = (plugins, assetId, asset) => {
     if (asset.type === 'asset:retrievable:v1') {
-        for (const plugin of plugins) {
-            if (plugin.delete != null) {
-                plugin.delete(assetId, asset).catch((err) => log.error({ err, assetId }, 'error deleting asset'))
-            }
-        }
+        return promise.all(
+            plugins.map(async (plugin) => {
+                if (plugin.delete == null) {
+                    return
+                }
+                try {
+                    await plugin.delete(assetId, asset)
+                } catch (err) {
+                    log.error({ err, assetId }, 'error deleting asset')
+                }
+            }),
+        ).then(() => { })
     }
+    return Promise.resolve()
 }
 
 /**
@@ -163,8 +171,8 @@ export class Persistence {
         const encodedContentidsAsset = buffer.encodeAny(contentidsAsset)
         const created = number.parseInt(lastClock.split('-')[0])
         await this.sql`
-      INSERT INTO yhub_ydoc_v1 (org,docid,branch,t,created,gcDoc,nongcDoc,contentmap,contentids)
-      VALUES (${room.org},${room.docid},${room.branch},${lastClock},${created},${encodedGcDocAsset},${encodedNongcDocAsset},${encodedContentmapAsset},${encodedContentidsAsset})
+            INSERT INTO ydoc_v1 (org,docid,branch,t,created,gcDoc,nongcDoc,contentmap,contentids)
+            VALUES (${room.org},${room.docid},${room.branch},${lastClock},${created},${encodedGcDocAsset},${encodedNongcDocAsset},${encodedContentmapAsset},${encodedContentidsAsset})
     `
     }
 
@@ -189,17 +197,21 @@ export class Persistence {
         const includeGc = includeContent.gc === true
         const includeNongc = includeContent.nongc === true
         const includeReferences = includeContent.references === true
+        const includeGcColumn = includeGc || includeReferences
+        const includeNongcColumn = includeNongc || includeReferences
+        const includeContentmapColumn = includeContentmap || includeReferences
+        const includeContentidsColumn = includeContentids || includeReferences
         /**
          * @type {Array<{ t: string, gcdoc?: Buffer, nongcdoc?: Buffer, contentmap?: Buffer, contentids?: Buffer }>}
          */
         const rows = await this.sql`
       SELECT 
         t
-        ${includeGc ? this.sql`, gcDoc` : this.sql``}
-        ${includeNongc ? this.sql`, nongcDoc` : this.sql``}
-        ${includeContentmap ? this.sql`, contentmap` : this.sql``}
-        ${includeContentids ? this.sql`, contentids` : this.sql``}
-      FROM yhub_ydoc_v1 
+                ${includeGcColumn ? this.sql`, gcDoc` : this.sql``}
+                ${includeNongcColumn ? this.sql`, nongcDoc` : this.sql``}
+                ${includeContentmapColumn ? this.sql`, contentmap` : this.sql``}
+                ${includeContentidsColumn ? this.sql`, contentids` : this.sql``}
+            FROM ydoc_v1 
       WHERE org = ${room.org} AND docid = ${room.docid} AND branch = ${room.branch}
     `
         /**
@@ -212,10 +224,10 @@ export class Persistence {
                 .map(async (row) => {
                     const assetId = object.assign({ type: /** @type {const} */ ('id:contentmap:v1'), t: row.t }, room)
                     const contentmapAsset = /** @type {s.Unwrap<typeof t.$contentMapAsset> | t.RetrievableAsset} */ (
-                        buffer.decodeAny(/** @type {Buffer} */ (row.contentmap))
+                        buffer.decodeAny(/** @type {Buffer} */(row.contentmap))
                     )
+                    references?.push({ assetId, asset: contentmapAsset })
                     return tryPersistencePluginRetrieve(this.plugins, assetId, contentmapAsset).then((retrieved) => {
-                        retrieved && references?.push({ assetId, asset: contentmapAsset })
                         return retrieved?.contentmap
                     })
                 }),
@@ -226,10 +238,10 @@ export class Persistence {
                 .map(async (row) => {
                     const assetId = object.assign({ type: /** @type {const} */ ('id:contentids:v1'), t: row.t }, room)
                     const contentidsAsset = /** @type {s.Unwrap<typeof t.$contentidsAsset> | t.RetrievableAsset} */ (
-                        buffer.decodeAny(/** @type {Buffer} */ (row.contentids))
+                        buffer.decodeAny(/** @type {Buffer} */(row.contentids))
                     )
+                    references?.push({ assetId, asset: contentidsAsset })
                     return tryPersistencePluginRetrieve(this.plugins, assetId, contentidsAsset).then((retrieved) => {
-                        retrieved && references?.push({ assetId, asset: contentidsAsset })
                         return retrieved?.contentids
                     })
                 }),
@@ -243,10 +255,10 @@ export class Persistence {
                         room,
                     )
                     const gcDocAsset = /** @type {s.Unwrap<typeof t.$ydocAsset> | t.RetrievableAsset} */ (
-                        buffer.decodeAny(/** @type {Buffer} */ (row.gcdoc))
+                        buffer.decodeAny(/** @type {Buffer} */(row.gcdoc))
                     )
+                    references?.push({ assetId, asset: gcDocAsset })
                     return tryPersistencePluginRetrieve(this.plugins, assetId, gcDocAsset).then((retrieved) => {
-                        retrieved && references?.push({ assetId, asset: gcDocAsset })
                         return retrieved?.update
                     })
                 }),
@@ -260,10 +272,10 @@ export class Persistence {
                         room,
                     )
                     const nongcDocAsset = /** @type {s.Unwrap<typeof t.$ydocAsset> | t.RetrievableAsset} */ (
-                        buffer.decodeAny(/** @type {Buffer} */ (row.nongcdoc))
+                        buffer.decodeAny(/** @type {Buffer} */(row.nongcdoc))
                     )
+                    references?.push({ assetId, asset: nongcDocAsset })
                     return tryPersistencePluginRetrieve(this.plugins, assetId, nongcDocAsset).then((retrieved) => {
-                        retrieved && references?.push({ assetId, asset: nongcDocAsset })
                         return retrieved?.update
                     })
                 }),
@@ -295,7 +307,7 @@ export class Persistence {
      */
     async deleteReferences(references) {
         log.debug({ referenceCount: references.length }, 'deleting references')
-        references.forEach((ref) => tryPersistencePluginDelete(this.plugins, ref.assetId, ref.asset))
+        await promise.all(references.map((ref) => tryPersistencePluginDelete(this.plugins, ref.assetId, ref.asset)))
         /**
          * org, docid, branch, t[]
          * @type {Map<string,Map<string,Map<string,Set<string>>>>}
@@ -326,10 +338,91 @@ export class Persistence {
         await promise.all(
             deleteQuery.map(
                 (dq) => this.sql`
-      DELETE FROM yhub_ydoc_v1 WHERE org = ${dq.org} AND docid = ${dq.docid} AND branch = ${dq.branch} AND t = ANY(${dq.ts})
+            DELETE FROM ydoc_v1 WHERE org = ${dq.org} AND docid = ${dq.docid} AND branch = ${dq.branch} AND t = ANY(${dq.ts})
     `,
             ),
         )
+    }
+
+    /**
+     * @param {Array<{ org: string, docid: string, branch: string, t: string, gcdoc: Buffer|null, nongcdoc: Buffer|null, contentmap: Buffer|null, contentids: Buffer|null }>} rows
+     * @returns {Array<{ assetId: t.AssetId, asset: t.Asset }>}
+     */
+    _extractReferencesFromRows(rows) {
+        /** @type {Array<{ assetId: t.AssetId, asset: t.Asset }>} */
+        const references = []
+        rows.forEach((row) => {
+            const room = { org: row.org, docid: row.docid, branch: row.branch }
+            if (row.gcdoc != null) {
+                references.push({
+                    assetId: object.assign({ type: /** @type {const} */ ('id:ydoc:v1'), gc: true, t: row.t }, room),
+                    asset: buffer.decodeAny(row.gcdoc),
+                })
+            }
+            if (row.nongcdoc != null) {
+                references.push({
+                    assetId: object.assign({ type: /** @type {const} */ ('id:ydoc:v1'), gc: false, t: row.t }, room),
+                    asset: buffer.decodeAny(row.nongcdoc),
+                })
+            }
+            if (row.contentmap != null) {
+                references.push({
+                    assetId: object.assign({ type: /** @type {const} */ ('id:contentmap:v1'), t: row.t }, room),
+                    asset: buffer.decodeAny(row.contentmap),
+                })
+            }
+            if (row.contentids != null) {
+                references.push({
+                    assetId: object.assign({ type: /** @type {const} */ ('id:contentids:v1'), t: row.t }, room),
+                    asset: buffer.decodeAny(row.contentids),
+                })
+            }
+        })
+        return references
+    }
+
+    /**
+     * @param {string} org
+     * @returns {Promise<t.Room[]>}
+     */
+    async listRoomsByOrg(org) {
+        /** @type {Array<{ docid: string, branch: string }>} */
+        const rows = await this.sql`
+      SELECT DISTINCT docid, branch
+            FROM ydoc_v1
+      WHERE org = ${org}
+    `
+        return rows.map((row) => ({ org, docid: row.docid, branch: row.branch }))
+    }
+
+    /**
+     * @param {t.Room} room
+     * @returns {Promise<void>}
+     */
+    async deleteRoom(room) {
+        /** @type {Array<{ org: string, docid: string, branch: string, t: string, gcdoc: Buffer|null, nongcdoc: Buffer|null, contentmap: Buffer|null, contentids: Buffer|null }> } */
+        const deletedRows = await this.sql`
+            DELETE FROM ydoc_v1
+      WHERE org = ${room.org} AND docid = ${room.docid} AND branch = ${room.branch}
+      RETURNING org, docid, branch, t, gcDoc AS gcdoc, nongcDoc AS nongcdoc, contentmap, contentids
+    `
+        const references = this._extractReferencesFromRows(deletedRows)
+        await promise.all(references.map((ref) => tryPersistencePluginDelete(this.plugins, ref.assetId, ref.asset)))
+    }
+
+    /**
+     * @param {string} org
+     * @returns {Promise<void>}
+     */
+    async deleteOrg(org) {
+        /** @type {Array<{ org: string, docid: string, branch: string, t: string, gcdoc: Buffer|null, nongcdoc: Buffer|null, contentmap: Buffer|null, contentids: Buffer|null }> } */
+        const deletedRows = await this.sql`
+            DELETE FROM ydoc_v1
+      WHERE org = ${org}
+      RETURNING org, docid, branch, t, gcDoc AS gcdoc, nongcDoc AS nongcdoc, contentmap, contentids
+    `
+        const references = this._extractReferencesFromRows(deletedRows)
+        await promise.all(references.map((ref) => tryPersistencePluginDelete(this.plugins, ref.assetId, ref.asset)))
     }
 
     async destroy() {

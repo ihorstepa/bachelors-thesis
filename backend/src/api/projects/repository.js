@@ -86,7 +86,7 @@ export class ProjectRepository {
      */
     async createProject({ ownerId, name }) {
         const rows = await this.sql`
-            INSERT INTO yhub_projects (owner_id, name)
+            INSERT INTO projects (owner_id, name)
             VALUES (${ownerId}, ${name})
             RETURNING id, owner_id, name, created_at, updated_at
         `
@@ -101,7 +101,7 @@ export class ProjectRepository {
         try {
             const rows = await this.sql`
                 SELECT id, owner_id, name, created_at, updated_at
-                FROM yhub_projects
+                FROM projects
                 WHERE id = ${id}
                 LIMIT 1
             `
@@ -122,8 +122,8 @@ export class ProjectRepository {
     async getProjectOwnerUser(projectId) {
         const rows = await this.sql`
             SELECT u.id, u.username, u.email
-            FROM yhub_projects p
-            JOIN yhub_users u ON u.id = p.owner_id
+            FROM projects p
+            JOIN users u ON u.id = p.owner_id
             WHERE p.id = ${projectId}
             LIMIT 1
         `
@@ -137,7 +137,7 @@ export class ProjectRepository {
     async getUserByUsername(username) {
         const rows = await this.sql`
             SELECT id, username, email
-            FROM yhub_users
+            FROM users
             WHERE LOWER(username) = LOWER(${username})
             LIMIT 1
         `
@@ -161,8 +161,8 @@ export class ProjectRepository {
                     pm.project_id,
                     u.username,
                     ROW_NUMBER() OVER (PARTITION BY pm.project_id ORDER BY u.username ASC) AS rn
-                FROM yhub_project_members pm
-                JOIN yhub_users u ON u.id = pm.user_id
+                FROM project_members pm
+                JOIN users u ON u.id = pm.user_id
                 WHERE pm.project_id = ANY(${projectIds})
             ) preview
             WHERE preview.rn <= ${limit}
@@ -200,11 +200,11 @@ export class ProjectRepository {
                 COUNT(pm2.user_id) AS member_count,
                 p.created_at,
                 p.updated_at
-            FROM yhub_projects p
-            JOIN yhub_users u ON u.id = p.owner_id
-            LEFT JOIN yhub_project_members pm ON pm.project_id = p.id AND pm.user_id = ${userId}
-            LEFT JOIN yhub_project_favorites ps ON ps.project_id = p.id AND ps.user_id = ${userId}
-            LEFT JOIN yhub_project_members pm2 ON pm2.project_id = p.id
+            FROM projects p
+            JOIN users u ON u.id = p.owner_id
+            LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ${userId}
+            LEFT JOIN project_favorites ps ON ps.project_id = p.id AND ps.user_id = ${userId}
+            LEFT JOIN project_members pm2 ON pm2.project_id = p.id
             WHERE p.owner_id = ${userId} OR pm.user_id = ${userId}
             GROUP BY p.id, p.name, p.owner_id, u.username, pm.access_type, ps.user_id
             ORDER BY p.updated_at DESC
@@ -219,7 +219,7 @@ export class ProjectRepository {
      */
     async updateProject(id, { name }) {
         const rows = await this.sql`
-            UPDATE yhub_projects
+            UPDATE projects
             SET name = ${name}, updated_at = NOW()
             WHERE id = ${id}
             RETURNING id, owner_id, name, created_at, updated_at
@@ -233,7 +233,7 @@ export class ProjectRepository {
      */
     async deleteProject(id) {
         const rows = await this.sql`
-            DELETE FROM yhub_projects WHERE id = ${id} RETURNING id
+            DELETE FROM projects WHERE id = ${id} RETURNING id
         `
         return rows.length > 0
     }
@@ -245,8 +245,8 @@ export class ProjectRepository {
     async listMembers(projectId) {
         const rows = await this.sql`
             SELECT pm.project_id, pm.user_id, u.username, u.email, pm.access_type
-            FROM yhub_project_members pm
-            JOIN yhub_users u ON u.id = pm.user_id
+            FROM project_members pm
+            JOIN users u ON u.id = pm.user_id
             WHERE pm.project_id = ${projectId}
             ORDER BY u.username ASC
         `
@@ -261,8 +261,8 @@ export class ProjectRepository {
     async getMember(projectId, userId) {
         const rows = await this.sql`
             SELECT pm.project_id, pm.user_id, u.username, u.email, pm.access_type
-            FROM yhub_project_members pm
-            JOIN yhub_users u ON u.id = pm.user_id
+            FROM project_members pm
+            JOIN users u ON u.id = pm.user_id
             WHERE pm.project_id = ${projectId} AND pm.user_id = ${userId}
             LIMIT 1
         `
@@ -277,14 +277,14 @@ export class ProjectRepository {
      */
     async upsertMember(projectId, userId, accessType) {
         const rows = await this.sql`
-            INSERT INTO yhub_project_members (project_id, user_id, access_type)
+            INSERT INTO project_members (project_id, user_id, access_type)
             VALUES (${projectId}, ${userId}, ${accessType})
             ON CONFLICT (project_id, user_id)
             DO UPDATE SET access_type = EXCLUDED.access_type
             RETURNING project_id, user_id, access_type
         `
         const row = rows[0]
-        const userRows = await this.sql`SELECT username, email FROM yhub_users WHERE id = ${userId} LIMIT 1`
+        const userRows = await this.sql`SELECT username, email FROM users WHERE id = ${userId} LIMIT 1`
         return mapMemberRow({
             ...row,
             username: userRows[0]?.username ?? '',
@@ -299,7 +299,7 @@ export class ProjectRepository {
      */
     async removeMember(projectId, userId) {
         const rows = await this.sql`
-            DELETE FROM yhub_project_members
+            DELETE FROM project_members
             WHERE project_id = ${projectId} AND user_id = ${userId}
             RETURNING user_id
         `
@@ -313,7 +313,7 @@ export class ProjectRepository {
      */
     async favoriteProject(projectId, userId) {
         await this.sql`
-            INSERT INTO yhub_project_favorites (project_id, user_id)
+            INSERT INTO project_favorites (project_id, user_id)
             VALUES (${projectId}, ${userId})
             ON CONFLICT DO NOTHING
         `
@@ -326,7 +326,7 @@ export class ProjectRepository {
      */
     async unfavoriteProject(projectId, userId) {
         await this.sql`
-            DELETE FROM yhub_project_favorites
+            DELETE FROM project_favorites
             WHERE project_id = ${projectId} AND user_id = ${userId}
         `
     }
@@ -342,8 +342,8 @@ export class ProjectRepository {
         const rows = await this.sql`
             SELECT
                 CASE WHEN p.owner_id = ${userId} THEN 'rw' ELSE pm.access_type END AS access_type
-            FROM yhub_projects p
-            LEFT JOIN yhub_project_members pm ON pm.project_id = p.id AND pm.user_id = ${userId}
+                        FROM projects p
+                        LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ${userId}
             WHERE p.id = ${projectId}
               AND (p.owner_id = ${userId} OR pm.user_id = ${userId})
             LIMIT 1

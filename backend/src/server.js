@@ -47,9 +47,9 @@ const createContentMapFromParams = (contentids, userid, customAttributions) => {
 const parseCustomAttributionsParam = (param) =>
     param
         ? param.split(',').map((entry) => {
-              const [k, ...rest] = entry.split(':')
-              return { k, v: rest.join(':') }
-          })
+            const [k, ...rest] = entry.split(':')
+            return { k, v: rest.join(':') }
+        })
         : []
 
 /**
@@ -60,6 +60,65 @@ const reqToRoom = (req) => {
     const docid = /** @type {string} */ (req.getParameter(1))
     const branch = /** @type {string} */ (req.getQuery('branch')) ?? 'main'
     return { org, docid, branch }
+}
+
+/**
+ * @param {t.YHubConfig['server'] | null | undefined} serverConf
+ * @param {'canAccessRoom' | 'canWriteToRoom'} hookName
+ * @param {{ userid: string }} authInfo
+ * @param {t.Room} room
+ * @param {string} logContext
+ * @returns {Promise<{ ok: true } | { ok: false, status: string, error: string }>}
+ */
+const runRoomCheck = async (serverConf, hookName, authInfo, room, logContext) => {
+    const roomCheck = /** @type {(((authInfo: { userid: string }, room: t.Room) => Promise<{ ok: true } | { ok: false, status: string, error: string }>)) | undefined} */ (
+        serverConf?.auth?.[hookName]
+    )
+    if (typeof roomCheck !== 'function') {
+        return { ok: true }
+    }
+    try {
+        const check = await roomCheck(authInfo, room)
+        return check ?? { ok: true }
+    } catch (err) {
+        log.error({ err, room, logContext, hookName }, 'room check failed')
+        return { ok: false, status: '500 Internal Server Error', error: 'Internal server error' }
+    }
+}
+
+/**
+ * @param {t.YHubConfig['server'] | null | undefined} serverConf
+ * @param {{ userid: string }} authInfo
+ * @param {t.Room} room
+ * @param {string} logContext
+ * @returns {Promise<{ ok: true } | { ok: false, status: string, error: string }>}
+ */
+const runAccessCheck = async (serverConf, authInfo, room, logContext) =>
+    runRoomCheck(serverConf, 'canAccessRoom', authInfo, room, logContext)
+
+/**
+ * @param {t.YHubConfig['server'] | null | undefined} serverConf
+ * @param {{ userid: string }} authInfo
+ * @param {t.Room} room
+ * @param {string} logContext
+ * @returns {Promise<{ ok: true } | { ok: false, status: string, error: string }>}
+ */
+const runWriteCheck = async (serverConf, authInfo, room, logContext) =>
+    runRoomCheck(serverConf, 'canWriteToRoom', authInfo, room, logContext)
+
+/**
+ * @param {t.YHubConfig['server'] | null | undefined} serverConf
+ * @param {t.Room} room
+ * @param {string} logContext
+ */
+const runRoomUpdatedHook = (serverConf, room, logContext) => {
+    const onRoomUpdated = /** @type {(((room: t.Room) => Promise<void>)) | undefined} */ (serverConf?.onRoomUpdated)
+    if (typeof onRoomUpdated !== 'function') {
+        return
+    }
+    onRoomUpdated(room).catch((/** @type {unknown} */ err) => {
+        log.error({ err, room, logContext }, 'post-update room hook failed')
+    })
 }
 
 export class YHubServer {
@@ -129,6 +188,10 @@ export const createYHubServer = async (yhub, conf) => {
             }
             if (requiredAccess === 'r' && !t.hasReadAccess(accessType)) {
                 return { error: 'Forbidden', status: '403 Forbidden' }
+            }
+            const accessCheck = await runAccessCheck(yhub.conf.server, authInfo, room, `http-${requiredAccess}`)
+            if (!accessCheck.ok) {
+                return { error: accessCheck.error, status: accessCheck.status }
             }
             return { authInfo, accessType }
         } catch (_err) {
@@ -204,6 +267,11 @@ export const createYHubServer = async (yhub, conf) => {
                 sendErrorResponse(res, authResult.status, { error: authResult.error })
                 return
             }
+            const writeCheck = await runWriteCheck(conf.server, authResult.authInfo, room, 'http-patch')
+            if (!writeCheck.ok) {
+                sendErrorResponse(res, writeCheck.status, { error: writeCheck.error })
+                return
+            }
             try {
                 const decoder = decoding.createDecoder(buffer)
                 const decodedBody = decoding.readAny(decoder)
@@ -235,6 +303,7 @@ export const createYHubServer = async (yhub, conf) => {
                             contentmap: result.contentmap,
                             update: result.update,
                         })
+                        runRoomUpdatedHook(conf.server, room, 'http-patch')
                     }
                     if (!aborted) {
                         const encoder = encoding.createEncoder()
@@ -670,7 +739,7 @@ const registerWebsocketServer = (yhub, app) => {
     const maxDocSize = s.$number.cast(yhub.conf.server?.maxDocSize)
     app.ws(
         '/ws/:org/:docid',
-        /** @type {uws.WebSocketBehavior<{ user: WSUser }>} */ ({
+        /** @type {uws.WebSocketBehavior<{ user: WSUser }>} */({
             compression: uws.DISABLED,
             maxPayloadLength: maxDocSize,
             maxBackpressure: math.round(maxDocSize * 1.2),
@@ -700,6 +769,17 @@ const registerWebsocketServer = (yhub, app) => {
                         log.info({ url, userid: authInfo?.userid ?? null }, 'ws upgrade denied, insufficient access')
                         res.cork(() => {
                             res.writeStatus('401 Unauthorized').end('Unauthorized')
+                        })
+                        return
+                    }
+                    const accessCheck = await runAccessCheck(yhub.conf.server, authInfo, room, 'ws-upgrade')
+                    if (!accessCheck.ok) {
+                        log.info(
+                            { url, userid: authInfo.userid, room, reason: accessCheck.error },
+                            'ws upgrade denied by room access check',
+                        )
+                        res.cork(() => {
+                            res.writeStatus(accessCheck.status).end(accessCheck.error)
                         })
                         return
                     }
@@ -778,20 +858,31 @@ const registerWebsocketServer = (yhub, app) => {
                                 syncMessageType === protocol.messageSyncStep2
                             ) {
                                 const update = decoding.readVarUint8Array(decoder)
-                                if (update.byteLength > 3) {
-                                    const contentmap = createContentMapFromParams(
-                                        Y.createContentIdsFromUpdate(update),
-                                        user.userid,
-                                        user.customAttributions,
-                                    )
-                                    yhub.stream
-                                        .addMessage(user.room, {
-                                            type: 'ydoc:update:v1',
-                                            contentmap,
-                                            update,
-                                        })
-                                        .catch(handleErr)
-                                }
+                                runWriteCheck(yhub.conf.server, user.authInfo, user.room, 'ws-sync')
+                                    .then(async (writeCheck) => {
+                                        if (!writeCheck.ok) {
+                                            user.log.info(
+                                                { room: user.room, reason: writeCheck.error },
+                                                'write denied for room update',
+                                            )
+                                            user.destroy()
+                                            return
+                                        }
+                                        if (update.byteLength > 3) {
+                                            const contentmap = createContentMapFromParams(
+                                                Y.createContentIdsFromUpdate(update),
+                                                user.userid,
+                                                user.customAttributions,
+                                            )
+                                            await yhub.stream.addMessage(user.room, {
+                                                type: 'ydoc:update:v1',
+                                                contentmap,
+                                                update,
+                                            })
+                                            runRoomUpdatedHook(yhub.conf.server, user.room, 'ws-sync')
+                                        }
+                                    })
+                                    .catch(handleErr)
                             } else if (syncMessageType === protocol.messageSyncStep1) {
                                 // can be safely ignored because we send the full initial state at the beginning
                             } else {
