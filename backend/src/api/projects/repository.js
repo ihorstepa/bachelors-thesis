@@ -2,6 +2,7 @@ import postgres from 'postgres'
 import { logger } from '../../logger.js'
 
 const log = logger.child({ module: 'project-repository' })
+const PROJECT_ACTIVITY_TOUCH_MIN_INTERVAL_SECONDS = 30
 
 /**
  * @typedef {object} Project
@@ -225,6 +226,22 @@ export class ProjectRepository {
             RETURNING id, owner_id, name, created_at, updated_at
         `
         return rows.length === 0 ? null : mapProjectRow(rows[0])
+    }
+
+    /**
+     * Touches project activity timestamp, but only if enough time elapsed since last update.
+     * @param {string} id
+     * @returns {Promise<boolean>} true when row was updated
+     */
+    async touchProjectActivity(id) {
+        const rows = await this.sql`
+            UPDATE projects
+            SET updated_at = NOW()
+            WHERE id = ${id}
+              AND updated_at < NOW() - (${PROJECT_ACTIVITY_TOUCH_MIN_INTERVAL_SECONDS} * INTERVAL '1 second')
+            RETURNING id
+        `
+        return rows.length > 0
     }
 
     /**

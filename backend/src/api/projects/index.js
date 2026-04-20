@@ -5,6 +5,9 @@ import { createProjectsApi } from './api.js'
 import { logger } from '../../logger.js'
 
 const ROOT_DOCID = '__root__'
+const PROJECT_TOUCH_DEBOUNCE_MS = 10 * 1000
+const PROJECT_TOUCH_ATTEMPT_TTL_MS = 10 * 60 * 1000
+const PROJECT_TOUCH_CLEAN_UP_INTERVAL_MS = 60 * 1000
 
 const log = logger.child({ module: 'projects-module' })
 
@@ -21,6 +24,23 @@ export const createProjectsModule = async ({ postgresUrl, verifyAccessToken }) =
     let yhub = null
     /** @type {Map<string, Promise<void>>} */
     const orgCleanupLocks = new Map()
+    /** @type {Map<string, number>} */
+    const projectLastTouchAttemptAt = new Map()
+    let lastCleanUpAt = 0
+
+    /** @param {number} now */
+    const cleanUpProjectTouchAttempts = (now) => {
+        if (now - lastCleanUpAt < PROJECT_TOUCH_CLEAN_UP_INTERVAL_MS) {
+            return
+        }
+        lastCleanUpAt = now
+
+        for (const [projectId, ts] of projectLastTouchAttemptAt.entries()) {
+            if (now - ts > PROJECT_TOUCH_ATTEMPT_TTL_MS) {
+                projectLastTouchAttemptAt.delete(projectId)
+            }
+        }
+    }
 
     /**
      * @param {string} key
@@ -186,6 +206,17 @@ export const createProjectsModule = async ({ postgresUrl, verifyAccessToken }) =
      * @param {import('../../types.js').Room} room
      */
     const onRoomUpdated = async (room) => {
+        const now = Date.now()
+        cleanUpProjectTouchAttempts(now)
+        const lastAttempt = projectLastTouchAttemptAt.get(room.org) ?? 0
+
+        if (now - lastAttempt >= PROJECT_TOUCH_DEBOUNCE_MS) {
+            projectLastTouchAttemptAt.set(room.org, now)
+            void repository.touchProjectActivity(room.org).catch((err) => {
+                log.warn({ err, projectId: room.org }, 'failed to touch project activity timestamp')
+            })
+        }
+
         if (room.docid !== ROOT_DOCID) {
             return
         }
@@ -204,6 +235,7 @@ export const createProjectsModule = async ({ postgresUrl, verifyAccessToken }) =
         onRoomUpdated,
         destroy: () => {
             log.info('destroying projects module resources')
+            projectLastTouchAttemptAt.clear()
             repository.destroy()
         },
     }

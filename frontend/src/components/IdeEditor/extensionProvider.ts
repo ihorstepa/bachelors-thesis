@@ -10,7 +10,6 @@ import {
     lineNumbers,
     highlightActiveLineGutter,
     scrollPastEnd,
-    placeholder,
 } from '@codemirror/view'
 import { indentOnInput, indentUnit, bracketMatching, foldGutter, foldKeymap } from '@codemirror/language'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
