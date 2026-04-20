@@ -120,8 +120,11 @@ export class AuthService {
      * @param {unknown} body
      */
     async login(body) {
-        const { email, password } = parseLoginInput(body)
-        const user = await this.repository.getUserByEmail(email)
+        const { identifier, identifierType, password } = parseLoginInput(body)
+        const user =
+            identifierType === 'email'
+                ? await this.repository.getUserByEmail(identifier)
+                : await this.repository.getUserByUsername(identifier)
 
         if (user == null) {
             throw new AuthInvalidCredentialsError()

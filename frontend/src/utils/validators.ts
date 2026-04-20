@@ -34,17 +34,10 @@ export const AUTH_USERNAME_MAX_LENGTH = 32
 export const AUTH_PASSWORD_MIN_LENGTH = 8
 export const AUTH_PASSWORD_MAX_LENGTH = 256
 
-type AuthFormValidationInput = {
-    mode: 'login' | 'register'
-    email: string
-    password: string
-    username: string
-    confirmPassword?: string
-}
-
 export type AuthFormValidationResult = {
     readonly valid: boolean
     readonly errors: {
+        readonly identifier?: string
         readonly email?: string
         readonly password?: string
         readonly username?: string
@@ -52,13 +45,62 @@ export type AuthFormValidationResult = {
     }
 }
 
-export function validateAuthFormInput({
-    mode,
+type LoginValidationInput = {
+    identifier: string
+    password: string
+}
+
+type RegisterValidationInput = {
+    email: string
+    username: string
+    password: string
+    confirmPassword?: string
+}
+
+export function validateLoginInput({ identifier, password }: LoginValidationInput): AuthFormValidationResult {
+    const normalizedIdentifier = identifier.trim()
+    const errors: {
+        identifier?: string
+        password?: string
+    } = {}
+
+    if (!normalizedIdentifier) {
+        errors.identifier = 'Username or Email is required.'
+    } else if (normalizedIdentifier.length > AUTH_EMAIL_MAX_LENGTH) {
+        errors.identifier = `Username or Email must be at most ${AUTH_EMAIL_MAX_LENGTH} characters.`
+    } else if (normalizedIdentifier.includes('@')) {
+        if (!EMAIL_RE.test(normalizedIdentifier)) {
+            errors.identifier = 'Please enter a valid email address.'
+        }
+    } else if (
+        normalizedIdentifier.length < AUTH_USERNAME_MIN_LENGTH ||
+        normalizedIdentifier.length > AUTH_USERNAME_MAX_LENGTH
+    ) {
+        errors.identifier = `Username must be between ${AUTH_USERNAME_MIN_LENGTH} and ${AUTH_USERNAME_MAX_LENGTH} characters.`
+    } else if (!USERNAME_RE.test(normalizedIdentifier)) {
+        errors.identifier = 'Username can only contain letters, numbers, underscores, dashes, and dots.'
+    }
+
+    if (!password) {
+        errors.password = 'Password is required.'
+    } else if (password.length > AUTH_PASSWORD_MAX_LENGTH) {
+        errors.password = `Password must be at most ${AUTH_PASSWORD_MAX_LENGTH} characters.`
+    }
+
+    return {
+        valid: Object.keys(errors).length === 0,
+        errors,
+    }
+}
+
+export function validateRegisterInput({
     email,
-    password,
     username,
+    password,
     confirmPassword,
-}: AuthFormValidationInput): AuthFormValidationResult {
+}: RegisterValidationInput): AuthFormValidationResult {
+    const normalizedEmail = email.trim()
+    const normalizedUsername = username.trim()
     const errors: {
         email?: string
         password?: string
@@ -66,40 +108,39 @@ export function validateAuthFormInput({
         confirmPassword?: string
     } = {}
 
-    if (!email) {
+    if (!normalizedEmail) {
         errors.email = 'Email is required.'
-    } else if (email.length > AUTH_EMAIL_MAX_LENGTH) {
+    } else if (normalizedEmail.length > AUTH_EMAIL_MAX_LENGTH) {
         errors.email = `Email must be at most ${AUTH_EMAIL_MAX_LENGTH} characters.`
-    } else if (!EMAIL_RE.test(email)) {
+    } else if (!EMAIL_RE.test(normalizedEmail)) {
         errors.email = 'Please enter a valid email address.'
     }
 
-    if (mode === 'login' && !password) {
+    if (!normalizedUsername) {
+        errors.username = 'Username is required.'
+    } else if (
+        normalizedUsername.length < AUTH_USERNAME_MIN_LENGTH ||
+        normalizedUsername.length > AUTH_USERNAME_MAX_LENGTH
+    ) {
+        errors.username = `Username must be between ${AUTH_USERNAME_MIN_LENGTH} and ${AUTH_USERNAME_MAX_LENGTH} characters.`
+    } else if (!USERNAME_RE.test(normalizedUsername)) {
+        errors.username = 'Username can only contain letters, numbers, underscores, dashes, and dots.'
+    }
+
+    if (!password) {
         errors.password = 'Password is required.'
+    } else if (password.length < AUTH_PASSWORD_MIN_LENGTH || password.length > AUTH_PASSWORD_MAX_LENGTH) {
+        errors.password = `Password must be between ${AUTH_PASSWORD_MIN_LENGTH} and ${AUTH_PASSWORD_MAX_LENGTH} characters.`
     }
 
-    if (mode === 'register') {
-        if (!username) {
-            errors.username = 'Username is required.'
-        } else if (username.length < AUTH_USERNAME_MIN_LENGTH || username.length > AUTH_USERNAME_MAX_LENGTH) {
-            errors.username = `Username must be between ${AUTH_USERNAME_MIN_LENGTH} and ${AUTH_USERNAME_MAX_LENGTH} characters.`
-        } else if (!USERNAME_RE.test(username)) {
-            errors.username = 'Username can only contain letters, numbers, underscores, dashes, and dots.'
-        }
-
-        if (!password) {
-            errors.password = 'Password is required.'
-        } else if (password.length < AUTH_PASSWORD_MIN_LENGTH || password.length > AUTH_PASSWORD_MAX_LENGTH) {
-            errors.password = `Password must be between ${AUTH_PASSWORD_MIN_LENGTH} and ${AUTH_PASSWORD_MAX_LENGTH} characters.`
-        }
-
-        if (!confirmPassword) {
-            errors.confirmPassword = 'Please confirm your password.'
-        } else if (confirmPassword !== password) {
-            errors.confirmPassword = 'Passwords do not match.'
-        }
+    if (!confirmPassword) {
+        errors.confirmPassword = 'Please confirm your password.'
+    } else if (confirmPassword !== password) {
+        errors.confirmPassword = 'Passwords do not match.'
     }
 
-    const valid = Object.keys(errors).length === 0
-    return { valid, errors }
+    return {
+        valid: Object.keys(errors).length === 0,
+        errors,
+    }
 }

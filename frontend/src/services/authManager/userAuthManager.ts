@@ -17,10 +17,10 @@ class UserAuthManager extends AuthManager {
         return response.user
     }
 
-    public async login(email: string, password: string): Promise<AuthUser> {
+    public async login(identifier: string, password: string): Promise<AuthUser> {
         const response = await this.authRequest('/auth/login', {
             method: 'POST',
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ identifier, password }),
         })
         this.setToken(response.token)
         return response.user

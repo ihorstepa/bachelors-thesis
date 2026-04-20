@@ -63,7 +63,7 @@ export class AuthUnauthorizedError extends AuthError {
 
 export class AuthInvalidCredentialsError extends AuthUnauthorizedError {
     constructor() {
-        super(AUTH_ERROR_TYPE.INVALID_CREDENTIALS, 'Invalid email or password')
+        super(AUTH_ERROR_TYPE.INVALID_CREDENTIALS, 'Invalid username/email or password')
         this.name = 'AuthInvalidCredentialsError'
     }
 }

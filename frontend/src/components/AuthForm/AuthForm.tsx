@@ -7,19 +7,22 @@ import FormInput from '@/components/FormInput/FormInput'
 import { useAuth } from '@/contextProviders/AuthProvider'
 import { getAuthErrorMessage } from '@/errors/auth'
 import {
+    AUTH_EMAIL_MAX_LENGTH,
     AUTH_PASSWORD_MAX_LENGTH,
     AUTH_PASSWORD_MIN_LENGTH,
     AUTH_USERNAME_MAX_LENGTH,
     AUTH_USERNAME_MIN_LENGTH,
-    validateAuthFormInput,
+    validateLoginInput,
+    validateRegisterInput,
 } from '@/utils/validators'
 import '@/components/AuthForm/AuthForm.css'
 
 type Mode = 'login' | 'register'
-type AuthFormFields = 'email' | 'username' | 'password' | 'confirmPassword'
+type AuthFormFields = 'identifier' | 'email' | 'username' | 'password' | 'confirmPassword'
 type AuthFormErrors = Partial<Record<AuthFormFields | 'submit', string>>
 
 type ModeFormState = {
+    identifier: string
     email: string
     username: string
     password: string
@@ -29,6 +32,7 @@ type ModeFormState = {
 
 function createEmptyModeState(): ModeFormState {
     return {
+        identifier: '',
         email: '',
         username: '',
         password: '',
@@ -71,15 +75,21 @@ function AuthForm() {
     const submit = async (event: SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault()
 
+        const normalizedIdentifier = currentForm.identifier.trim()
         const normalizedEmail = currentForm.email.trim()
         const normalizedUsername = currentForm.username.trim()
-        const validation = validateAuthFormInput({
-            mode,
-            email: normalizedEmail,
-            password: currentForm.password,
-            username: normalizedUsername,
-            confirmPassword: currentForm.confirmPassword,
-        })
+        const validation =
+            mode === 'login'
+                ? validateLoginInput({
+                      identifier: normalizedIdentifier,
+                      password: currentForm.password,
+                  })
+                : validateRegisterInput({
+                      email: normalizedEmail,
+                      username: normalizedUsername,
+                      password: currentForm.password,
+                      confirmPassword: currentForm.confirmPassword,
+                  })
 
         if (!validation.valid) {
             updateCurrentForm((prev) => ({ ...prev, errors: validation.errors }))
@@ -92,7 +102,7 @@ function AuthForm() {
 
         try {
             if (mode === 'login') {
-                await login(normalizedEmail, currentForm.password)
+                await login(normalizedIdentifier, currentForm.password)
             } else {
                 await register(normalizedEmail, currentForm.password, normalizedUsername)
             }
@@ -127,14 +137,15 @@ function AuthForm() {
                     )}
 
                     <FormInput
-                        label='Email'
-                        type='email'
-                        value={currentForm.email}
-                        error={currentForm.errors.email}
-                        onChange={(value) => handleFieldChange('email', value)}
-                        autoComplete='email'
+                        label={mode === 'login' ? 'Username or Email' : 'Email'}
+                        type={mode === 'login' ? 'text' : 'email'}
+                        value={mode === 'login' ? currentForm.identifier : currentForm.email}
+                        error={mode === 'login' ? currentForm.errors.identifier : currentForm.errors.email}
+                        onChange={(value) => handleFieldChange(mode === 'login' ? 'identifier' : 'email', value)}
+                        autoComplete={mode === 'login' ? 'username' : 'email'}
+                        maxLength={mode === 'login' ? undefined : AUTH_EMAIL_MAX_LENGTH}
                         required
-                        icon={<VscMail />}
+                        icon={mode === 'login' ? <FaRegUser /> : <VscMail />}
                     />
 
                     <FormInput

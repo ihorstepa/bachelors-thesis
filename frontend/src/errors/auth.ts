@@ -9,7 +9,7 @@ export type AuthErrorType =
 
 const AUTH_MESSAGE_BY_TYPE = {
     EMAIL_TAKEN: 'This email is already registered. Try signing in instead.',
-    INVALID_CREDENTIALS: 'Incorrect email or password.',
+    INVALID_CREDENTIALS: 'Incorrect username/email or password.',
     UNAUTHORIZED: 'Your session is invalid or expired. Please sign in again.',
     USERNAME_TAKEN: 'This username is already taken. Please choose another one.',
 } as const satisfies Record<Exclude<AuthErrorType, 'VALIDATION_FAILED'>, string>

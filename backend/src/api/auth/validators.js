@@ -68,7 +68,7 @@ export const parseRegisterInput = (body) => {
             password: s.$string,
             username: s.$string,
         })
-        .expect(/** @type {any} */ (body))
+        .expect(/** @type {any} */(body))
 
     const email = normalizeEmail(input.email)
     const password = input.password
@@ -87,16 +87,37 @@ export const parseRegisterInput = (body) => {
 export const parseLoginInput = (body) => {
     const input = s
         .$object({
-            email: s.$string,
             password: s.$string,
         })
-        .expect(/** @type {any} */ (body))
+        .expect(/** @type {any} */(body))
 
-    const email = normalizeEmail(input.email)
+    const payload = /** @type {{ identifier?: unknown, email?: unknown }} */ (body)
+    const rawIdentifierInput =
+        typeof payload.identifier === 'string'
+            ? payload.identifier
+            : typeof payload.email === 'string'
+                ? payload.email
+                : ''
+    const rawIdentifier = rawIdentifierInput.trim()
     const password = input.password
+    const isEmailIdentifier = rawIdentifier.includes('@')
+    const identifier = isEmailIdentifier ? normalizeEmail(rawIdentifier) : normalizeUsername(rawIdentifier)
 
-    validateEmail(email)
+    if (identifier.length === 0 || identifier.length > EMAIL_MAX_LEN) {
+        throw new AuthValidationError('Username or Email is required')
+    }
+
+    if (isEmailIdentifier) {
+        validateEmail(identifier)
+    } else {
+        validateUsername(identifier)
+    }
+
     validatePasswordForLogin(password)
 
-    return { email, password }
+    return {
+        identifier,
+        identifierType: isEmailIdentifier ? 'email' : 'username',
+        password,
+    }
 }
