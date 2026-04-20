@@ -112,10 +112,15 @@
     font-size: 9px;
     font-weight: 700;
     color: var(--text-bright);
-    margin-left: -6px;
+    margin-left: -5px;
     font-family: 'JetBrains Mono', monospace;
 }
 
 .presence-dot:first-child {
     margin-left: 0;
+}
+
+.presence-dot-overflow {
+    background-color: var(--accent);
+    color: var(--text-bright);
 }

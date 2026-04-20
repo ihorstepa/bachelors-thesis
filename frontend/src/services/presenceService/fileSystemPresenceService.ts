@@ -2,7 +2,7 @@ import { Awareness } from 'y-protocols/awareness'
 
 import { PresenceService } from '@/core/presenceService'
 import { FileSystemManager } from '@/core/fileSystemManager'
-import { generateRandomName, generateRandomColor } from '@/utils/identity'
+import { generateRandomName, generateRandomColor, generateColorFromSeed } from '@/utils/identity'
 import type { NullableString } from '@/utils/types'
 import type { UserStatus } from '@/core/presenceService'
 
@@ -20,7 +20,7 @@ class FileSystemPresenceService extends PresenceService {
 
         this.userStatus = {
             name: username ?? generateRandomName(),
-            color: generateRandomColor(),
+            color: username ? generateColorFromSeed(username) : generateRandomColor(),
             activeFileId: null,
         }
         this.awareness.setLocalStateField('user', this.userStatus)

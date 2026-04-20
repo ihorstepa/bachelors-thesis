@@ -16,6 +16,8 @@ type Props = {
     canWrite: boolean
 }
 
+const MAX_VISIBLE_PRESENCE_DOTS = 3
+
 export function FileTreeItem({ node, level, canWrite }: Props): JSX.Element {
     const { expanded, selectedId, fileTreeManager } = useFileTree()
     const { tabManager } = useTabs()
@@ -29,6 +31,8 @@ export function FileTreeItem({ node, level, canWrite }: Props): JSX.Element {
     useEffect(() => presenceService.on('change', () => setPresenceVersion((v) => v + 1)), [presenceService])
 
     const users = showUsers ? presenceService.getUsersInBranch(node.id) : []
+    const visibleUsers = users.slice(0, MAX_VISIBLE_PRESENCE_DOTS)
+    const hiddenUsersCount = Math.max(0, users.length - MAX_VISIBLE_PRESENCE_DOTS)
 
     const { ref: dragRef, isDragging } = useDraggable({
         id: node.id,
@@ -82,7 +86,7 @@ export function FileTreeItem({ node, level, canWrite }: Props): JSX.Element {
                 </div>
                 {users.length > 0 && (
                     <div className='presence-indicator'>
-                        {users.map(({ clientId, user }) => (
+                        {visibleUsers.map(({ clientId, user }) => (
                             <span
                                 key={clientId}
                                 className='presence-dot'
@@ -92,6 +96,14 @@ export function FileTreeItem({ node, level, canWrite }: Props): JSX.Element {
                                 {user.name.trim().slice(0, 1).toUpperCase() || '?'}
                             </span>
                         ))}
+                        {hiddenUsersCount > 0 && (
+                            <span
+                                className='presence-dot presence-dot-overflow'
+                                title={`+${hiddenUsersCount} more users`}
+                            >
+                                +{hiddenUsersCount}
+                            </span>
+                        )}
                     </div>
                 )}
             </div>

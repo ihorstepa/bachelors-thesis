@@ -1,3 +1,4 @@
+import * as Y from 'yjs'
 import { EditorState, Compartment, StateEffect } from '@codemirror/state'
 import {
     keymap,
@@ -12,7 +13,7 @@ import {
     scrollPastEnd,
 } from '@codemirror/view'
 import { indentOnInput, indentUnit, bracketMatching, foldGutter, foldKeymap } from '@codemirror/language'
-import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
+import { defaultKeymap } from '@codemirror/commands'
 import { search, searchKeymap, highlightSelectionMatches } from '@codemirror/search'
 import {
     autocompletion,
@@ -23,7 +24,7 @@ import {
 } from '@codemirror/autocomplete'
 import { lintKeymap } from '@codemirror/lint'
 import { oneDark } from '@codemirror/theme-one-dark'
-import { yCollab } from 'y-codemirror.next'
+import { yCollab, yUndoManagerKeymap } from 'y-codemirror.next'
 import { indentationMarkers } from '@replit/codemirror-indentation-markers'
 import { language } from '@/components/IdeEditor/extensions/language'
 import { createFoldMarker } from '@/components/IdeEditor/extensions/foldMarker'
@@ -55,7 +56,6 @@ class ExtensionProvider {
             highlightActiveLineGutter(),
             highlightSelectionMatches(),
             highlightSpecialChars(),
-            history(),
             indentationMarkers({
                 highlightActiveBlock: false,
                 colors: { dark: '#3b3f46' },
@@ -72,14 +72,14 @@ class ExtensionProvider {
                 ...completionKeymap,
                 ...defaultKeymap,
                 ...foldKeymap,
-                ...historyKeymap,
                 ...lintKeymap,
                 ...searchKeymap,
+                ...yUndoManagerKeymap,
             ]),
             oneDark,
             rectangularSelection(),
             this.compartments.language.of(language(meta.name)),
-            yCollab(file.doc.getText(), file.awareness),
+            yCollab(file.doc.getText(), file.awareness, { undoManager: new Y.UndoManager(file.doc.getText()) }),
         ]
     }
 
