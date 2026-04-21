@@ -21,7 +21,7 @@ type Props = {
 }
 
 function FileIcon({ filename }: Props): JSX.Element {
-    const ext = filename.split('.').pop()?.toLowerCase()
+    const ext = filename.lastIndexOf('.') === -1 ? '' : filename.split('.').pop()?.toLowerCase()
     const Icon = ext ? iconMap[ext] : null
 
     if (!Icon) {

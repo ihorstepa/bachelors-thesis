@@ -28,6 +28,7 @@ for (const [name, exts] of Object.entries(languageExtensions)) {
 }
 
 function getFileExtension(filename: string): string {
+    if (filename.lastIndexOf('.') === -1) return ''
     return filename.split('.').pop()?.toLowerCase() || ''
 }
 
