@@ -245,6 +245,53 @@ export class ProjectRepository {
     }
 
     /**
+     * @param {{ org: string, docid: string, branch: string }} room
+     * @returns {Promise<void>}
+     */
+    async markRoomReadonly(room) {
+        await this.sql`
+            INSERT INTO readonly_rooms (org, docid, branch)
+            VALUES (${room.org}, ${room.docid}, ${room.branch})
+            ON CONFLICT DO NOTHING
+        `
+    }
+
+    /**
+     * @param {{ org: string, docid: string, branch: string }} room
+     * @returns {Promise<boolean>}
+     */
+    async isRoomReadonly(room) {
+        const rows = await this.sql`
+            SELECT 1 FROM readonly_rooms
+            WHERE org = ${room.org} AND docid = ${room.docid} AND branch = ${room.branch}
+            LIMIT 1
+        `
+        return rows.length > 0
+    }
+
+    /**
+     * @param {{ org: string, docid: string, branch: string }} room
+     * @returns {Promise<void>}
+     */
+    async clearRoomReadonly(room) {
+        await this.sql`
+            DELETE FROM readonly_rooms
+            WHERE org = ${room.org} AND docid = ${room.docid} AND branch = ${room.branch}
+        `
+    }
+
+    /**
+     * @param {number} ownerId
+     * @returns {Promise<number>}
+     */
+    async countProjectsByOwner(ownerId) {
+        const rows = await this.sql`
+            SELECT COUNT(*) AS count FROM projects WHERE owner_id = ${ownerId}
+        `
+        return Number(rows[0].count)
+    }
+
+    /**
      * @param {string} id
      * @returns {Promise<boolean>}
      */

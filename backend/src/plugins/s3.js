@@ -89,6 +89,7 @@ export class S3PersistenceV1 {
             return {
                 type: 'asset:retrievable:v1',
                 plugin: this.pluginid,
+                bytes: file.length,
             }
         }
         return null

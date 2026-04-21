@@ -9,8 +9,14 @@ import { useService } from '@/contextProviders/ServiceProvider'
 import { FileSystemManager } from '@/core/fileSystemManager'
 import { useTabs } from '@/contextProviders/TabsProvider'
 import type { NullableString } from '@/utils/types'
-import '@/components/FileTree/FileTree.css'
 import FileTreeRoot from './FileTreeRoot'
+import { MAX_PROJECT_FILES } from '@/config'
+import type { TreeNode } from '@/core/fileTreeManager'
+import '@/components/FileTree/FileTree.css'
+
+function countFiles(nodes: TreeNode[]): number {
+    return nodes.reduce((acc, node) => acc + (node.type === 'file' ? 1 : 0) + countFiles(node.children), 0)
+}
 
 type Props = {
     canWrite: boolean
@@ -20,6 +26,8 @@ function FileTree({ canWrite }: Props): JSX.Element {
     const fileSystemManager = useService(FileSystemManager)
     const { tree, selectedId, fileTreeManager } = useFileTree()
     const { activeId } = useTabs()
+
+    const fileLimitReached = canWrite && countFiles(tree) >= MAX_PROJECT_FILES
 
     useEffect(() => {
         if (!activeId) return
@@ -50,7 +58,7 @@ function FileTree({ canWrite }: Props): JSX.Element {
     }
 
     const handleCreateFile = () => {
-        if (!canWrite) return
+        if (!canWrite || fileLimitReached) return
         const name = prompt('File name:')
         if (name) {
             fileSystemManager.create(name, 'file', fileTreeManager.getTargetParentId())
@@ -95,6 +103,7 @@ function FileTree({ canWrite }: Props): JSX.Element {
                 onDelete={handleDelete}
                 canWrite={canWrite}
                 canRenameOrDelete={canRenameOrDelete}
+                fileLimitReached={fileLimitReached}
             />
             <DragDropProvider onDragEnd={handleDragEnd as any}>
                 <FileTreeRoot>

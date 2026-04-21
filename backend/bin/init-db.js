@@ -173,6 +173,17 @@ async function init(postgresUrl) {
             EXECUTE FUNCTION validate_project_favorite_access();
         `)
 
+        await ensureTable(
+            sql,
+            'readonly_rooms',
+            `CREATE TABLE IF NOT EXISTS readonly_rooms (
+                org     UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+                docid   TEXT NOT NULL,
+                branch  TEXT NOT NULL,
+                PRIMARY KEY (org, docid, branch)
+            );`,
+        )
+
         log.info('tables and indexes ensured')
     } finally {
         await sql.end({ timeout: 5 })

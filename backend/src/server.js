@@ -1,4 +1,4 @@
-import * as uws from 'uws'
+﻿import * as uws from 'uws'
 import * as error from 'lib0/error'
 import * as encoding from 'lib0/encoding'
 import * as decoding from 'lib0/decoding'
@@ -13,6 +13,7 @@ import * as math from 'lib0/math'
 import * as buffer from 'lib0/buffer'
 import { setCorsHeaders } from './api/utils.js'
 import { logger } from './logger.js'
+import { HISTORY_DISABLED_ERROR, HISTORY_FEATURE_ENABLED } from './config.js'
 
 const log = logger.child({ module: 'ws' })
 
@@ -71,9 +72,10 @@ const reqToRoom = (req) => {
  * @returns {Promise<{ ok: true } | { ok: false, status: string, error: string }>}
  */
 const runRoomCheck = async (serverConf, hookName, authInfo, room, logContext) => {
-    const roomCheck = /** @type {(((authInfo: { userid: string }, room: t.Room) => Promise<{ ok: true } | { ok: false, status: string, error: string }>)) | undefined} */ (
+    const roomCheck = /** @type {((authInfo: { userid: string }, room: t.Room) => Promise<{ ok: true } | { ok: false, status: string, error: string }>) | undefined} */ (
         serverConf?.auth?.[hookName]
     )
+
     if (typeof roomCheck !== 'function') {
         return { ok: true }
     }
@@ -226,6 +228,14 @@ export const createYHubServer = async (yhub, conf) => {
             if (!aborted) sendErrorResponse(res, authResult.status, { error: authResult.error })
             return
         }
+        if (!gc && !HISTORY_FEATURE_ENABLED) {
+            if (!aborted) {
+                sendErrorResponse(res, '503 Service Unavailable', {
+                    error: HISTORY_DISABLED_ERROR,
+                })
+            }
+            return
+        }
         try {
             const { gcDoc, nongcDoc } = await yhub.getDoc(room, { gc, nongc: !gc }, { gcOnMerge: false })
             const ydoc = gcDoc || nongcDoc || Y.encodeStateAsUpdate(new Y.Doc())
@@ -267,11 +277,6 @@ export const createYHubServer = async (yhub, conf) => {
                 sendErrorResponse(res, authResult.status, { error: authResult.error })
                 return
             }
-            const writeCheck = await runWriteCheck(conf.server, authResult.authInfo, room, 'http-patch')
-            if (!writeCheck.ok) {
-                sendErrorResponse(res, writeCheck.status, { error: writeCheck.error })
-                return
-            }
             try {
                 const decoder = decoding.createDecoder(buffer)
                 const decodedBody = decoding.readAny(decoder)
@@ -284,6 +289,16 @@ export const createYHubServer = async (yhub, conf) => {
                         .check(decodedBody)
                 ) {
                     const { update, customAttributions = [] } = decodedBody
+                    const writeCheck = await runWriteCheck(
+                        conf.server,
+                        authResult.authInfo,
+                        room,
+                        'http-patch',
+                    )
+                    if (!writeCheck.ok) {
+                        sendErrorResponse(res, writeCheck.status, { error: writeCheck.error })
+                        return
+                    }
                     // Get current document state to diff against
                     const { gcDoc, nongcDoc } = await yhub.getDoc(
                         room,
@@ -349,6 +364,12 @@ export const createYHubServer = async (yhub, conf) => {
     app.post('/rollback/:org/:docid', (res, req) => {
         const room = reqToRoom(req)
         log.debug({ endpoint: 'POST /rollback', room }, 'api request')
+        if (!HISTORY_FEATURE_ENABLED) {
+            sendErrorResponse(res, '503 Service Unavailable', {
+                error: 'History endpoints are currently disabled',
+            })
+            return
+        }
         const authPromise = authenticateRequest(req, room, 'rw')
         let buffer = Buffer.allocUnsafe(0)
         let aborted = false
@@ -363,6 +384,11 @@ export const createYHubServer = async (yhub, conf) => {
             if (aborted) return
             if ('error' in authResult) {
                 sendErrorResponse(res, authResult.status, { error: authResult.error })
+                return
+            }
+            const writeCheck = await runWriteCheck(conf.server, authResult.authInfo, room, 'http-rollback')
+            if (!writeCheck.ok) {
+                sendErrorResponse(res, writeCheck.status, { error: writeCheck.error })
                 return
             }
             try {
@@ -463,6 +489,12 @@ export const createYHubServer = async (yhub, conf) => {
     app.get('/changeset/:org/:docid', async (res, req) => {
         const room = reqToRoom(req)
         log.debug({ endpoint: 'GET /changeset', room }, 'api request')
+        if (!HISTORY_FEATURE_ENABLED) {
+            sendErrorResponse(res, '503 Service Unavailable', {
+                error: 'History endpoints are currently disabled',
+            })
+            return
+        }
         const by = req.getQuery('by')
         const _from = req.getQuery('from')
         const _to = req.getQuery('to')
@@ -529,6 +561,12 @@ export const createYHubServer = async (yhub, conf) => {
     app.get('/activity/:org/:docid', async (res, req) => {
         const room = reqToRoom(req)
         log.debug({ endpoint: 'GET /activity', room }, 'api request')
+        if (!HISTORY_FEATURE_ENABLED) {
+            sendErrorResponse(res, '503 Service Unavailable', {
+                error: 'History endpoints are currently disabled',
+            })
+            return
+        }
         const by = req.getQuery('by')
         const from = number.parseInt(req.getQuery('from') || '0')
         const to = number.parseInt(req.getQuery('to') || number.MAX_SAFE_INTEGER.toString())
@@ -715,7 +753,7 @@ class WSUser {
             this.log.error(
                 {
                     socketBackpressure: this.ws?.getBufferedAmount(),
-                    maxDocSize: this.yhub.conf.server?.maxDocSize,
+                    maxPayloadBytes: this.yhub.conf.server?.maxPayloadBytes,
                 },
                 'message dropped because of backpressure limit',
             )
@@ -736,13 +774,13 @@ class WSUser {
  * @param {uws.TemplatedApp} app
  */
 const registerWebsocketServer = (yhub, app) => {
-    const maxDocSize = s.$number.cast(yhub.conf.server?.maxDocSize)
+    const maxPayloadBytes = s.$number.cast(yhub.conf.server?.maxPayloadBytes)
     app.ws(
         '/ws/:org/:docid',
         /** @type {uws.WebSocketBehavior<{ user: WSUser }>} */({
             compression: uws.DISABLED,
-            maxPayloadLength: maxDocSize,
-            maxBackpressure: math.round(maxDocSize * 1.2),
+            maxPayloadLength: maxPayloadBytes,
+            maxBackpressure: math.round(maxPayloadBytes * 1.2),
             closeOnBackpressureLimit: true,
             idleTimeout: 120,
             sendPingsAutomatically: true,
@@ -780,6 +818,12 @@ const registerWebsocketServer = (yhub, app) => {
                         )
                         res.cork(() => {
                             res.writeStatus(accessCheck.status).end(accessCheck.error)
+                        })
+                        return
+                    }
+                    if (!gc && !HISTORY_FEATURE_ENABLED) {
+                        res.cork(() => {
+                            res.writeStatus('503 Service Unavailable').end(HISTORY_DISABLED_ERROR)
                         })
                         return
                     }
@@ -858,7 +902,13 @@ const registerWebsocketServer = (yhub, app) => {
                                 syncMessageType === protocol.messageSyncStep2
                             ) {
                                 const update = decoding.readVarUint8Array(decoder)
-                                runWriteCheck(yhub.conf.server, user.authInfo, user.room, 'ws-sync')
+                                const writeCheckPromise = runWriteCheck(
+                                    yhub.conf.server,
+                                    user.authInfo,
+                                    user.room,
+                                    'ws-sync',
+                                )
+                                writeCheckPromise
                                     .then(async (writeCheck) => {
                                         if (!writeCheck.ok) {
                                             user.log.info(

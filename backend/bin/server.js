@@ -5,15 +5,15 @@ import * as env from 'lib0/environment'
 import * as yhub from '@y/hub'
 import { createAuthModule } from '../src/api/auth/index.js'
 import { createProjectsModule } from '../src/api/projects/index.js'
-import { createPersistencePlugins } from './persistence.js'
+import { createPersistencePlugins, createRedisConfig } from './persistence.js'
 import { logger } from '../src/logger.js'
 
-const port = number.parseInt(env.getConf('port') || '3002')
-
+const port = number.parseInt(env.ensureConf('port'))
 logger.info({ port }, 'starting server')
 
 const postgresUrl = env.ensureConf('postgres')
 const persistence = createPersistencePlugins()
+const redis = createRedisConfig()
 
 const authModule = await createAuthModule({ postgresUrl })
 const projectsModule = await createProjectsModule({
@@ -33,12 +33,7 @@ const setupApi = async (ctx) => {
 }
 
 yhub.createYHub({
-    redis: {
-        url: env.ensureConf('redis'),
-        prefix: 'yhub',
-        taskDebounce: 10000,
-        minMessageLifetime: 60000,
-    },
+    redis,
     postgres: postgresUrl,
     persistence,
     server: {

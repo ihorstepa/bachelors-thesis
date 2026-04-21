@@ -1,8 +1,9 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { ProjectManager, type ProjectPreview, type ProjectMember, type AccessType } from '@/core/projectManager'
 import { useService } from '@/contextProviders/ServiceProvider'
+import useAsyncEffect from '@/hooks/useAsyncEffect'
 
 type ProjectsState = {
     projects: ProjectPreview[]
@@ -61,9 +62,13 @@ function ProjectsProvider({ children }: Props) {
         await loadProjects(projectManager, setProjects, setLoading, setError)
     }
 
-    useEffect(() => {
-        void loadProjects(projectManager, setProjects, setLoading, setError)
-    }, [projectManager])
+    useAsyncEffect(
+        async () => {
+            await loadProjects(projectManager, setProjects, setLoading, setError)
+        },
+        undefined,
+        [projectManager],
+    )
 
     const createProject = async (name: string): Promise<ProjectPreview> => {
         const project = await projectManager.createProject(name)

@@ -1,4 +1,4 @@
-import * as promise from 'lib0/promise'
+﻿import * as promise from 'lib0/promise'
 import * as strm from './stream.js'
 import * as p from './persistence.js'
 import * as t from './types.js'
@@ -7,6 +7,7 @@ import * as object from 'lib0/object'
 import * as protocol from './protocol.js'
 import * as server from './server.js'
 import * as math from 'lib0/math'
+import { HISTORY_FEATURE_ENABLED, SERVER_MAX_PAYLOAD_BYTES } from './config.js'
 import { createComputePool } from './compute.js'
 import { logger } from './logger.js'
 
@@ -38,7 +39,9 @@ export class YHub {
      */
     constructor(conf, str, pers) {
         if (conf.server) {
-            conf.server.maxDocSize = 500 * 1024 * 1024
+            if (conf.server.maxPayloadBytes == null) {
+                conf.server.maxPayloadBytes = SERVER_MAX_PAYLOAD_BYTES
+            }
         }
         this.conf = conf
         this.stream = str
@@ -87,7 +90,7 @@ export class YHub {
                                 taskLog.info('task completed (trim only)')
                                 return null
                             }
-                            this.conf.worker?.events?.docUpdate?.(object.assign({}, d, { references: null }))
+                            this.conf.worker?.events?.docUpdate?.(object.assign({ room: task.room }, d, { references: null }))
                             try {
                                 await this.persistence.store(task.room, d)
                             } catch (err) {
@@ -236,7 +239,7 @@ export class YHub {
         await this.persistence.store(room, {
             lastClock,
             gcDoc: ydoc,
-            nongcDoc: ydoc,
+            nongcDoc: HISTORY_FEATURE_ENABLED ? ydoc : undefined,
             contentids: Y.encodeContentIds(contentids),
             contentmap: Y.encodeContentMap(contentmap),
         })

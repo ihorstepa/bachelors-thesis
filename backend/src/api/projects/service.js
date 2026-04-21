@@ -5,6 +5,7 @@ import {
     ProjectError,
     PROJECT_ERROR_TYPE,
 } from './errors.js'
+import { PROJECT_MAX_PER_OWNER } from '../../config.js'
 import { normalizeProjectName, validateProjectAccessType, validateProjectName } from './validators.js'
 
 /** @param {import('./repository.js').Project} p */
@@ -114,6 +115,13 @@ export class ProjectService {
      */
     async createProject(userId, body) {
         const name = parseValidatedProjectName(body)
+
+        const projectCount = await this.repository.countProjectsByOwner(userId)
+        if (projectCount >= PROJECT_MAX_PER_OWNER) {
+            throw new ProjectValidationError(
+                `Project limit reached (${PROJECT_MAX_PER_OWNER} projects max).`,
+            )
+        }
 
         const project = await this.repository.createProject({ ownerId: userId, name })
         const ownerUser = await this.repository.getProjectOwnerUser(project.id)

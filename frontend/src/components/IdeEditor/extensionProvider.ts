@@ -27,6 +27,7 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import { yCollab, yUndoManagerKeymap } from 'y-codemirror.next'
 import { indentationMarkers } from '@replit/codemirror-indentation-markers'
 import { language } from '@/components/IdeEditor/extensions/language'
+import { charLimit } from '@/components/IdeEditor/extensions/charLimit'
 import { createFoldMarker } from '@/components/IdeEditor/extensions/foldMarker'
 import { createCustomSearchPanel } from '@/components/IdeEditor/customSearchPanel'
 import type { Extension } from '@codemirror/state'
@@ -39,7 +40,7 @@ class ExtensionProvider {
         language: new Compartment(),
     }
 
-    public getExtensions(file: SharedFile, meta: NodeMeta): Extension[] {
+    public getExtensions(file: SharedFile, meta: NodeMeta, onLimitReached: (message: string) => void): Extension[] {
         return [
             autocompletion({ override: [completeAnyWord] }),
             bracketMatching(),
@@ -79,6 +80,7 @@ class ExtensionProvider {
             oneDark,
             rectangularSelection(),
             this.compartments.language.of(language(meta.name)),
+            charLimit(onLimitReached),
             yCollab(file.doc.getText(), file.awareness, { undoManager: new Y.UndoManager(file.doc.getText()) }),
         ]
     }

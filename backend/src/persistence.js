@@ -13,6 +13,7 @@ import * as s from 'lib0/schema'
 import * as t from './types.js'
 import { isSmallerRedisClock } from './stream.js'
 import { logger } from './logger.js'
+import { HISTORY_FEATURE_ENABLED } from './config.js'
 
 const log = logger.child({ module: 'persistence' })
 
@@ -112,17 +113,18 @@ export class Persistence {
      * @param {object} content
      * @param {string} content.lastClock
      * @param {Uint8Array<ArrayBuffer>} content.gcDoc
-     * @param {Uint8Array<ArrayBuffer>} content.nongcDoc
+     * @param {Uint8Array<ArrayBuffer>} [content.nongcDoc]
      * @param {Uint8Array<ArrayBuffer>} content.contentmap
      * @param {Uint8Array<ArrayBuffer>} content.contentids
      * @returns {Promise<void>}
      */
     async store(room, { lastClock, gcDoc, nongcDoc, contentmap, contentids }) {
+        const storedNongcDoc = HISTORY_FEATURE_ENABLED ? (nongcDoc ?? gcDoc) : null
         log.debug(
             {
                 room,
                 gcDocSize: gcDoc.byteLength,
-                nongcDocSize: nongcDoc.byteLength,
+                nongcDocSize: storedNongcDoc?.byteLength ?? null,
                 contentmapSize: contentmap.byteLength,
                 contentidsSize: contentids.byteLength,
             },
@@ -152,10 +154,12 @@ export class Persistence {
                 type: 'asset:ydoc:v1',
                 update: gcDoc,
             }),
-            tryPersistencePluginStore(this.plugins, nongcDocAssetId, {
-                type: 'asset:ydoc:v1',
-                update: nongcDoc,
-            }),
+            storedNongcDoc == null
+                ? Promise.resolve(null)
+                : tryPersistencePluginStore(this.plugins, nongcDocAssetId, {
+                    type: 'asset:ydoc:v1',
+                    update: storedNongcDoc,
+                }),
             tryPersistencePluginStore(this.plugins, contentmapAssetId, {
                 type: 'asset:contentmap:v1',
                 contentmap,
@@ -166,7 +170,7 @@ export class Persistence {
             }),
         ])
         const encodedGcDocAsset = buffer.encodeAny(gcDocAsset)
-        const encodedNongcDocAsset = buffer.encodeAny(nongcDocAsset)
+        const encodedNongcDocAsset = nongcDocAsset == null ? null : buffer.encodeAny(nongcDocAsset)
         const encodedContentmapAsset = buffer.encodeAny(contentmapAsset)
         const encodedContentidsAsset = buffer.encodeAny(contentidsAsset)
         const created = number.parseInt(lastClock.split('-')[0])

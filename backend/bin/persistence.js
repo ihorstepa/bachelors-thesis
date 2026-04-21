@@ -23,3 +23,15 @@ export const createPersistencePlugins = () => {
         }),
     ]
 }
+
+/**
+ * Build redis configuration from environment.
+ *
+ * @returns {{ url: string, prefix: string, taskDebounce: number, minMessageLifetime: number }}
+ */
+export const createRedisConfig = () => ({
+    url: env.ensureConf('redis'),
+    prefix: env.ensureConf('redis_prefix'),
+    taskDebounce: number.parseInt(env.ensureConf('redis_task_debounce')),
+    minMessageLifetime: number.parseInt(env.ensureConf('redis_min_message_lifetime')),
+})

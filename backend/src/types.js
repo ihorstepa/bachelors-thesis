@@ -70,6 +70,7 @@ export const $ydocAsset = s.$({
 export const $retrievableAsset = s.$({
     type: s.$literal('asset:retrievable:v1'),
     plugin: s.$string,
+    bytes: s.$number.optional,
 })
 
 export const $assetId = s.$union($ydocAssetId, $contentMapAssetId, $contentidsAssetId)
@@ -280,7 +281,7 @@ export const $config = s.$object({
         taskConcurrency: s.$number,
         events: s.$object({
             docUpdate:
-                /** @type {s.$Optional<s.Schema<(doctable:DocTable<{ gc: true, nongc: true, contentmap: true, contentids: true }>) => void>>} */ (
+                /** @type {s.$Optional<s.Schema<(doc: { room: Room } & DocTable<{ gc: true, nongc: true, contentmap: true, contentids: true }>) => void>>} */ (
                     s.$function.optional
                 ),
         }).optional,
@@ -291,10 +292,10 @@ export const $config = s.$object({
         setupApi: s.$function.optional,
         onRoomUpdated: s.$function.optional,
         /**
-         * Maximum expected Ydoc size in bytes. Used as baseline to calculate WebSocket
+         * Maximum WS message size in bytes. Used as baseline to calculate WebSocket
          * maxPayloadLength and maxBackpressure. (default: 500MB)
          */
-        maxDocSize: s.$number.optional,
+        maxPayloadBytes: s.$number.optional,
     }).nullable.optional,
 })
 

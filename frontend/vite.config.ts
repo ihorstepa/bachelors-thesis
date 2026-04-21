@@ -21,13 +21,13 @@ export default defineConfig({
         },
         proxy: {
             '/sync': {
-                target: 'ws://localhost:3002',
+                target: 'ws://127.0.0.1:3002',
                 ws: true,
                 changeOrigin: true,
                 rewrite: (path) => path.replace(/^\/sync/, 'ws'),
             },
             '/api': {
-                target: 'http://localhost:3002',
+                target: 'http://127.0.0.1:3002',
                 changeOrigin: true,
             },
         },

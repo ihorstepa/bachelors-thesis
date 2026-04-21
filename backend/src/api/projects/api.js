@@ -8,11 +8,10 @@ import {
 } from './errors.js'
 import { extractBearerToken } from '../auth/api.js'
 import { createResponseContext } from '../utils.js'
+import { PROJECT_API_MAX_BODY_BYTES } from '../../config.js'
 import { logger } from '../../logger.js'
 
 const log = logger.child({ module: 'projects-api' })
-
-const MAX_BODY_BYTES = 64 * 1024
 
 const ROUTES = Object.freeze({
     PROJECTS: '/api/projects',
@@ -52,7 +51,7 @@ const sendProjectError = (response, err) =>
 /** @param {ResponseContext} response */
 const readProjectJsonBody = (response) =>
     response.readJsonBody({
-        maxBodyBytes: MAX_BODY_BYTES,
+        maxBodyBytes: PROJECT_API_MAX_BODY_BYTES,
         onAborted: () => new ProjectValidationError('Request aborted'),
         onPayloadTooLarge: () => new ProjectPayloadTooLargeError(),
         onInvalidJson: () => new ProjectInvalidJsonError(),

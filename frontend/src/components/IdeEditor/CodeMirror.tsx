@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import ReactCodeMirror from '@uiw/react-codemirror'
 import type { EditorView, ViewUpdate } from '@codemirror/view'
 import type { JSX } from 'react'
@@ -12,15 +12,17 @@ import ExtensionProvider from './extensionProvider'
 import { FileSystemManager, type NodeMeta } from '@/core/fileSystemManager'
 import { useEditor } from '@/contextProviders/EditorProvider'
 import Spinner from '@/components/Spinner/Spinner'
+import type { NotifyFn } from './IdeNotification'
 import { getLanguageName } from './extensions/language'
 
 type Props = {
     fileId: string
     isActive: boolean
     canWrite: boolean
+    onNotify: NotifyFn
 }
 
-function CodeMirror({ fileId, isActive, canWrite }: Props): JSX.Element {
+function CodeMirror({ fileId, isActive, canWrite, onNotify }: Props): JSX.Element {
     const fileSystemManager = useService(FileSystemManager)
     const fileSyncManager = useService(FileSyncManager)
     const presenceService = useService(PresenceService)
@@ -31,8 +33,14 @@ function CodeMirror({ fileId, isActive, canWrite }: Props): JSX.Element {
     const editorViewRef = useRef<EditorView | null>(null)
     const { setEditorState } = useEditor()
 
-    const extensionProvider = useMemo(() => new ExtensionProvider(), [])
-    const extensions = file && meta ? extensionProvider.getExtensions(file, meta) : []
+    const [extensionProvider] = useState(() => new ExtensionProvider())
+
+    const extensions =
+        file && meta
+            ? extensionProvider.getExtensions(file, meta, (message) => {
+                  onNotify('char-limit', 'warning', message)
+              })
+            : []
 
     useEffect(() => {
         return fileSystemManager.on('rename', (id) => {
@@ -62,7 +70,7 @@ function CodeMirror({ fileId, isActive, canWrite }: Props): JSX.Element {
             setFile(file)
             setMeta(fileSystemManager.getMeta(fileId))
 
-            await file.synced
+            // await file.synced
 
             if (isAborted()) return
             setIsSynced(true)
@@ -120,28 +128,16 @@ function CodeMirror({ fileId, isActive, canWrite }: Props): JSX.Element {
             value={file.doc.getText().toString()}
             className='ide-editor'
             height='100%'
-            // minHeight={}
-            // maxHeight={}
             width='100%'
-            // minWidth={}
-            // maxWidth={}
             autoFocus={true}
-            // placeholder={}
             theme='none'
             basicSetup={false}
-            // editable={canWrite}
             readOnly={!canWrite}
-            // indentWithTab={}
-            // onChange={}
-            // onStatistics={}
             onUpdate={onUpdate}
             onCreateEditor={(view) => {
                 editorViewRef.current = view
             }}
             extensions={extensions}
-            // extensions={getExtensions(file)}
-            // root={}
-            // initialState={}
         />
     )
 }

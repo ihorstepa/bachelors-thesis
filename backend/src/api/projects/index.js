@@ -2,12 +2,15 @@ import * as Y from '@y/y'
 import { createProjectRepository } from './repository.js'
 import { createProjectService } from './service.js'
 import { createProjectsApi } from './api.js'
+import {
+    PROJECT_MAX_FILE_ROOMS,
+    PROJECT_MAX_ROOM_DOC_BYTES,
+    PROJECT_ROOT_DOCID,
+    PROJECT_TOUCH_ATTEMPT_TTL_MS,
+    PROJECT_TOUCH_CLEAN_UP_INTERVAL_MS,
+    PROJECT_TOUCH_DEBOUNCE_MS,
+} from '../../config.js'
 import { logger } from '../../logger.js'
-
-const ROOT_DOCID = '__root__'
-const PROJECT_TOUCH_DEBOUNCE_MS = 10 * 1000
-const PROJECT_TOUCH_ATTEMPT_TTL_MS = 10 * 60 * 1000
-const PROJECT_TOUCH_CLEAN_UP_INTERVAL_MS = 60 * 1000
 
 const log = logger.child({ module: 'projects-module' })
 
@@ -70,7 +73,7 @@ export const createProjectsModule = async ({ postgresUrl, verifyAccessToken }) =
         if (hub == null) {
             return null
         }
-        const rootRoom = { org, docid: ROOT_DOCID, branch }
+        const rootRoom = { org, docid: PROJECT_ROOT_DOCID, branch }
         const { gcDoc, nongcDoc } = await hub.getDoc(rootRoom, { gc: true, nongc: true }, { gcOnMerge: false })
         const rootUpdate = gcDoc || nongcDoc
         if (rootUpdate == null) {
@@ -107,15 +110,46 @@ export const createProjectsModule = async ({ postgresUrl, verifyAccessToken }) =
             if (knownFileIds == null) {
                 return
             }
-            knownFileIds.add(ROOT_DOCID)
+            knownFileIds.add(PROJECT_ROOT_DOCID)
             const orphanRooms = rooms.filter((room) => room.branch === branch && !knownFileIds.has(room.docid))
             if (orphanRooms.length === 0) {
                 return
             }
-            await Promise.all(orphanRooms.map((room) => hub.deleteRoom(room)))
+            await Promise.all(
+                orphanRooms.map(async (room) => {
+                    await Promise.all([repository.clearRoomReadonly(room), hub.deleteRoom(room)])
+                }),
+            )
             log.info({ projectId, branch, removedRooms: orphanRooms.length }, 'removed orphan project rooms')
         })
     }
+
+    /**
+     * @param {string} org
+     * @returns {Promise<Array<import('../../types.js').Room> | null>}
+     */
+    const listProjectRooms = async (org) => {
+        const hub = yhub
+        if (hub == null) {
+            return null
+        }
+        return hub.listRoomsByOrg(org)
+    }
+
+    /**
+     * @param {Array<import('../../types.js').Room>} rooms
+     * @param {import('../../types.js').Room} room
+     * @returns {boolean}
+     */
+    const roomExists = (rooms, room) => rooms.some((r) => r.branch === room.branch && r.docid === room.docid)
+
+    /**
+     * @param {Array<import('../../types.js').Room>} rooms
+     * @param {string} branch
+     * @returns {number}
+     */
+    const countFileRoomsInBranch = (rooms, branch) =>
+        rooms.filter((r) => r.branch === branch && r.docid !== PROJECT_ROOT_DOCID).length
 
     /** @param {string} projectId */
     const onProjectDeleted = async (projectId) => {
@@ -141,18 +175,16 @@ export const createProjectsModule = async ({ postgresUrl, verifyAccessToken }) =
     /**
      * @param {{ userid: string }} authInfo
      * @param {import('../../types.js').Room} room
-     * @param {'r' | 'rw'} requiredAccess
      * @returns {Promise<{ ok: true } | { ok: false, status: string, error: string }>}
      */
-    const checkRoomAccess = async (authInfo, room, requiredAccess) => {
+    const checkReadableRoomAccess = async (authInfo, room) => {
         const userId = Number(authInfo.userid)
         if (!Number.isInteger(userId) || userId <= 0) {
             return { ok: false, status: '401 Unauthorized', error: 'Unauthorized' }
         }
 
         const accessType = await projectService.getAccessType(userId, room.org)
-        const hasRequiredAccess = requiredAccess === 'rw' ? accessType === 'rw' : accessType != null
-        if (!hasRequiredAccess) {
+        if (accessType == null) {
             const exists = await projectService.projectExists(room.org)
             if (!exists) {
                 return { ok: false, status: '404 Not Found', error: 'Project not found' }
@@ -160,16 +192,51 @@ export const createProjectsModule = async ({ postgresUrl, verifyAccessToken }) =
             return { ok: false, status: '403 Forbidden', error: 'Forbidden' }
         }
 
-        if (room.docid === ROOT_DOCID) {
-            return { ok: true }
+        return { ok: true }
+    }
+
+    /**
+     * @param {{ userid: string }} authInfo
+     * @param {import('../../types.js').Room} room
+     * @returns {Promise<{ ok: true } | { ok: false, status: string, error: string }>}
+     */
+    const checkWritableRoomAccess = async (authInfo, room) => {
+        const userId = Number(authInfo.userid)
+        if (!Number.isInteger(userId) || userId <= 0) {
+            return { ok: false, status: '401 Unauthorized', error: 'Unauthorized' }
         }
 
-        const fileIds = await getProjectFileIds(room.org, room.branch)
-        if (fileIds == null) {
-            return { ok: false, status: '500 Internal Server Error', error: 'Internal server error' }
+        const accessType = await projectService.getAccessType(userId, room.org)
+        if (accessType !== 'rw') {
+            if (accessType == null) {
+                const exists = await projectService.projectExists(room.org)
+                if (!exists) {
+                    return { ok: false, status: '404 Not Found', error: 'Project not found' }
+                }
+            }
+            return { ok: false, status: '403 Forbidden', error: 'Forbidden' }
         }
-        if (!fileIds.has(room.docid)) {
-            return { ok: false, status: '404 Not Found', error: 'File not found' }
+
+        if (room.docid !== PROJECT_ROOT_DOCID) {
+            const rooms = await listProjectRooms(room.org)
+            if (rooms == null) {
+                return { ok: false, status: '500 Internal Server Error', error: 'Internal server error' }
+            }
+            const exists = roomExists(rooms, room)
+            if (!exists && countFileRoomsInBranch(rooms, room.branch) >= PROJECT_MAX_FILE_ROOMS) {
+                return {
+                    ok: false,
+                    status: '413 Payload Too Large',
+                    error: `Project file limit reached (${PROJECT_MAX_FILE_ROOMS} files max). Delete files to continue.`,
+                }
+            }
+            if (exists && await repository.isRoomReadonly(room)) {
+                return {
+                    ok: false,
+                    status: '423 Locked',
+                    error: 'This file is permanently read-only because it exceeded the size limit.',
+                }
+            }
         }
 
         return { ok: true }
@@ -193,14 +260,15 @@ export const createProjectsModule = async ({ postgresUrl, verifyAccessToken }) =
      * @param {import('../../types.js').Room} room
      * @returns {Promise<{ ok: true } | { ok: false, status: string, error: string }>}
      */
-    const canAccessRoom = (authInfo, room) => checkRoomAccess(authInfo, room, 'r')
+    const canAccessRoom = (authInfo, room) => checkReadableRoomAccess(authInfo, room)
 
     /**
      * @param {{ userid: string }} authInfo
      * @param {import('../../types.js').Room} room
      * @returns {Promise<{ ok: true } | { ok: false, status: string, error: string }>}
      */
-    const canWriteToRoom = (authInfo, room) => checkRoomAccess(authInfo, room, 'rw')
+    const canWriteToRoom = (authInfo, room) =>
+        checkWritableRoomAccess(authInfo, room)
 
     /**
      * @param {import('../../types.js').Room} room
@@ -217,7 +285,7 @@ export const createProjectsModule = async ({ postgresUrl, verifyAccessToken }) =
             })
         }
 
-        if (room.docid !== ROOT_DOCID) {
+        if (room.docid !== PROJECT_ROOT_DOCID) {
             return
         }
         await cleanupOrphanProjectRooms(room.org, room.branch)
@@ -238,5 +306,24 @@ export const createProjectsModule = async ({ postgresUrl, verifyAccessToken }) =
             projectLastTouchAttemptAt.clear()
             repository.destroy()
         },
+    }
+}
+
+/**
+ * Returns a handler for the yhub worker `docUpdate` event that marks a room as permanently
+ * read-only when its merged doc size after compaction exceeds the configured limit.
+ * @param {string} postgresUrl
+ * @returns {(doc: { room: import('../../types.js').Room, gcDoc: Uint8Array<ArrayBuffer> | null }) => void}
+ */
+export const createDocCompactedHook = (postgresUrl) => {
+    const repo = createProjectRepository(postgresUrl)
+    return ({ room, gcDoc }) => {
+        if (room.docid === PROJECT_ROOT_DOCID) return
+        const sizeBytes = gcDoc?.byteLength ?? 0
+        if (sizeBytes >= PROJECT_MAX_ROOM_DOC_BYTES) {
+            repo.markRoomReadonly(room).catch((err) => {
+                log.warn({ err, room }, 'failed to mark oversized room as readonly')
+            })
+        }
     }
 }
