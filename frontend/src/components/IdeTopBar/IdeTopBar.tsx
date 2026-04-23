@@ -4,6 +4,8 @@ import { VscClose } from 'react-icons/vsc'
 
 import GhostButton from '@/components/GhostButton/GhostButton'
 import IdeContextMenu, { type IdeContextMenuItem } from '@/components/IdeContextMenu/IdeContextMenu'
+import { useService } from '@/contextProviders/ServiceProvider'
+import { ExportService } from '@/core/exportService'
 import { useEditor } from '@/contextProviders/EditorProvider'
 import { runEditMenuAction, type EditMenuAction } from '@/components/IdeTopBar/editActions'
 import '@/components/IdeTopBar/IdeTopBar.css'
@@ -60,6 +62,7 @@ type Props = {
 function IdeTopBar({ projectName }: Props) {
     const navigate = useNavigate()
     const { projectId } = useParams()
+    const exportService = useService(ExportService)
     const { editorViewRef, activeUndoManagerRef } = useEditor()
 
     const [activeMenuId, setActiveMenuId] = useState<string | null>(null)
@@ -71,7 +74,8 @@ function IdeTopBar({ projectName }: Props) {
 
     const menuConfigs = createMenuConfigs({
         exportProject: () => {
-            // TODO
+            const fallbackName = projectId ?? 'playground'
+            void exportService.exportProject(projectName ?? fallbackName)
         },
         exit: () => navigate('/'),
         runEditAction,

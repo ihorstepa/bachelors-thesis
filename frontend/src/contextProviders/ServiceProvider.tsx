@@ -16,6 +16,7 @@ import LocalFileTreeManager from '@/services/fileTreeManager/localFileTreeManage
 import UserAuthManager from '@/services/authManager/userAuthManager'
 import AuthedApiClient from '@/services/apiClient/authedApiClient'
 import UserProjectManager from '@/services/projectManager/userProjectManager'
+import BrowserProjectExportService from '@/services/exportService/browserProjectExportService'
 import { ConnectionFactory } from '@/core/connectionFactory'
 import { FileSystemManager } from '@/core/fileSystemManager'
 import { PresenceService } from '@/core/presenceService'
@@ -25,6 +26,7 @@ import { FileTreeManager } from '@/core/fileTreeManager'
 import { AuthManager } from '@/core/authManager'
 import { ApiClient } from '@/core/apiClient'
 import { ProjectManager } from '@/core/projectManager'
+import { ExportService } from '@/core/exportService'
 import type { AbstractClass } from '@/utils/types'
 import type { BaseService } from '@/core/general'
 
@@ -76,6 +78,9 @@ async function initIdeServices(
 
     const projectFileIndex = new LocalProjectIndexService(fileSystemManager)
     services.set(ProjectIndexService, projectFileIndex)
+
+    const exportService = new BrowserProjectExportService(projectFileIndex, fileSyncManager)
+    services.set(ExportService, exportService)
 
     const compilationService = new CppCodeRunner(fileSystemManager, fileSyncManager, projectFileIndex, tabManager)
     services.set(CodeRunner, compilationService)
