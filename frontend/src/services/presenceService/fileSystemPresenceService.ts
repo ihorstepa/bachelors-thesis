@@ -4,14 +4,18 @@ import { PresenceService } from '@/core/presenceService'
 import { FileSystemManager } from '@/core/fileSystemManager'
 import { generateRandomName, generateRandomColor, generateColorFromSeed } from '@/utils/identity'
 import type { NullableString } from '@/utils/types'
-import type { UserStatus } from '@/core/presenceService'
+import type { PresenceEntry, UserStatus } from '@/core/presenceService'
 
 class FileSystemPresenceService extends PresenceService {
     private fileSystemManager: FileSystemManager
     private awareness: Awareness
     private users: Map<number, UserStatus> = new Map()
-    private index: Map<string, Set<number>> = new Map()
+    private index: Map<NullableString, Set<number>> = new Map()
+    private cachedBranchUsers: Map<NullableString, PresenceEntry[]> = new Map()
+    private cachedOnlineUsers: PresenceEntry[] = []
     private userStatus: UserStatus
+
+    private static readonly emptyUsers: PresenceEntry[] = []
 
     constructor(fileSystemManager: FileSystemManager, username?: string) {
         super()
@@ -36,6 +40,8 @@ class FileSystemPresenceService extends PresenceService {
         this.awareness.off('change', this.handleUpdate)
         this.fileSystemManager.off('change', this.handleUpdate)
         this.index.clear()
+        this.cachedBranchUsers.clear()
+        this.cachedOnlineUsers = FileSystemPresenceService.emptyUsers
         this.awareness.setLocalStateField('user', null)
     }
 
@@ -44,25 +50,21 @@ class FileSystemPresenceService extends PresenceService {
         return this.userStatus
     }
 
-    public getOnlineUsers(): { clientId: number; user: UserStatus }[] {
-        return Array.from(this.users.entries()).map(([clientId, user]) => ({ clientId, user }))
+    public getOnlineUsers(): PresenceEntry[] {
+        return this.cachedOnlineUsers
     }
 
-    public getUsersInBranch(nodeId: NullableString): { clientId: number; user: UserStatus }[] {
+    public getUsersInBranch(nodeId: NullableString): PresenceEntry[] {
         if (nodeId === null) {
             return this.getOnlineUsers()
         }
 
-        const clientIds = this.index.get(nodeId)
-        if (!clientIds) return []
-
-        return Array.from(clientIds)
-            .map((clientId) => ({ clientId, user: this.users.get(clientId) }))
-            .filter((entry): entry is { clientId: number; user: UserStatus } => !!entry.user)
+        return this.cachedBranchUsers.get(nodeId) ?? FileSystemPresenceService.emptyUsers
     }
 
     private buildIndex(): void {
         this.index.clear()
+        this.cachedBranchUsers.clear()
         this.users = new Map()
 
         this.awareness.getStates().forEach((state, clientId) => {
@@ -85,6 +87,16 @@ class FileSystemPresenceService extends PresenceService {
                 this.index.get(currentId)!.add(clientId)
                 currentId = this.fileSystemManager.getMeta(currentId).parentId
             }
+        })
+
+        this.cachedOnlineUsers = Array.from(this.users.entries()).map(([clientId, user]) => ({ clientId, user }))
+
+        this.index.forEach((clientIds, nodeId) => {
+            const users = Array.from(clientIds)
+                .map((clientId) => ({ clientId, user: this.users.get(clientId) }))
+                .filter((entry): entry is PresenceEntry => !!entry.user)
+
+            this.cachedBranchUsers.set(nodeId, users)
         })
     }
 

@@ -16,6 +16,10 @@
     font-size: 13px;
 }
 
+.ide.no-tabs {
+    --ide-tabs-height: 0px;
+}
+
 .ide-workbench {
     grid-area: editor;
     min-width: 0;

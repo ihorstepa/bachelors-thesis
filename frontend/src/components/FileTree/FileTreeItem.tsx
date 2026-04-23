@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 import { useDraggable, useDroppable } from '@dnd-kit/react'
 import { FaChevronRight, FaChevronDown } from 'react-icons/fa'
 import type { JSX } from 'react'
@@ -6,6 +6,7 @@ import type { JSX } from 'react'
 import { useService } from '@/contextProviders/ServiceProvider'
 import { useFileTree } from '@/contextProviders/FileTreeProvider'
 import { PresenceService } from '@/core/presenceService'
+import type { PresenceEntry } from '@/core/presenceService'
 import { useTabs } from '@/contextProviders/TabsProvider'
 import FileIcon from '@/components/Icons/FileIcon'
 import type { TreeNode } from '@/core/fileTreeManager'
@@ -16,7 +17,8 @@ type Props = {
     canWrite: boolean
 }
 
-const MAX_VISIBLE_PRESENCE_DOTS = 3
+const maxVisiblePresenceDots = 3
+const emptyPresenceEntries: PresenceEntry[] = []
 
 export function FileTreeItem({ node, level, canWrite }: Props): JSX.Element {
     const { expanded, selectedId, fileTreeManager } = useFileTree()
@@ -25,14 +27,17 @@ export function FileTreeItem({ node, level, canWrite }: Props): JSX.Element {
 
     const isExpanded = expanded.has(node.id)
     const hasChildren = node.children.length > 0
-    const showUsers = node.type === 'file' || (node.type === 'dir' && !isExpanded)
+    const shouldShowPresence = node.type === 'file' || (node.type === 'dir' && !isExpanded)
 
-    const [, setPresenceVersion] = useState(0)
-    useEffect(() => presenceService.on('change', () => setPresenceVersion((v) => v + 1)), [presenceService])
-
-    const users = showUsers ? presenceService.getUsersInBranch(node.id) : []
-    const visibleUsers = users.slice(0, MAX_VISIBLE_PRESENCE_DOTS)
-    const hiddenUsersCount = Math.max(0, users.length - MAX_VISIBLE_PRESENCE_DOTS)
+    const presenceEntries = useSyncExternalStore(
+        (notify) => {
+            if (!shouldShowPresence) return () => {}
+            return presenceService.on('change', notify)
+        },
+        () => (shouldShowPresence ? presenceService.getUsersInBranch(node.id) : emptyPresenceEntries),
+    )
+    const visibleUsers = presenceEntries.slice(0, maxVisiblePresenceDots)
+    const hiddenUsersCount = Math.max(0, presenceEntries.length - maxVisiblePresenceDots)
 
     const { ref: dragRef, isDragging } = useDraggable({
         id: node.id,
@@ -84,7 +89,7 @@ export function FileTreeItem({ node, level, canWrite }: Props): JSX.Element {
                     )}
                     <span className='node-name'>{node.name}</span>
                 </div>
-                {users.length > 0 && (
+                {presenceEntries.length > 0 && (
                     <div className='presence-indicator'>
                         {visibleUsers.map(({ clientId, user }) => (
                             <span

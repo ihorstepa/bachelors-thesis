@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router'
 
-import TabsProvider from '@/contextProviders/TabsProvider'
+import TabsProvider, { useTabs } from '@/contextProviders/TabsProvider'
 import IdeEditor from '@/components/IdeEditor/IdeEditor'
 import IdeSideBar from '@/components/IdeSideBar/IdeSideBar'
 import IdeTabs from '@/components/IdeTabs/IdeTabs'
@@ -29,11 +29,13 @@ type IdeLayoutProps = {
 
 function IdeLayout({ canWrite, projectName }: IdeLayoutProps) {
     const { terminalOpen } = useTerminal()
+    const { tabs } = useTabs()
+    const hasTabs = tabs.length > 0
 
     return (
-        <div className='ide'>
+        <div className={`ide ${hasTabs ? 'has-tabs' : 'no-tabs'}`}>
             <IdeTopBar projectName={projectName} />
-            <IdeTabs />
+            {hasTabs && <IdeTabs />}
             <IdeSideBar canWrite={canWrite} />
             <div className={`ide-workbench ${terminalOpen ? 'with-terminal' : 'without-terminal'}`}>
                 <IdeEditor canWrite={canWrite} />

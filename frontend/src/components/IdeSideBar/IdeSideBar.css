@@ -42,11 +42,16 @@
     font-size: 20px;
 }
 
-.sidebar-action:hover {
-    color: var(--text-primary);
+.sidebar-action:disabled {
+    opacity: 0.5;
+    cursor: default;
 }
 
-.sidebar-action.active {
+.ide-sidebar .sidebar-action:hover:not(:disabled) {
+    color: var(--accent);
+}
+
+.ide-sidebar .sidebar-action.active {
     color: var(--accent);
     border-left: 2px solid var(--accent);
     background-color: var(--bg-hover);
@@ -81,9 +86,10 @@
     font-weight: bold;
     color: var(--text-muted);
     letter-spacing: 0.5px;
-    border-bottom: 1px solid var(--border);
+    border-top: 1px solid var(--bg-panel);
     flex-shrink: 0;
     background: var(--border);
+    user-select: none;
 }
 
 .sidebar-view-empty {

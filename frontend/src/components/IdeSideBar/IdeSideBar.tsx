@@ -17,8 +17,8 @@ type Action = {
 const mainActions: Action[] = [
     { id: 'explorer', icon: VscFiles, title: 'Explorer', hasView: true },
     { id: 'run', icon: VscRunAll, title: 'Run', hasView: true },
-    { id: 'search', icon: VscSearch, title: 'Search', hasView: false },
-    { id: 'sourceControl', icon: VscSourceControl, title: 'Source Control', hasView: false },
+    { id: 'search', icon: VscSearch, title: 'Search (Unavailable)', hasView: false },
+    { id: 'sourceControl', icon: VscSourceControl, title: 'Source Control (Unavailable)', hasView: false },
 ]
 
 const extraActions: Action[] = [
@@ -67,12 +67,13 @@ function IdeSideBar({ canWrite }: Props) {
         <div className='ide-sidebar'>
             <div className='sidebar-actions'>
                 <div className='actions-main'>
-                    {mainActions.map(({ id, icon: Icon, title }) => (
+                    {mainActions.map(({ id, icon: Icon, title, hasView }) => (
                         <button
                             key={id}
                             className={`sidebar-action ${activeView === id ? 'active' : ''}`}
                             onClick={() => handleViewClick(id)}
                             title={title}
+                            disabled={!hasView}
                         >
                             <Icon />
                         </button>
