@@ -41,7 +41,12 @@ class ExtensionProvider {
         language: new Compartment(),
     }
 
-    public getExtensions(file: SharedFile, meta: NodeMeta, onLimitReached: (message: string) => void): Extension[] {
+    public getExtensions(
+        file: SharedFile,
+        meta: NodeMeta,
+        onLimitReached: (message: string) => void,
+        undoManager: Y.UndoManager,
+    ): Extension[] {
         return [
             autocompletion({ override: [completeAnyWord] }),
             bracketMatching(),
@@ -83,7 +88,7 @@ class ExtensionProvider {
             this.compartments.language.of(language(meta.name)),
             charLimit(onLimitReached),
             overlayScrollbar,
-            yCollab(file.doc.getText(), file.awareness, { undoManager: new Y.UndoManager(file.doc.getText()) }),
+            yCollab(file.doc.getText(), file.awareness, { undoManager }),
         ]
     }
 

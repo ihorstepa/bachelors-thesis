@@ -5,18 +5,19 @@
     align-items: center;
     padding: 0 0 0 6px;
     background: var(--border);
-    user-select: none;
-}
-
-.ide-topbar button {
-    padding: 4px 8px;
-    color: var(--text-primary);
 }
 
 .ide-topbar-left {
     display: flex;
     align-items: center;
-    gap: 4px;
+    user-select: none;
+}
+
+.ide-topbar-left .ghost-btn {
+    font-size: 12px;
+    padding: 4px 12px;
+    color: var(--text-primary);
+    border-radius: 4px;
 }
 
 .ide-topbar-title {
@@ -26,6 +27,7 @@
     color: var(--text-muted);
     letter-spacing: 0.3px;
     white-space: nowrap;
+    user-select: none;
 }
 
 .ide-topbar-right {
@@ -33,7 +35,7 @@
     justify-content: flex-end;
 }
 
-.ide-topbar-close {
+.ide-topbar .ide-topbar-close {
     width: 36px;
     height: 100%;
     height: 36px;

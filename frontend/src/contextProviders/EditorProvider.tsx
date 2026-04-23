@@ -1,5 +1,7 @@
-import { createContext, useContext, useState } from 'react'
-import type { ReactNode, Dispatch, SetStateAction } from 'react'
+import { createContext, useContext, useRef, useState } from 'react'
+import type { ReactNode, Dispatch, SetStateAction, RefObject } from 'react'
+import type { EditorView } from '@codemirror/view'
+import type * as Y from 'yjs'
 
 type EditorState = {
     language: string | null
@@ -11,6 +13,8 @@ type EditorState = {
 type EditorContextType = {
     editorState: EditorState
     setEditorState: Dispatch<SetStateAction<EditorState>>
+    editorViewRef: RefObject<EditorView | null>
+    activeUndoManagerRef: RefObject<Y.UndoManager | null>
 }
 
 const EditorContext = createContext<EditorContextType | null>(null)
@@ -32,8 +36,15 @@ function EditorProvider({ children }: Props) {
         column: 0,
         selected: 0,
     })
+    const editorViewRef = useRef<EditorView | null>(null)
+    const activeUndoManagerRef = useRef<Y.UndoManager | null>(null)
 
-    const value: EditorContextType = { editorState, setEditorState }
+    const value: EditorContextType = {
+        editorState,
+        setEditorState,
+        editorViewRef,
+        activeUndoManagerRef,
+    }
 
     return <EditorContext value={value}>{children}</EditorContext>
 }
