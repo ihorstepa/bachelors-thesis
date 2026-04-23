@@ -1,0 +1,51 @@
+.overlay-scrollbar--tabs {
+    background: var(--border);
+    border-bottom: 1px solid #181a1f;
+    height: 36px;
+    z-index: 1;
+    min-width: 0;
+}
+
+.overlay-scrollbar--tree {
+    flex: 1;
+    height: 100%;
+    min-height: 0;
+}
+
+.os-theme-ide {
+    --os-size: 8px;
+    --os-padding-perpendicular: 0;
+    --os-padding-axis: 0;
+    --os-track-border-radius: 0;
+    --os-track-bg: transparent;
+    --os-track-bg-hover: transparent;
+    --os-track-bg-active: transparent;
+    --os-handle-bg: rgb(121 121 121 / 40%);
+    --os-handle-bg-hover: rgb(100 100 100 / 70%);
+    --os-handle-bg-active: rgb(191 191 191 / 40%);
+    --os-handle-border-radius: 0;
+    --os-handle-min-size: 26px;
+    --os-handle-perpendicular-size: 100%;
+    --os-handle-perpendicular-size-hover: 100%;
+    --os-handle-perpendicular-size-active: 100%;
+    --os-handle-interactive-area-offset: 0;
+}
+
+.os-theme-ide-tabs {
+    --os-size: 3px;
+    --os-padding-perpendicular: 0;
+    --os-padding-axis: 0;
+    --os-track-border-radius: 0;
+    --os-track-bg: transparent;
+    --os-track-bg-hover: transparent;
+    --os-track-bg-active: transparent;
+    --os-handle-bg: rgb(121 121 121 / 36%);
+    --os-handle-bg-hover: rgb(100 100 100 / 60%);
+    --os-handle-bg-active: rgb(191 191 191 / 36%);
+    --os-handle-border-radius: 0;
+    --os-handle-min-size: 16px;
+    --os-handle-perpendicular-size: 100%;
+    --os-handle-perpendicular-size-hover: 100%;
+    --os-handle-perpendicular-size-active: 100%;
+    --os-handle-interactive-area-offset: 0;
+}

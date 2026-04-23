@@ -3,6 +3,8 @@
     flex-direction: column;
     width: 100%;
     height: 100%;
+    min-width: 0;
+    min-height: 0;
     overflow: hidden;
     position: relative;
     /* z-index: 0; */
@@ -10,8 +12,12 @@
 
 .ide-editor-shell {
     position: relative;
+    display: flex;
     width: 100%;
     height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .notification-stack {
@@ -93,16 +99,24 @@
 }
 
 .ide-editor {
+    display: flex;
     height: 100%;
     width: 100%;
     min-height: 0;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .ide-editor .cm-editor {
     flex: 1;
+    min-width: 0;
     min-height: 0;
     overflow: hidden;
     position: relative;
+}
+
+.ide-editor .cm-scroller {
+    min-width: 0;
 }
 
 .ide-editor .cm-panels.cm-panels-top {
@@ -310,7 +324,13 @@
 }
 
 .cm-editor .cm-gutters {
-    margin-left: 10px;
+    flex-shrink: 0;
+    padding-left: 10px;
+    box-sizing: border-box;
+}
+
+.cm-editor .cm-gutterElement {
+    user-select: none;
 }
 
 .cm-editor .ide-fold-marker {
@@ -319,10 +339,12 @@
     justify-content: center;
     align-items: center;
     color: var(--text-primary);
+    opacity: 0;
+    transition: opacity 0.35s ease;
 }
 
-.cm-editor .cm-foldGutter .cm-gutterElement:hover .ide-fold-marker {
-    color: var(--text-bright);
+.cm-editor .cm-gutters:hover .ide-fold-marker {
+    opacity: 1;
 }
 
 .cm-editor .cm-foldPlaceholder {

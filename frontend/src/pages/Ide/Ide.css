@@ -26,6 +26,11 @@
     border-top: 1px solid var(--border);
 }
 
+.ide-workbench > * {
+    min-width: 0;
+    min-height: 0;
+}
+
 .ide-workbench.with-terminal {
     grid-template-rows: minmax(0, 1fr) 220px;
 }

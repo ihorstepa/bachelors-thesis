@@ -10,6 +10,7 @@ const iconMarkup = {
 export const createFoldMarker = (open: boolean): HTMLElement => {
     const marker = document.createElement('span')
     marker.className = 'ide-fold-marker'
+    marker.setAttribute('title', open ? 'Fold code' : 'Unfold code')
     marker.innerHTML = open ? iconMarkup.open : iconMarkup.closed
     return marker
 }

@@ -29,7 +29,8 @@ import { indentationMarkers } from '@replit/codemirror-indentation-markers'
 import { language } from '@/components/IdeEditor/extensions/language'
 import { charLimit } from '@/components/IdeEditor/extensions/charLimit'
 import { createFoldMarker } from '@/components/IdeEditor/extensions/foldMarker'
-import { createCustomSearchPanel } from '@/components/IdeEditor/customSearchPanel'
+import { createCustomSearchPanel } from '@/components/IdeEditor/extensions/searchPanel'
+import { overlayScrollbar } from '@/components/IdeEditor/extensions/scrollbar'
 import type { Extension } from '@codemirror/state'
 
 import type { SharedFile } from '@/core/fileSyncManager'
@@ -81,6 +82,7 @@ class ExtensionProvider {
             rectangularSelection(),
             this.compartments.language.of(language(meta.name)),
             charLimit(onLimitReached),
+            overlayScrollbar,
             yCollab(file.doc.getText(), file.awareness, { undoManager: new Y.UndoManager(file.doc.getText()) }),
         ]
     }

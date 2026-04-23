@@ -32,10 +32,8 @@
     gap: 4px;
 }
 
-.tree-view {
-    flex: 1;
-    height: 100%;
-    overflow-y: auto;
+.tree-view-content {
+    min-height: 100%;
 }
 
 .tree-node {

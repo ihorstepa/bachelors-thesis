@@ -1,6 +1,8 @@
 import { useDroppable } from '@dnd-kit/react'
 import type { JSX } from 'react'
 
+import OverlayScrollbar from '@/components/OverlayScrollbar/OverlayScrollbar'
+
 type Props = {
     children: React.ReactNode
 }
@@ -11,9 +13,11 @@ function FileTreeRoot({ children }: Props): JSX.Element {
     })
 
     return (
-        <div ref={ref} className={`tree-view`}>
-            {children}
-        </div>
+        <OverlayScrollbar variant='tree' theme='os-theme-ide' x='hidden' y='scroll'>
+            <div ref={ref} className='tree-view-content'>
+                {children}
+            </div>
+        </OverlayScrollbar>
     )
 }
 
