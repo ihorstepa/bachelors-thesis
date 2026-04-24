@@ -1,4 +1,4 @@
-import { createTar } from 'nanotar'
+import JSZip from 'jszip'
 
 import { ExportService } from '@/core/exportService'
 import { FileSyncManager } from '@/core/fileSyncManager'
@@ -26,8 +26,13 @@ class BrowserProjectExportService extends ExportService {
                     data: file.doc.getText().toString(),
                 }
             })
-            const tarData = createTar(await Promise.all(files))
-            this.downloadTarBlob(name, tarData)
+            const zip = new JSZip()
+            const resolvedFiles = await Promise.all(files)
+            for (const file of resolvedFiles) {
+                zip.file(file.name, file.data)
+            }
+            const zipBlob = await zip.generateAsync({ type: 'blob' })
+            this.downloadZipBlob(name, zipBlob)
         } finally {
             for (const fileId of openFileIds) {
                 this.fileSyncManager.closeFile(fileId)
@@ -35,16 +40,12 @@ class BrowserProjectExportService extends ExportService {
         }
     }
 
-    private downloadTarBlob(name: string, tarData: Uint8Array): void {
-        const safeProjectName = this.sanitizeName(name)
-        const bytes = new Uint8Array(tarData.byteLength)
-        bytes.set(tarData)
-        const tarBlob = new Blob([bytes.buffer], { type: 'application/x-tar' })
-
-        const url = URL.createObjectURL(tarBlob)
+    private downloadZipBlob(name: string, zipBlob: Blob): void {
+        const safeName = this.sanitizeName(name)
+        const url = URL.createObjectURL(zipBlob)
         const anchor = document.createElement('a')
         anchor.href = url
-        anchor.download = `${safeProjectName}.tar`
+        anchor.download = `${safeName}.zip`
         document.body.append(anchor)
 
         anchor.click()
