@@ -10,10 +10,15 @@ import FileTreeToolBar from '@/components/FileTree/FileTreeToolBar'
 import { useService } from '@/contextProviders/ServiceProvider'
 import { FileSystemManager } from '@/core/fileSystemManager'
 import { useTabs } from '@/contextProviders/TabsProvider'
-import type { NullableString } from '@/utils/types'
-import FileTreeRoot from './FileTreeRoot'
+import FileTreeRoot from '@/components/FileTree/FileTreeRoot'
+import IdeContextMenu from '@/components/IdeContextMenu/IdeContextMenu'
+import { buildFileTreeContextMenuSections } from '@/components/FileTree/fileTreeContextMenuSections'
 import { MAX_PROJECT_FILES } from '@/config'
+import type { FileTreeContextMenuState } from '@/components/FileTree/fileTreeContextMenuSections'
+import type { NullableString } from '@/utils/types'
 import type { TreeNode } from '@/core/fileTreeManager'
+import type { NodeType } from '@/core/fileSystemManager'
+
 import '@/components/FileTree/FileTree.css'
 
 function countFiles(nodes: TreeNode[]): number {
@@ -40,10 +45,15 @@ function FileTree({ canWrite }: Props): JSX.Element {
     const fileSystemManager = useService(FileSystemManager)
     const { tree, selectedId, fileTreeManager } = useFileTree()
     const { activeId } = useTabs()
+    const [contextMenu, setContextMenu] = useState<FileTreeContextMenuState | null>(null)
     const [draggedId, setDraggedId] = useState<string | null>(null)
     const [dragPreviewOffset, setDragPreviewOffset] = useState({ x: 16, y: 10 })
 
     const fileLimitReached = canWrite && countFiles(tree) >= MAX_PROJECT_FILES
+
+    const closeMenu = () => {
+        setContextMenu(null)
+    }
 
     useEffect(() => {
         if (!activeId) return
@@ -98,45 +108,99 @@ function FileTree({ canWrite }: Props): JSX.Element {
         '--drag-offset-y': `${dragPreviewOffset.y}px`,
     } as CSSProperties
 
-    const handleCreateFile = () => {
+    const handleCreateFile = (parentIdOverride?: NullableString) => {
         if (!canWrite || fileLimitReached) return
         const name = prompt('File name:')
         if (name) {
-            fileSystemManager.create(name, 'file', fileTreeManager.getTargetParentId())
+            fileSystemManager.create(name, 'file', parentIdOverride ?? fileTreeManager.getTargetParentId())
         }
     }
 
-    const handleCreateDir = () => {
+    const handleCreateDir = (parentIdOverride?: NullableString) => {
         if (!canWrite) return
         const name = prompt('Directory name:')
         if (name) {
-            fileSystemManager.create(name, 'dir', fileTreeManager.getTargetParentId())
+            fileSystemManager.create(name, 'dir', parentIdOverride ?? fileTreeManager.getTargetParentId())
         }
     }
 
     const canRenameOrDelete = canWrite && !!selectedId && selectedId !== 'root'
 
-    const handleRename = () => {
+    const handleRename = (nodeId?: string) => {
         if (!canWrite) return
-        if (!canRenameOrDelete) return
-        const meta = fileSystemManager.getMeta(selectedId)
+        const targetId = nodeId ?? selectedId
+        if (!targetId || targetId === 'root') return
+
+        const meta = fileSystemManager.getMeta(targetId)
         const newName = prompt('Rename to:', meta.name)
         if (newName) {
-            fileSystemManager.rename(selectedId, newName)
+            fileSystemManager.rename(targetId, newName)
         }
     }
 
-    const handleDelete = () => {
+    const handleDelete = (nodeId?: string) => {
         if (!canWrite) return
-        if (!canRenameOrDelete) return
-        const meta = fileSystemManager.getMeta(selectedId)
+        const targetId = nodeId ?? selectedId
+        if (!targetId || targetId === 'root') return
+
+        const meta = fileSystemManager.getMeta(targetId)
         if (confirm(`Delete ${meta.name}?`)) {
-            fileSystemManager.delete(selectedId)
+            fileSystemManager.delete(targetId)
         }
     }
+
+    const handleNodeContextMenu = (nodeId: string, nodeType: NodeType, x: number, y: number) => {
+        if (!canWrite || nodeId === 'root') return
+
+        fileTreeManager.selectItem(nodeId)
+        setContextMenu({
+            x,
+            y,
+            target: {
+                nodeId,
+                nodeType,
+            },
+        })
+    }
+
+    const handleRootContextMenu = (event: React.MouseEvent) => {
+        if (!canWrite) return
+
+        event.preventDefault()
+        event.stopPropagation()
+        setContextMenu({
+            x: event.clientX,
+            y: event.clientY,
+            target: {
+                nodeId: null,
+                nodeType: 'dir',
+            },
+        })
+    }
+
+    const contextMenuSections = buildFileTreeContextMenuSections({
+        menu: contextMenu,
+        fileLimitReached,
+        onCreateFile: (parentId) => {
+            handleCreateFile(parentId)
+            closeMenu()
+        },
+        onCreateDir: (parentId) => {
+            handleCreateDir(parentId)
+            closeMenu()
+        },
+        onRename: (nodeId) => {
+            handleRename(nodeId)
+            closeMenu()
+        },
+        onDelete: (nodeId) => {
+            handleDelete(nodeId)
+            closeMenu()
+        },
+    })
 
     return (
-        <div className='file-tree-container'>
+        <div className='file-tree-container' onScroll={closeMenu}>
             <FileTreeToolBar
                 onCreateFile={handleCreateFile}
                 onCreateDir={handleCreateDir}
@@ -147,9 +211,15 @@ function FileTree({ canWrite }: Props): JSX.Element {
                 fileLimitReached={fileLimitReached}
             />
             <DragDropProvider onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-                <FileTreeRoot>
+                <FileTreeRoot onContextMenu={handleRootContextMenu}>
                     {tree.map((node) => (
-                        <FileTreeItem key={node.id} node={node} level={0} canWrite={canWrite} />
+                        <FileTreeItem
+                            key={node.id}
+                            node={node}
+                            level={0}
+                            canWrite={canWrite}
+                            onContextMenu={handleNodeContextMenu}
+                        />
                     ))}
                 </FileTreeRoot>
                 <DragOverlay dropAnimation={null} className='tree-overlay-wrapper' style={overlayStyle}>
@@ -161,6 +231,14 @@ function FileTree({ canWrite }: Props): JSX.Element {
                         : null}
                 </DragOverlay>
             </DragDropProvider>
+            <IdeContextMenu
+                sections={contextMenuSections}
+                isOpen={contextMenu != null}
+                onClose={closeMenu}
+                lockScroll
+                anchorPoint={contextMenu ? { x: contextMenu.x, y: contextMenu.y } : null}
+                className='file-tree-context-menu-panel'
+            />
         </div>
     )
 }

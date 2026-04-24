@@ -10,17 +10,19 @@ import type { PresenceEntry } from '@/core/presenceService'
 import { useTabs } from '@/contextProviders/TabsProvider'
 import FileIcon from '@/components/Icons/FileIcon'
 import type { TreeNode } from '@/core/fileTreeManager'
+import type { NodeType } from '@/core/fileSystemManager'
 
 type Props = {
     node: TreeNode
     level: number
     canWrite: boolean
+    onContextMenu: (nodeId: string, nodeType: NodeType, x: number, y: number) => void
 }
 
 const maxVisiblePresenceDots = 3
 const emptyPresenceEntries: PresenceEntry[] = []
 
-export function FileTreeItem({ node, level, canWrite }: Props): JSX.Element {
+export function FileTreeItem({ node, level, canWrite, onContextMenu }: Props): JSX.Element {
     const { expanded, selectedId, fileTreeManager } = useFileTree()
     const { tabManager } = useTabs()
     const presenceService = useService(PresenceService)
@@ -64,6 +66,12 @@ export function FileTreeItem({ node, level, canWrite }: Props): JSX.Element {
         fileTreeManager.toggleExpand(node.id)
     }
 
+    const handleRowContextMenu = (event: React.MouseEvent) => {
+        event.preventDefault()
+        event.stopPropagation()
+        onContextMenu(node.id, node.type, event.clientX, event.clientY)
+    }
+
     return (
         <>
             <div
@@ -74,7 +82,10 @@ export function FileTreeItem({ node, level, canWrite }: Props): JSX.Element {
                 title={node.name}
                 className={`tree-node ${selectedId === node.id ? 'selected' : ''} ${isDropTarget ? 'drop-target' : ''} ${isDragging ? 'dragging' : ''}`}
                 style={{ paddingLeft: level * 20 + 12 }}
+                data-tree-node-id={node.id}
+                data-tree-node-type={node.type}
                 onClick={handleRowClick}
+                onContextMenu={handleRowContextMenu}
             >
                 <div className='tree-node-left'>
                     {node.type === 'dir' && (
@@ -115,7 +126,13 @@ export function FileTreeItem({ node, level, canWrite }: Props): JSX.Element {
             {isExpanded &&
                 hasChildren &&
                 node.children.map((child) => (
-                    <FileTreeItem key={child.id} node={child} level={level + 1} canWrite={canWrite} />
+                    <FileTreeItem
+                        key={child.id}
+                        node={child}
+                        level={level + 1}
+                        canWrite={canWrite}
+                        onContextMenu={onContextMenu}
+                    />
                 ))}
         </>
     )

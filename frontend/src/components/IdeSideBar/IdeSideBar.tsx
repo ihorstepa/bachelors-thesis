@@ -131,6 +131,7 @@ function IdeSideBar({ canWrite }: Props) {
                                     sections={menuSections}
                                     isOpen={activeExtraMenuId === id}
                                     onClose={() => setActiveExtraMenuId(null)}
+                                    lockScroll
                                     className='sidebar-context-menu-panel'
                                 />
                             )}

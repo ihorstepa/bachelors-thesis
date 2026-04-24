@@ -34,7 +34,15 @@
 }
 
 .tree-view-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     min-height: 100%;
+}
+
+.tree-view-background {
+    flex: 1;
+    min-height: 24px;
 }
 
 .tree-node {
@@ -166,4 +174,10 @@
 .presence-dot-overflow {
     background-color: var(--accent);
     color: var(--text-bright);
+}
+
+.file-tree-context-menu-panel {
+    position: fixed;
+    min-width: 180px;
+    z-index: 220;
 }
