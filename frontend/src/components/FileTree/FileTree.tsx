@@ -202,10 +202,10 @@ function FileTree({ canWrite }: Props): JSX.Element {
     return (
         <div className='file-tree-container' onScroll={closeMenu}>
             <FileTreeToolBar
-                onCreateFile={handleCreateFile}
-                onCreateDir={handleCreateDir}
-                onRename={handleRename}
-                onDelete={handleDelete}
+                onCreateFile={() => handleCreateFile()}
+                onCreateDir={() => handleCreateDir()}
+                onRename={() => handleRename()}
+                onDelete={() => handleDelete()}
                 canWrite={canWrite}
                 canRenameOrDelete={canRenameOrDelete}
                 fileLimitReached={fileLimitReached}
