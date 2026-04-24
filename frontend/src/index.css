@@ -32,21 +32,10 @@ body,
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    scrollbar-width: thin;
-    scrollbar-color: var(--bg-selection) var(--bg-panel);
+    scrollbar-color: transparent transparent;
 }
 
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--bg-panel);
-    border-radius: 4px;
-}
-
+::-webkit-scrollbar-track,
 ::-webkit-scrollbar-thumb {
-    background: var(--bg-selection);
-    border-radius: 4px;
+    background: transparent;
 }

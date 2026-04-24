@@ -1,7 +1,8 @@
 .overlay-scrollbar--tabs {
     background: var(--border);
     border-bottom: 1px solid var(--bg-panel);
-    height: 36px;
+    height: 100%;
+    box-sizing: border-box;
     z-index: 1;
     min-width: 0;
 }
@@ -20,7 +21,7 @@
 }
 
 .os-theme-ide {
-    --os-size: 8px;
+    --os-size: 10px;
     --os-padding-perpendicular: 0;
     --os-padding-axis: 0;
     --os-track-border-radius: 0;

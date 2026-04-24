@@ -24,6 +24,7 @@
         "@uiw/react-codemirror": "^4.25.8",
         "@xterm/addon-fit": "^0.11.0",
         "@xterm/xterm": "^6.0.0",
+        "jszip": "^3.10.1",
         "nanoid": "^5.1.7",
         "nanotar": "^0.3.0",
         "overlayscrollbars-react": "^0.5.6",

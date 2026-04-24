@@ -15,9 +15,10 @@ type Props = {
     isOpen: boolean
     onClose: () => void
     isWithinBoundary?: (target: Node) => boolean
+    className?: string
 }
 
-function IdeContextMenu({ sections, isOpen, onClose, isWithinBoundary }: Props) {
+function IdeContextMenu({ sections, isOpen, onClose, isWithinBoundary, className }: Props) {
     const wrapperRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -55,7 +56,7 @@ function IdeContextMenu({ sections, isOpen, onClose, isWithinBoundary }: Props) 
         <>
             {isOpen && (
                 <div className='ide-context-menu' ref={wrapperRef}>
-                    <div className='ide-context-menu-panel' role='menu'>
+                    <div className={`ide-context-menu-panel ${className ?? ''}`.trim()} role='menu'>
                         {sections.map((section, sectionIndex) => (
                             <div className='ide-context-menu-section' key={`section-${sectionIndex}`}>
                                 {section.map((item) => (

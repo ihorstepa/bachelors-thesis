@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router'
 import { VscClose } from 'react-icons/vsc'
 
 import GhostButton from '@/components/GhostButton/GhostButton'
+import IdeAboutModal from '@/components/AboutIdeModal/IdeAboutModal'
 import IdeContextMenu, { type IdeContextMenuItem } from '@/components/IdeContextMenu/IdeContextMenu'
 import { useService } from '@/contextProviders/ServiceProvider'
 import { ExportService } from '@/core/exportService'
@@ -66,6 +67,7 @@ function IdeTopBar({ projectName }: Props) {
     const { editorViewRef, activeUndoManagerRef } = useEditor()
 
     const [activeMenuId, setActiveMenuId] = useState<string | null>(null)
+    const [isAboutOpen, setIsAboutOpen] = useState(false)
     const menuBoundaryRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
     const runEditAction = (action: EditMenuAction) => {
@@ -80,7 +82,7 @@ function IdeTopBar({ projectName }: Props) {
         exit: () => navigate('/'),
         runEditAction,
         showAbout: () => {
-            // TODO
+            setIsAboutOpen(true)
         },
     })
 
@@ -103,41 +105,45 @@ function IdeTopBar({ projectName }: Props) {
     }
 
     return (
-        <div className='ide-topbar'>
-            <div className='ide-topbar-left'>
-                {menuConfigs.map((menu) => (
-                    <div
-                        key={menu.id}
-                        ref={(element) => {
-                            menuBoundaryRefs.current[menu.id] = element
-                        }}
-                    >
-                        <GhostButton
-                            className={`ide-context-menu-trigger ${activeMenuId === menu.id ? 'open' : ''}`}
-                            onClick={() => handleMenuOpen(menu.id)}
-                            onMouseEnter={() => handleMenuHoverOpen(menu.id)}
+        <>
+            <div className='ide-topbar'>
+                <div className='ide-topbar-left'>
+                    {menuConfigs.map((menu) => (
+                        <div
+                            key={menu.id}
+                            ref={(element) => {
+                                menuBoundaryRefs.current[menu.id] = element
+                            }}
                         >
-                            {menu.label}
-                        </GhostButton>
+                            <GhostButton
+                                className={`ide-context-menu-trigger ${activeMenuId === menu.id ? 'open' : ''}`}
+                                onClick={() => handleMenuOpen(menu.id)}
+                                onMouseEnter={() => handleMenuHoverOpen(menu.id)}
+                            >
+                                {menu.label}
+                            </GhostButton>
 
-                        <IdeContextMenu
-                            sections={menu.sections}
-                            isOpen={activeMenuId === menu.id}
-                            onClose={() => handleMenuClose(menu.id)}
-                            isWithinBoundary={(target) => isWithinMenuBoundary(menu.id, target)}
-                        />
-                    </div>
-                ))}
+                            <IdeContextMenu
+                                sections={menu.sections}
+                                isOpen={activeMenuId === menu.id}
+                                onClose={() => handleMenuClose(menu.id)}
+                                isWithinBoundary={(target) => isWithinMenuBoundary(menu.id, target)}
+                            />
+                        </div>
+                    ))}
+                </div>
+
+                <span className='ide-topbar-title'>{projectId ? (projectName ?? 'project') : 'playground'}</span>
+
+                <div className='ide-topbar-right'>
+                    <GhostButton className='ide-topbar-close' onClick={() => navigate('/')} title='Close project'>
+                        <VscClose />
+                    </GhostButton>
+                </div>
             </div>
 
-            <span className='ide-topbar-title'>{projectId ? (projectName ?? 'project') : 'playground'}</span>
-
-            <div className='ide-topbar-right'>
-                <GhostButton className='ide-topbar-close' onClick={() => navigate('/')} title='Close project'>
-                    <VscClose />
-                </GhostButton>
-            </div>
-        </div>
+            {isAboutOpen && <IdeAboutModal onClose={() => setIsAboutOpen(false)} />}
+        </>
     )
 }
 

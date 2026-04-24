@@ -6,6 +6,7 @@ import TabItem from '@/components/IdeTabs/TabItem'
 import { FileSystemManager } from '@/core/fileSystemManager'
 import { useService } from '@/contextProviders/ServiceProvider'
 import { useTabs } from '@/contextProviders/TabsProvider'
+
 import '@/components/IdeTabs/IdeTabs.css'
 
 function IdeTabs() {

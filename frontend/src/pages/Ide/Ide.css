@@ -1,6 +1,6 @@
 .ide {
     --ide-topbar-height: 36px;
-    --ide-tabs-height: 33px;
+    --ide-tabs-height: 36px;
     --ide-statusbar-height: 22px;
     display: grid;
     grid-template:
@@ -22,12 +22,13 @@
 
 .ide-workbench {
     grid-area: editor;
+    z-index: 1;
     min-width: 0;
     min-height: 0;
     display: grid;
     grid-template-rows: minmax(0, 1fr);
     background: var(--bg-base);
-    border-top: 1px solid var(--border);
+    /* border-top: 1px solid var(--border); */
 }
 
 .ide-workbench > * {
