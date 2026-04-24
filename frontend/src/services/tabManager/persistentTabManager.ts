@@ -59,7 +59,14 @@ class PersistentTabManager extends TabManager {
             this.close(victim)
         }
 
-        this.tabs = [...this.tabs, id]
+        const activeIndex = this.activeId ? this.tabs.indexOf(this.activeId) : -1
+        if (activeIndex === -1) {
+            this.tabs = [...this.tabs, id]
+        } else {
+            const nextTabs = [...this.tabs]
+            nextTabs.splice(activeIndex + 1, 0, id)
+            this.tabs = nextTabs
+        }
         this.updateActive(id)
     }
 

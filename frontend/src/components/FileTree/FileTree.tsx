@@ -112,7 +112,9 @@ function FileTree({ canWrite }: Props): JSX.Element {
         if (!canWrite || fileLimitReached) return
         const name = prompt('File name:')
         if (name) {
-            fileSystemManager.create(name, 'file', parentIdOverride ?? fileTreeManager.getTargetParentId())
+            const targetParentId =
+                parentIdOverride === undefined ? fileTreeManager.getTargetParentId() : parentIdOverride
+            fileSystemManager.create(name, 'file', targetParentId)
         }
     }
 
@@ -120,7 +122,9 @@ function FileTree({ canWrite }: Props): JSX.Element {
         if (!canWrite) return
         const name = prompt('Directory name:')
         if (name) {
-            fileSystemManager.create(name, 'dir', parentIdOverride ?? fileTreeManager.getTargetParentId())
+            const targetParentId =
+                parentIdOverride === undefined ? fileTreeManager.getTargetParentId() : parentIdOverride
+            fileSystemManager.create(name, 'dir', targetParentId)
         }
     }
 
@@ -152,7 +156,6 @@ function FileTree({ canWrite }: Props): JSX.Element {
     const handleNodeContextMenu = (nodeId: string, nodeType: NodeType, x: number, y: number) => {
         if (!canWrite || nodeId === 'root') return
 
-        fileTreeManager.selectItem(nodeId)
         setContextMenu({
             x,
             y,

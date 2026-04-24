@@ -1,5 +1,5 @@
 import type { JSX } from 'react'
-import { VscFolder } from 'react-icons/vsc'
+import { VscChevronRight } from 'react-icons/vsc'
 
 import FileIcon from '@/components/Icons/FileIcon'
 import type { NodeType } from '@/core/fileSystemManager'
@@ -14,7 +14,7 @@ function FileTreeDragPreview({ type, name }: Props): JSX.Element {
         <div className='tree-drag-preview'>
             <div className='tree-drag-preview-main'>
                 <span className='tree-drag-preview-icon'>
-                    {type === 'file' ? <FileIcon filename={name} /> : <VscFolder />}
+                    {type === 'file' ? <FileIcon filename={name} /> : <VscChevronRight />}
                 </span>
                 <span className='tree-drag-preview-name'>{name}</span>
             </div>
