@@ -6,23 +6,40 @@ import type { JSX } from 'react'
 import { useService } from '@/contextProviders/ServiceProvider'
 import { useFileTree } from '@/contextProviders/FileTreeProvider'
 import { PresenceService } from '@/core/presenceService'
-import type { PresenceEntry } from '@/core/presenceService'
 import { useTabs } from '@/contextProviders/TabsProvider'
 import FileIcon from '@/components/Icons/FileIcon'
+import FileTreeInput from '@/components/FileTree/FileTreeInput'
+import type { PresenceEntry } from '@/core/presenceService'
 import type { TreeNode } from '@/core/fileTreeManager'
 import type { NodeType } from '@/core/fileSystemManager'
+import type { NullableString } from '@/utils/types'
+
+export type FileTreeEditState =
+    | { mode: 'create'; type: NodeType; parentId: NullableString }
+    | { mode: 'rename'; nodeId: string }
 
 type Props = {
     node: TreeNode
     level: number
     canWrite: boolean
     onContextMenu: (nodeId: string, nodeType: NodeType, x: number, y: number) => void
+    editState: FileTreeEditState | null
+    onConfirmEdit: (value: string) => string | null
+    onCancelEdit: () => void
 }
 
 const maxVisiblePresenceDots = 3
 const emptyPresenceEntries: PresenceEntry[] = []
 
-export function FileTreeItem({ node, level, canWrite, onContextMenu }: Props): JSX.Element {
+export function FileTreeItem({
+    node,
+    level,
+    canWrite,
+    onContextMenu,
+    editState,
+    onConfirmEdit,
+    onCancelEdit,
+}: Props): JSX.Element {
     const { expanded, selectedId, fileTreeManager } = useFileTree()
     const { tabManager } = useTabs()
     const presenceService = useService(PresenceService)
@@ -52,7 +69,13 @@ export function FileTreeItem({ node, level, canWrite, onContextMenu }: Props): J
         data: { type: node.type, parentId: node.parentId },
     })
 
+    const isRenameEditing = editState?.mode === 'rename' && editState.nodeId === node.id
+    const showCreateChildRow =
+        editState?.mode === 'create' && editState.parentId === node.id && isExpanded && node.type === 'dir'
+
     const handleRowClick = () => {
+        if (isRenameEditing) return
+
         fileTreeManager.selectItem(node.id)
         if (node.type === 'dir') {
             fileTreeManager.toggleExpand(node.id)
@@ -80,7 +103,7 @@ export function FileTreeItem({ node, level, canWrite, onContextMenu }: Props): J
                     dropRef(element)
                 }}
                 title={node.name}
-                className={`tree-node ${selectedId === node.id ? 'selected' : ''} ${isDropTarget ? 'drop-target' : ''} ${isDragging ? 'dragging' : ''}`}
+                className={`tree-node ${isRenameEditing ? 'tree-node-editing' : ''} ${selectedId === node.id ? 'selected' : ''} ${isDropTarget ? 'drop-target' : ''} ${isDragging ? 'dragging' : ''}`}
                 style={{ paddingLeft: level * 20 + 12 }}
                 data-tree-node-id={node.id}
                 data-tree-node-type={node.type}
@@ -93,12 +116,22 @@ export function FileTreeItem({ node, level, canWrite, onContextMenu }: Props): J
                             {isExpanded ? <FaChevronDown size={10} /> : <FaChevronRight size={10} />}
                         </button>
                     )}
-                    {node.type === 'file' && (
+                    {node.type === 'file' && !isRenameEditing && (
                         <span className='file-icon-wrapper'>
                             <FileIcon filename={node.name} />
                         </span>
                     )}
-                    <span className='node-name'>{node.name}</span>
+                    {isRenameEditing ? (
+                        <FileTreeInput
+                            initialValue={node.name}
+                            createType={node.type === 'file' ? 'file' : undefined}
+                            selectBasenameOnFocus={node.type === 'file'}
+                            onConfirm={onConfirmEdit}
+                            onCancel={onCancelEdit}
+                        />
+                    ) : (
+                        <span className='node-name'>{node.name}</span>
+                    )}
                 </div>
                 {presenceEntries.length > 0 && (
                     <div className='presence-indicator'>
@@ -123,6 +156,13 @@ export function FileTreeItem({ node, level, canWrite, onContextMenu }: Props): J
                     </div>
                 )}
             </div>
+            {showCreateChildRow && (
+                <div className='tree-node tree-node-create-row' style={{ paddingLeft: (level + 1) * 20 + 12 }}>
+                    <div className='tree-node-left'>
+                        <FileTreeInput createType={editState.type} onConfirm={onConfirmEdit} onCancel={onCancelEdit} />
+                    </div>
+                </div>
+            )}
             {isExpanded &&
                 hasChildren &&
                 node.children.map((child) => (
@@ -132,6 +172,9 @@ export function FileTreeItem({ node, level, canWrite, onContextMenu }: Props): J
                         level={level + 1}
                         canWrite={canWrite}
                         onContextMenu={onContextMenu}
+                        editState={editState}
+                        onConfirmEdit={onConfirmEdit}
+                        onCancelEdit={onCancelEdit}
                     />
                 ))}
         </>

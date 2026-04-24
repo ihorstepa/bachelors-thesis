@@ -61,11 +61,32 @@
     min-width: 0;
 }
 
+.tree-node-create-row {
+    cursor: default;
+    position: relative;
+}
+
+.tree-node-create-row:hover {
+    background-color: transparent;
+}
+
 .tree-node:hover {
     background-color: var(--bg-hover);
 }
 
 .tree-node.selected {
+    background-color: var(--bg-selection);
+}
+
+.tree-node.tree-node-editing:not(.selected),
+.tree-node.tree-node-editing:not(.selected):hover,
+.tree-node.tree-node-create-row,
+.tree-node.tree-node-create-row:hover {
+    background-color: transparent;
+}
+
+.tree-node.tree-node-editing.selected,
+.tree-node.tree-node-editing.selected:hover {
     background-color: var(--bg-selection);
 }
 
@@ -79,6 +100,12 @@
     align-items: center;
     justify-content: center;
     color: var(--text-primary);
+}
+
+.tree-node .expand-button-placeholder {
+    cursor: default;
+    opacity: 0.85;
+    pointer-events: none;
 }
 
 .file-icon-wrapper {
@@ -95,8 +122,79 @@
     user-select: none;
 }
 
-.drop-target {
+.file-tree-name-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex: 1;
+    min-width: 0;
+}
+
+.file-tree-name-input-leading {
+    margin-right: 6px;
+}
+
+.file-tree-name-input-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    margin-top: -3px;
+    margin-bottom: -3px;
+    margin-right: -8px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    background-color: #323741;
+    border-radius: 2px;
+}
+
+.tree-node.tree-node-editing.selected .file-tree-name-input-field {
+    background-color: #323741;
+}
+
+.file-tree-name-input {
+    width: 100%;
+    height: 100%;
+    min-height: 17px;
+    border: none;
+    border-radius: 2px;
+    background-color: transparent;
+    color: var(--text-primary);
+    font-size: 13px;
+    line-height: 15px;
+    font-family: inherit;
+    padding: 0 5px;
+    outline: none;
+}
+
+.file-tree-name-input::selection {
     background-color: var(--bg-selection);
+    color: var(--text-bright);
+}
+
+.file-tree-name-input-error {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    z-index: 35;
+    padding: 4px 8px;
+    background-color: #df767f;
+    color: var(--bg-panel);
+    font-size: 12px;
+    line-height: 1.3;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    pointer-events: none;
+}
+
+.drop-target {
+    background-color: var(--bg-hover);
     /* outline: 1px solid var(--accent); */
 }
 

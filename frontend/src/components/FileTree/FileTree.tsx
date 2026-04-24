@@ -12,12 +12,17 @@ import { FileSystemManager } from '@/core/fileSystemManager'
 import { useTabs } from '@/contextProviders/TabsProvider'
 import FileTreeRoot from '@/components/FileTree/FileTreeRoot'
 import IdeContextMenu from '@/components/IdeContextMenu/IdeContextMenu'
+import FileTreeInput from '@/components/FileTree/FileTreeInput'
+import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { buildFileTreeContextMenuSections } from '@/components/FileTree/fileTreeContextMenuSections'
 import { MAX_PROJECT_FILES } from '@/config'
 import type { FileTreeContextMenuState } from '@/components/FileTree/fileTreeContextMenuSections'
 import type { NullableString } from '@/utils/types'
 import type { TreeNode } from '@/core/fileTreeManager'
 import type { NodeType } from '@/core/fileSystemManager'
+import type { FileTreeEditState } from '@/components/FileTree/FileTreeItem'
+import * as err from '@/errors/fileSystem'
+import { validateNodeName } from '@/utils/validators'
 
 import '@/components/FileTree/FileTree.css'
 
@@ -41,18 +46,37 @@ function isPointerLikeEvent(event: Event): event is Event & PointerLikeEvent {
     )
 }
 
+type DeleteTarget = {
+    id: string
+    name: string
+    type: NodeType
+}
+
 function FileTree({ canWrite }: Props): JSX.Element {
     const fileSystemManager = useService(FileSystemManager)
-    const { tree, selectedId, fileTreeManager } = useFileTree()
+    const { tree, expanded, selectedId, fileTreeManager } = useFileTree()
     const { activeId } = useTabs()
     const [contextMenu, setContextMenu] = useState<FileTreeContextMenuState | null>(null)
     const [draggedId, setDraggedId] = useState<string | null>(null)
     const [dragPreviewOffset, setDragPreviewOffset] = useState({ x: 16, y: 10 })
+    const [editState, setEditState] = useState<FileTreeEditState | null>(null)
+    const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
 
     const fileLimitReached = canWrite && countFiles(tree) >= MAX_PROJECT_FILES
 
     const closeMenu = () => {
         setContextMenu(null)
+    }
+
+    const beginCreate = (kind: NodeType, parentId: NullableString) => {
+        if (parentId !== null && !expanded.has(parentId)) {
+            fileTreeManager.toggleExpand(parentId)
+        }
+        setEditState({ mode: 'create', type: kind, parentId })
+    }
+
+    const beginRename = (nodeId: string) => {
+        setEditState({ mode: 'rename', nodeId })
     }
 
     useEffect(() => {
@@ -83,7 +107,11 @@ function FileTree({ canWrite }: Props): JSX.Element {
             targetParentId = targetNode.type === 'dir' ? targetId : targetNode.parentId
         }
 
-        fileSystemManager.move(sourceId, targetParentId)
+        try {
+            fileSystemManager.move(sourceId, targetParentId)
+        } catch (error) {
+            window.alert(mapMoveError(error))
+        }
     }
 
     const handleDragStart: DragStartEvent = (event) => {
@@ -110,22 +138,14 @@ function FileTree({ canWrite }: Props): JSX.Element {
 
     const handleCreateFile = (parentIdOverride?: NullableString) => {
         if (!canWrite || fileLimitReached) return
-        const name = prompt('File name:')
-        if (name) {
-            const targetParentId =
-                parentIdOverride === undefined ? fileTreeManager.getTargetParentId() : parentIdOverride
-            fileSystemManager.create(name, 'file', targetParentId)
-        }
+        const targetParentId = parentIdOverride === undefined ? fileTreeManager.getTargetParentId() : parentIdOverride
+        beginCreate('file', targetParentId)
     }
 
     const handleCreateDir = (parentIdOverride?: NullableString) => {
         if (!canWrite) return
-        const name = prompt('Directory name:')
-        if (name) {
-            const targetParentId =
-                parentIdOverride === undefined ? fileTreeManager.getTargetParentId() : parentIdOverride
-            fileSystemManager.create(name, 'dir', targetParentId)
-        }
+        const targetParentId = parentIdOverride === undefined ? fileTreeManager.getTargetParentId() : parentIdOverride
+        beginCreate('dir', targetParentId)
     }
 
     const canRenameOrDelete = canWrite && !!selectedId && selectedId !== 'root'
@@ -135,10 +155,51 @@ function FileTree({ canWrite }: Props): JSX.Element {
         const targetId = nodeId ?? selectedId
         if (!targetId || targetId === 'root') return
 
-        const meta = fileSystemManager.getMeta(targetId)
-        const newName = prompt('Rename to:', meta.name)
-        if (newName) {
-            fileSystemManager.rename(targetId, newName)
+        beginRename(targetId)
+    }
+
+    const handleCancelEdit = () => {
+        setEditState(null)
+    }
+
+    const mapEditError = (error: unknown): string => {
+        if (error instanceof err.InvalidNodeNameError) {
+            return 'Invalid name'
+        }
+        if (error instanceof err.NodeNameConflictError) {
+            return 'Name already exists in this directory'
+        }
+        return 'Could not apply this name'
+    }
+
+    const mapMoveError = (error: unknown): string => {
+        if (error instanceof err.NodeNameConflictError) {
+            return 'Name already exists in the target directory'
+        }
+        return 'Could not move this item'
+    }
+
+    const handleConfirmEdit = (value: string): string | null => {
+        if (!editState) {
+            return null
+        }
+
+        const trimmedValue = value.trim()
+        const validation = validateNodeName(trimmedValue)
+        if (!validation.valid) {
+            return validation.msg ?? 'Invalid name'
+        }
+
+        try {
+            if (editState.mode === 'create') {
+                fileSystemManager.create(trimmedValue, editState.type, editState.parentId)
+            } else {
+                fileSystemManager.rename(editState.nodeId, trimmedValue)
+            }
+            setEditState(null)
+            return null
+        } catch (error) {
+            return mapEditError(error)
         }
     }
 
@@ -148,9 +209,11 @@ function FileTree({ canWrite }: Props): JSX.Element {
         if (!targetId || targetId === 'root') return
 
         const meta = fileSystemManager.getMeta(targetId)
-        if (confirm(`Delete ${meta.name}?`)) {
-            fileSystemManager.delete(targetId)
-        }
+        setDeleteTarget({
+            id: targetId,
+            name: meta.name,
+            type: meta.type,
+        })
     }
 
     const handleNodeContextMenu = (nodeId: string, nodeType: NodeType, x: number, y: number) => {
@@ -215,6 +278,17 @@ function FileTree({ canWrite }: Props): JSX.Element {
             />
             <DragDropProvider onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
                 <FileTreeRoot onContextMenu={handleRootContextMenu}>
+                    {editState?.mode === 'create' && editState.parentId === null && (
+                        <div className='tree-node tree-node-create-row' style={{ paddingLeft: 12 }}>
+                            <div className='tree-node-left'>
+                                <FileTreeInput
+                                    createType={editState.type}
+                                    onConfirm={handleConfirmEdit}
+                                    onCancel={handleCancelEdit}
+                                />
+                            </div>
+                        </div>
+                    )}
                     {tree.map((node) => (
                         <FileTreeItem
                             key={node.id}
@@ -222,6 +296,9 @@ function FileTree({ canWrite }: Props): JSX.Element {
                             level={0}
                             canWrite={canWrite}
                             onContextMenu={handleNodeContextMenu}
+                            editState={editState}
+                            onConfirmEdit={handleConfirmEdit}
+                            onCancelEdit={handleCancelEdit}
                         />
                     ))}
                 </FileTreeRoot>
@@ -242,6 +319,22 @@ function FileTree({ canWrite }: Props): JSX.Element {
                 anchorPoint={contextMenu ? { x: contextMenu.x, y: contextMenu.y } : null}
                 className='file-tree-context-menu-panel'
             />
+            {deleteTarget != null && (
+                <ConfirmModal
+                    title={deleteTarget.type === 'dir' ? 'Delete directory' : 'Delete file'}
+                    message={
+                        deleteTarget.type === 'dir'
+                            ? `Are you sure you want to delete "${deleteTarget.name}" and all of its contents? This action cannot be undone.`
+                            : `Are you sure you want to delete "${deleteTarget.name}"? This action cannot be undone.`
+                    }
+                    confirmLabel='Delete'
+                    pendingLabel='Deleting...'
+                    onConfirm={async () => {
+                        fileSystemManager.delete(deleteTarget.id)
+                    }}
+                    onClose={() => setDeleteTarget(null)}
+                />
+            )}
         </div>
     )
 }
