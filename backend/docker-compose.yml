@@ -10,6 +10,7 @@ services:
         depends_on:
             init:
                 condition: service_completed_successfully
+        restart: unless-stopped
     worker:
         build: .
         command: node ./bin/worker.js --no-colors
@@ -19,6 +20,7 @@ services:
         depends_on:
             init:
                 condition: service_completed_successfully
+        restart: unless-stopped
     valkey:
         image: valkey/valkey:alpine
         ports:
@@ -30,6 +32,7 @@ services:
             interval: 5s
             timeout: 5s
             retries: 5
+        restart: unless-stopped
     postgres:
         image: postgres:16-alpine
         ports:
@@ -45,6 +48,7 @@ services:
             interval: 5s
             timeout: 5s
             retries: 5
+        restart: unless-stopped
     minio:
         image: minio/minio:latest
         ports:
@@ -62,6 +66,7 @@ services:
             timeout: 5s
             retries: 5
             start_period: 5s
+        restart: unless-stopped
     init:
         build: .
         command: sh -c "sleep 5 && node ./bin/init-db.js && echo done"
@@ -75,6 +80,7 @@ services:
                 condition: service_healthy
             minio:
                 condition: service_healthy
+        restart: "no"
 
 volumes:
     postgres_data:

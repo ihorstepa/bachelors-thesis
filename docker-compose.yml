@@ -19,6 +19,7 @@ services:
             - caddy_config:/config
         depends_on:
             - frontend
+        restart: unless-stopped
 
 volumes:
     caddy_data:
