@@ -67,7 +67,7 @@ function Dashboard() {
                     setActiveNav(nav)
                     setIsSidebarOpen(false)
                 }}
-                onSignOut={() => {
+                onLogout={() => {
                     auth.logout()
                     setIsSidebarOpen(false)
                     navigate('/auth')

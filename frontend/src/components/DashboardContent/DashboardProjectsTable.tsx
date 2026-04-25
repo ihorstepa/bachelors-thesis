@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { useAuth } from '@/contextProviders/AuthProvider'
@@ -21,28 +21,28 @@ function DashboardProjectsTable({ projects, onOpenMembers, onRenameProject, onDe
     const { toggleFavorite } = useProjects()
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
     const [openMenuProjectId, setOpenMenuProjectId] = useState<string | null>(null)
+    const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null)
     const currentUserId = String(auth.user?.id ?? '')
     const currentUsername = auth.user?.username ?? 'Anonymous'
 
-    useEffect(() => {
-        if (openMenuProjectId == null) {
+    const closeMenu = () => {
+        setOpenMenuProjectId(null)
+        setMenuPosition(null)
+    }
+
+    const onToggleProjectMenu = (id: string, position?: { x: number; y: number }) => {
+        if (position != null) {
+            setOpenMenuProjectId(id)
+            setMenuPosition(position)
             return
         }
-
-        const handlePointerDown = (event: PointerEvent) => {
-            const target = event.target
-            if (!(target instanceof Element)) {
-                return
-            }
-            if (target.closest('.project-menu-wrap') != null) {
-                return
-            }
-            setOpenMenuProjectId(null)
+        if (openMenuProjectId === id) {
+            closeMenu()
+        } else {
+            setOpenMenuProjectId(id)
+            setMenuPosition(null)
         }
-
-        window.addEventListener('pointerdown', handlePointerDown)
-        return () => window.removeEventListener('pointerdown', handlePointerDown)
-    }, [openMenuProjectId])
+    }
 
     return (
         <table className='dashboard-table'>
@@ -75,13 +75,15 @@ function DashboardProjectsTable({ projects, onOpenMembers, onRenameProject, onDe
                             currentUsername={currentUsername}
                             isSelected={isSelected}
                             isMenuOpen={isMenuOpen}
+                            menuPosition={isMenuOpen ? menuPosition : null}
                             onSelect={setSelectedProjectId}
                             onOpenProject={(id) => navigate(`/ide/${id}`)}
                             onOpenMembers={onOpenMembers}
-                            onToggleProjectMenu={(id) => setOpenMenuProjectId((prev) => (prev === id ? null : id))}
-                            onCloseProjectMenu={() => setOpenMenuProjectId(null)}
-                            onToggleFavorite={(id, nextFavorited) => {
-                                void toggleFavorite(id, nextFavorited)
+                            onToggleProjectMenu={onToggleProjectMenu}
+                            onCloseProjectMenu={closeMenu}
+                            onToggleFavorite={(projectId, nextFavorited) => {
+                                closeMenu()
+                                toggleFavorite(projectId, nextFavorited)
                             }}
                             onRenameProject={onRenameProject}
                             onDeleteProject={() => onDeleteProject(project)}

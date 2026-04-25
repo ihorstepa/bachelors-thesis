@@ -6,6 +6,7 @@ import { useProjects } from '@/contextProviders/ProjectsProvider'
 import type { ProjectPreview } from '@/core/projectManager'
 import type { DashboardNav } from '@/components/DashboardSidebar/DashboardSidebar'
 import DashboardProjectsTable from '@/components/DashboardContent/DashboardProjectsTable'
+
 import '@/components/DashboardContent/DashboardContent.css'
 
 function filterByNav(projects: ProjectPreview[], activeNav: DashboardNav, currentUserId: string): ProjectPreview[] {

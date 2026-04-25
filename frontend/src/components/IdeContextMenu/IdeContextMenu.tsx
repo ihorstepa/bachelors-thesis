@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { CSSProperties } from 'react'
 
 import '@/components/IdeContextMenu/IdeContextMenu.css'
@@ -26,6 +27,7 @@ type Props = {
     lockScroll?: boolean
     anchorPoint?: FloatingPoint | null
     isWithinBoundary?: (target: Node) => boolean
+    floating?: boolean
     className?: string
 }
 
@@ -36,27 +38,34 @@ function IdeContextMenu({
     lockScroll = false,
     anchorPoint = null,
     isWithinBoundary,
+    floating = false,
     className,
 }: Props) {
     const wrapperRef = useRef<HTMLDivElement>(null)
     const panelRef = useRef<HTMLDivElement>(null)
     const [panelStyle, setPanelStyle] = useState<CSSProperties>({})
 
+    const getPositionStyle = (left: number, top: number): CSSProperties => {
+        return floating ? { position: 'fixed', left, top } : { left, top }
+    }
+
     useLayoutEffect(() => {
         if (!isOpen || !anchorPoint) {
             setPanelStyle({})
-        } else {
-            setPanelStyle({ left: anchorPoint.x, top: anchorPoint.y })
+            return
         }
-    }, [anchorPoint, isOpen])
-
-    useLayoutEffect(() => {
-        if (!isOpen || !anchorPoint || !panelRef.current) return
 
         const viewportPadding = 8
-        const rect = panelRef.current.getBoundingClientRect()
         let left = anchorPoint.x
         let top = anchorPoint.y
+
+        const panel = panelRef.current
+        if (!panel) {
+            setPanelStyle(getPositionStyle(left, top))
+            return
+        }
+
+        const rect = panel.getBoundingClientRect()
 
         if (left + rect.width > window.innerWidth - viewportPadding) {
             left = Math.max(viewportPadding, window.innerWidth - rect.width - viewportPadding)
@@ -64,8 +73,9 @@ function IdeContextMenu({
         if (top + rect.height > window.innerHeight - viewportPadding) {
             top = Math.max(viewportPadding, window.innerHeight - rect.height - viewportPadding)
         }
-        setPanelStyle({ left, top })
-    }, [anchorPoint, isOpen])
+
+        setPanelStyle(getPositionStyle(left, top))
+    }, [anchorPoint, floating, isOpen])
 
     useEffect(() => {
         if (!isOpen) return
@@ -119,40 +129,38 @@ function IdeContextMenu({
         onClose()
     }
 
-    return (
-        <>
-            {isOpen && (
-                <div className='ide-context-menu' ref={wrapperRef}>
-                    <div
-                        ref={panelRef}
-                        style={anchorPoint ? panelStyle : undefined}
-                        className={`ide-context-menu-panel ${className ?? ''}`}
-                        role='menu'
-                    >
-                        {sections.map((section, sectionIndex) => (
-                            <div className='ide-context-menu-section' key={`section-${sectionIndex}`}>
-                                {section.map((item) => (
-                                    <button
-                                        key={item.id}
-                                        type='button'
-                                        role='menuitem'
-                                        className={`ide-context-menu-item ${item.className ?? ''}`}
-                                        disabled={item.disabled}
-                                        onClick={() => handleSelect(item)}
-                                    >
-                                        <span className='ide-context-menu-item-label'>{item.label}</span>
-                                        {item.shortcut && (
-                                            <span className='ide-context-menu-item-shortcut'>{item.shortcut}</span>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
+    const menu = isOpen ? (
+        <div className={floating ? 'ide-context-menu-floating' : 'ide-context-menu'} ref={wrapperRef}>
+            <div
+                ref={panelRef}
+                style={anchorPoint ? panelStyle : undefined}
+                className={`ide-context-menu-panel ${className ?? ''}`}
+                role='menu'
+            >
+                {sections.map((section, sectionIndex) => (
+                    <div className='ide-context-menu-section' key={`section-${sectionIndex}`}>
+                        {section.map((item) => (
+                            <button
+                                key={item.id}
+                                type='button'
+                                role='menuitem'
+                                className={`ide-context-menu-item ${item.className ?? ''}`}
+                                disabled={item.disabled}
+                                onClick={() => handleSelect(item)}
+                            >
+                                <span className='ide-context-menu-item-label'>{item.label}</span>
+                                {item.shortcut && (
+                                    <span className='ide-context-menu-item-shortcut'>{item.shortcut}</span>
+                                )}
+                            </button>
                         ))}
                     </div>
-                </div>
-            )}
-        </>
-    )
+                ))}
+            </div>
+        </div>
+    ) : null
+
+    return <>{floating ? createPortal(menu, document.body) : menu}</>
 }
 
 export default IdeContextMenu

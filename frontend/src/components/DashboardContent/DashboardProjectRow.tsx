@@ -48,10 +48,11 @@ type Props = {
     currentUsername: string
     isSelected: boolean
     isMenuOpen: boolean
+    menuPosition: { x: number; y: number } | null
     onSelect(projectId: string): void
     onOpenProject(projectId: string): void
     onOpenMembers(project: ProjectPreview): void
-    onToggleProjectMenu(projectId: string): void
+    onToggleProjectMenu(projectId: string, position?: { x: number; y: number }): void
     onCloseProjectMenu(): void
     onToggleFavorite(projectId: string, nextFavorited: boolean): void
     onRenameProject(project: ProjectPreview): void
@@ -64,6 +65,7 @@ function DashboardProjectRow({
     currentUsername,
     isSelected,
     isMenuOpen,
+    menuPosition,
     onSelect,
     onOpenProject,
     onOpenMembers,
@@ -130,12 +132,19 @@ function DashboardProjectRow({
         closeMenu()
     }
 
+    const handleContextMenu = (event: React.MouseEvent<HTMLTableRowElement>) => {
+        event.preventDefault()
+        onSelect(projectId)
+        onToggleProjectMenu(projectId, { x: event.clientX, y: event.clientY })
+    }
+
     return (
         <tr
             className={rowClass}
             onClick={() => onSelect(projectId)}
             onDoubleClick={openProject}
             onTouchEnd={handleTouchEnd}
+            onContextMenu={handleContextMenu}
         >
             <td>
                 {project.accessType === 'r' && (
@@ -173,6 +182,7 @@ function DashboardProjectRow({
                         isOpen={isMenuOpen}
                         isOwner={isOwner}
                         favorited={project.favorited}
+                        position={menuPosition}
                         onToggleMenu={() => onToggleProjectMenu(projectId)}
                         onOpen={handleOpenAction}
                         onToggleFavorite={handleFavoriteAction}

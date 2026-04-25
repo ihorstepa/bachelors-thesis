@@ -191,6 +191,7 @@
     margin-left: -7px;
     flex-shrink: 0;
     background: color-mix(in srgb, var(--accent) 70%, #222);
+    user-select: none;
 }
 
 .project-collab-dot:first-child {
@@ -232,42 +233,47 @@
     color: var(--text-primary);
 }
 
-.project-menu-dropdown {
-    position: absolute;
-    right: 0;
-    top: calc(100% + 6px);
+.dashboard-project-menu-panel {
     min-width: 180px;
+    max-height: calc(100vh - 16px);
+    overflow-y: auto;
     background: var(--bg-panel);
     border: 1px solid var(--border);
     border-radius: 8px;
     box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
     padding: 6px;
-    z-index: 120;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
 }
 
-.project-menu-item {
-    border: none;
-    background: transparent;
-    color: var(--text-primary);
-    text-align: left;
+.dashboard-project-menu-panel .ide-context-menu-section {
+    padding: 0;
+}
+
+.dashboard-project-menu-panel .ide-context-menu-section + .ide-context-menu-section {
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+    padding-top: 4px;
+}
+
+.dashboard-project-menu-panel .ide-context-menu-item {
+    display: flex;
     padding: 8px 10px;
     border-radius: 6px;
-    font-size: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
     font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 13px;
+    color: var(--text-primary);
 }
 
-.project-menu-item:hover {
+.dashboard-project-menu-panel .ide-context-menu-item:hover:not(:disabled) {
     background-color: var(--bg-hover);
+    color: var(--text-primary);
 }
 
-.project-menu-item-danger {
+.dashboard-menu-item-danger {
+    color: var(--color-red);
+}
+
+.dashboard-project-menu-panel .ide-context-menu-item.dashboard-menu-item-danger:hover:not(:disabled),
+.dashboard-project-menu-panel .ide-context-menu-item.dashboard-menu-item-danger:not(:disabled) {
     color: var(--color-red);
 }
 

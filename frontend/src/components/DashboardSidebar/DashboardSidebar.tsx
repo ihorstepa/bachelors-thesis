@@ -18,10 +18,10 @@ type Props = {
     email: string
     activeNav: DashboardNav
     onNavChange(nav: DashboardNav): void
-    onSignOut(): void
+    onLogout(): void
 }
 
-function DashboardSidebar({ userInitial, username, email, activeNav, onNavChange, onSignOut }: Props) {
+function DashboardSidebar({ userInitial, username, email, activeNav, onNavChange, onLogout }: Props) {
     return (
         <aside className='dashboard-sidebar'>
             <div className='dashboard-sidebar-account'>
@@ -47,17 +47,17 @@ function DashboardSidebar({ userInitial, username, email, activeNav, onNavChange
             <div className='dashboard-nav-divider' />
 
             <div className='dashboard-sidebar-bottom'>
-                <button type='button' className='dashboard-nav-item'>
+                <button type='button' className='dashboard-nav-item' disabled title='Unavailable'>
                     <span className='dashboard-nav-icon'>
                         <VscSettingsGear size={15} />
                     </span>
                     Settings
                 </button>
-                <button type='button' className='dashboard-nav-item' onClick={onSignOut}>
+                <button type='button' className='dashboard-nav-item' onClick={onLogout}>
                     <span className='dashboard-nav-icon'>
                         <VscSignOut size={15} />
                     </span>
-                    Sign out
+                    Logout
                 </button>
             </div>
         </aside>
