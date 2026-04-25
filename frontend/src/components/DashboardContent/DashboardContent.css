@@ -20,7 +20,7 @@
 .dashboard-empty p {
     font-size: 12px;
     margin: 0;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
 }
 
 .dashboard-error {
@@ -30,10 +30,10 @@
     justify-content: center;
     gap: 12px;
     padding: 80px 0;
-    color: var(--color-red);
+    color: var(--red);
     text-align: center;
     font-size: 13px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
 }
 
 .dashboard-retry-btn {
@@ -41,12 +41,12 @@
     align-items: center;
     gap: 6px;
     background: none;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     padding: 6px 12px;
     color: var(--text-muted);
     font-size: 12px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     cursor: pointer;
     transition:
         color 0.12s,
@@ -74,6 +74,6 @@
         overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
         touch-action: pan-y;
-        min-height: calc(100dvh - 61px);
+        min-height: calc(100dvh - var(--dashboard-topbar-height));
     }
 }

@@ -1,6 +1,6 @@
 .spinner {
-    border: 1.5px solid #3e4451;
-    border-top-color: #abb2bf;
+    border: 1.5px solid var(--bg-selection);
+    border-top-color: var(--text-primary);
     border-radius: 50%;
     animation: spinner-rotate 0.75s linear infinite;
     flex-shrink: 0;

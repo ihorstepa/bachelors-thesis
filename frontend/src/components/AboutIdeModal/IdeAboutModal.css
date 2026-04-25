@@ -1,12 +1,12 @@
 .ide-about-modal {
-    width: min(500px, 100%);
+    width: min(var(--modal-width-about), 100%);
     background: var(--bg-panel);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 24px 60px var(--shadow-md);
     padding: 24px;
     animation: modal-in 0.18s ease both;
-    font-family: 'Bricolage Grotesque', sans-serif;
+    font-family: var(--font-sans);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -30,8 +30,11 @@
     border: none;
     cursor: pointer;
     color: var(--text-muted);
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
+    width: var(--control-size-sm);
+    height: var(--control-size-sm);
     padding: 4px;
     border-radius: 4px;
     transition:
@@ -39,7 +42,24 @@
         background 0.15s;
 }
 
-.ide-about-modal-close:hover {
+.ide-about-modal-close:hover:not(:disabled) {
     color: var(--text-primary);
     background: var(--bg-hover);
+}
+
+.ide-about-modal-close:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.ide-about-modal-close:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ide-about-modal p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
 }

@@ -1,5 +1,5 @@
 .overlay-scrollbar--tabs {
-    background: var(--border);
+    background: var(--border-color);
     border-bottom: 1px solid var(--bg-panel);
     height: 100%;
     box-sizing: border-box;
@@ -28,9 +28,9 @@
     --os-track-bg: transparent;
     --os-track-bg-hover: transparent;
     --os-track-bg-active: transparent;
-    --os-handle-bg: rgb(121 121 121 / 40%);
-    --os-handle-bg-hover: rgb(100 100 100 / 70%);
-    --os-handle-bg-active: rgb(191 191 191 / 40%);
+    --os-handle-bg: var(--scrollbar-handle);
+    --os-handle-bg-hover: var(--scrollbar-handle-hover);
+    --os-handle-bg-active: var(--scrollbar-handle-active);
     --os-handle-border-radius: 0;
     --os-handle-min-size: 26px;
     --os-handle-perpendicular-size: 100%;
@@ -47,9 +47,9 @@
     --os-track-bg: transparent;
     --os-track-bg-hover: transparent;
     --os-track-bg-active: transparent;
-    --os-handle-bg: rgb(121 121 121 / 36%);
-    --os-handle-bg-hover: rgb(100 100 100 / 60%);
-    --os-handle-bg-active: rgb(191 191 191 / 36%);
+    --os-handle-bg: var(--scrollbar-handle);
+    --os-handle-bg-hover: var(--scrollbar-handle-hover);
+    --os-handle-bg-active: var(--scrollbar-handle-active);
     --os-handle-border-radius: 0;
     --os-handle-min-size: 16px;
     --os-handle-perpendicular-size: 100%;

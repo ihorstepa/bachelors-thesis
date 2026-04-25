@@ -1,11 +1,9 @@
 .ide {
-    --ide-topbar-height: 36px;
-    --ide-tabs-height: 36px;
-    --ide-statusbar-height: 22px;
+    --ide-tabs-current-height: var(--ide-tabs-height);
     display: grid;
     grid-template:
         'topbar  topbar ' var(--ide-topbar-height)
-        'sidebar tabs   ' var(--ide-tabs-height)
+        'sidebar tabs   ' var(--ide-tabs-current-height)
         'sidebar editor ' 1fr
         'statusbar statusbar' var(--ide-statusbar-height)
         / auto 1fr;
@@ -17,7 +15,7 @@
 }
 
 .ide.no-tabs {
-    --ide-tabs-height: 0px;
+    --ide-tabs-current-height: 0;
 }
 
 .ide-workbench {
@@ -28,7 +26,6 @@
     display: grid;
     grid-template-rows: minmax(0, 1fr);
     background: var(--bg-base);
-    /* border-top: 1px solid var(--border); */
 }
 
 .ide-workbench > * {
@@ -37,7 +34,7 @@
 }
 
 .ide-workbench.with-terminal {
-    grid-template-rows: minmax(0, 1fr) 220px;
+    grid-template-rows: minmax(0, 1fr) var(--ide-terminal-height);
 }
 
 .ide-route-state {
@@ -67,7 +64,7 @@
 
 .ide-route-button {
     margin-top: 4px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-color);
     background: var(--bg-panel);
     color: var(--text-primary);
     border-radius: 8px;
@@ -84,9 +81,9 @@
     .ide {
         grid-template:
             'topbar topbar' var(--ide-topbar-height)
-            'sidebar tabs' var(--ide-tabs-height)
+            'sidebar tabs' var(--ide-tabs-current-height)
             'sidebar editor' 1fr
             'statusbar statusbar' var(--ide-statusbar-height)
-            / 48px 1fr;
+            / var(--sidebar-rail-width) 1fr;
     }
 }

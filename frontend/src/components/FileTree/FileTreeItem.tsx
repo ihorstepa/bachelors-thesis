@@ -104,7 +104,7 @@ export function FileTreeItem({
                 }}
                 title={node.name}
                 className={`tree-node ${isRenameEditing ? 'tree-node-editing' : ''} ${selectedId === node.id ? 'selected' : ''} ${isDropTarget ? 'drop-target' : ''} ${isDragging ? 'dragging' : ''}`}
-                style={{ paddingLeft: level * 20 + 12 }}
+                style={{ paddingLeft: `calc(${level} * var(--tree-indent-step) + var(--tree-indent-base))` }}
                 data-tree-node-id={node.id}
                 data-tree-node-type={node.type}
                 onClick={handleRowClick}
@@ -157,7 +157,10 @@ export function FileTreeItem({
                 )}
             </div>
             {showCreateChildRow && (
-                <div className='tree-node tree-node-create-row' style={{ paddingLeft: (level + 1) * 20 + 12 }}>
+                <div
+                    className='tree-node tree-node-create-row'
+                    style={{ paddingLeft: `calc(${level + 1} * var(--tree-indent-step) + var(--tree-indent-base))` }}
+                >
                     <div className='tree-node-left'>
                         <FileTreeInput createType={editState.type} onConfirm={onConfirmEdit} onCancel={onCancelEdit} />
                     </div>

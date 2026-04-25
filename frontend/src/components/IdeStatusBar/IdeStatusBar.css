@@ -4,7 +4,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: flex-end;
-    background: var(--border);
+    background: var(--border-color);
     color: var(--text-bright);
     user-select: none;
     gap: 6px;
@@ -24,11 +24,5 @@
 
 .ide-statusbar button:hover {
     opacity: 1;
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.ide-statusbar-right {
-    margin-left: auto;
-    display: flex;
-    gap: 16px;
+    background: var(--hover-overlay);
 }

@@ -3,25 +3,25 @@
 }
 
 .file-icon-default {
-    color: var(--text-primary);
+    color: var(--icon-color-default);
 }
 
 .file-icon-h,
 .file-icon-hpp,
 .file-icon-hxx {
-    color: #c379bf;
+    color: var(--icon-color-header);
 }
 
 .file-icon-c,
 .file-icon-cpp,
 .file-icon-cxx {
-    color: #61afef;
+    color: var(--icon-color-cpp);
 }
 
 .file-icon-json {
-    color: #e5c07b;
+    color: var(--icon-color-json);
 }
 
 .file-icon-md {
-    color: #797ac3;
+    color: var(--icon-color-markdown);
 }

@@ -15,7 +15,7 @@
     align-items: center;
     gap: 6px;
     padding: 0 12px;
-    color: #636d83;
+    color: var(--text-muted);
     cursor: pointer;
     white-space: nowrap;
     max-width: 160px;
@@ -67,5 +67,5 @@
 }
 
 .tab-close:hover {
-    background: #3e4451;
+    background: var(--bg-selection);
 }

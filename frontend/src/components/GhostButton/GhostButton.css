@@ -21,7 +21,7 @@
 }
 
 .ghost-btn.danger:hover:not(:disabled) {
-    color: var(--color-red);
+    color: var(--red);
 }
 
 .ghost-btn:disabled {

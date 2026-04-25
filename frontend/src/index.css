@@ -1,21 +1,127 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Bricolage+Grotesque:wght@400;500;600;700&display=swap');
+
 :root {
+    /* ========== TYPOGRAPHY ========== */
+    --font-sans: 'Bricolage Grotesque', 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+
+    /* ========== SPACING SCALE ========== */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+
+    /* ========== COMMON SIZE TOKENS ========== */
+    --icon-size-sm: 16px;
+    --avatar-size: 30px;
+
+    --control-size-xs: 22px;
+    --control-size-sm: 24px;
+    --control-size: 36px;
+    --icon-button-size: 32px;
+    --input-height: 40px;
+    --button-height-lg: 42px;
+
+    --search-input-height: 27px;
+    --search-input-height-mobile: 25px;
+
+    --panel-min-width: 180px;
+    --menu-min-width: 250px;
+
+    --control-radius: 8px;
+    --modal-radius: 12px;
+    --modal-padding: var(--space-6);
+
+    /* ========== PAGE STRUCTURE SIZES ========== */
+    --dashboard-topbar-height: 60px;
+    --dashboard-sidebar-width: 220px;
+    --dashboard-sidebar-width-md: 190px;
+    --dashboard-sidebar-width-mobile: 300px;
+    --dashboard-sidebar-width-mobile-vw: 70vw;
+
+    --ide-topbar-height: 36px;
+    --ide-tabs-height: 36px;
+    --ide-statusbar-height: 22px;
+    --ide-terminal-height: 220px;
+
+    --sidebar-rail-width: 48px;
+    --sidebar-panel-width: 240px;
+
+    --ide-terminal-header-height: 34px;
+
+    --modal-width-confirm: 420px;
+    --modal-width-project: 440px;
+    --modal-width-auth: 460px;
+    --modal-width-about: 500px;
+    --modal-width-members: 600px;
+    --modal-max-height-members: 760px;
+
+    /* ========== BACKGROUND COLORS ========== */
     --bg-base: #282c34;
     --bg-panel: #21252b;
     --bg-hover: #2c313a;
     --bg-active: #282c34;
     --bg-selection: #3e4451;
+    --bg-input: #2c313a;
+    --bg-input-dark: #16191e;
 
-    --border: #181a1f;
+    /* ========== BORDER & DIVIDER COLORS ========== */
+    --border-color: #181a1f;
+    --border-color-soft: #2c313a;
+    --border-focus: var(--border-color);
 
+    /* ========== TEXT COLORS ========== */
     --text-primary: #abb2bf;
+    --text-secondary: #abb2bf;
     --text-muted: #636d83;
     --text-bright: #ffffff;
 
+    /* ========== ACCENT & INTERACTIVE COLORS ========== */
     --accent: #528bff;
     --accent-dark: #3a6ed8;
 
-    --color-black: #080808;
-    --color-red: #e06c75;
+    /* ========== STATUS COLORS ========== */
+    --black: #080808;
+    --red: #e06c75;
+    --danger: #e05252;
+    --danger-light: #df767f;
+    --warning: #f4c56d;
+    --error: #f5a9ae;
+    --success: #98c379;
+
+    /* ========== BACKGROUND HIGHLIGHT COLORS ========== */
+    --bg-input-highlight: #323741;
+
+    /* ========== FILE TYPE ICON COLORS ========== */
+    --icon-color-default: var(--text-primary);
+    --icon-color-header: #c379bf;
+    --icon-color-cpp: #61afef;
+    --icon-color-json: #e5c07b;
+    --icon-color-markdown: #797ac3;
+
+    /* ========== NOTIFICATION COLORS ========== */
+    --notification-warning-text: #f4c56d;
+    --notification-warning-bg: rgb(42 35 21 / 92%);
+    --notification-warning-border: rgb(244 197 109 / 50%);
+    --notification-error-text: #f5a9ae;
+    --notification-error-bg: rgb(50 23 27 / 92%);
+    --notification-error-border: rgb(245 169 174 / 55%);
+
+    /* ========== SCROLLBAR COLORS ========== */
+    --scrollbar-handle: rgb(121 121 121 / 40%);
+    --scrollbar-handle-hover: rgb(100 100 100 / 70%);
+    --scrollbar-handle-active: rgb(191 191 191 / 40%);
+
+    /* ========== OVERLAY & TRANSPARENCY ========== */
+    --overlay-dark: rgba(0, 0, 0, 0.45);
+    --overlay-darker: rgba(0, 0, 0, 0.55);
+    --shadow-sm: rgba(0, 0, 0, 0.25);
+    --shadow-md: rgba(0, 0, 0, 0.5);
+    --button-active-overlay: rgba(0, 0, 0, 0.1);
+    --icon-hover-overlay: rgba(255, 255, 255, 0.05);
+    --hover-overlay: rgba(255, 255, 255, 0.15);
 }
 
 html,
@@ -25,7 +131,7 @@ body,
     margin: 0;
     overflow: hidden;
     background-color: var(--bg-panel);
-    font-family: 'Segoe UI', sans-serif;
+    font-family: var(--font-sans);
 }
 
 * {

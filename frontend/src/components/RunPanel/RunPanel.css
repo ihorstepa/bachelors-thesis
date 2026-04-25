@@ -23,7 +23,7 @@
     width: 100%;
     background: var(--bg-hover);
     color: var(--text-primary);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 6px;
     font-size: 12px;
@@ -49,7 +49,7 @@
 }
 
 .run-panel-btn {
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-color);
     background: var(--bg-panel);
     color: var(--text-primary);
     border-radius: 2px;
@@ -66,7 +66,7 @@
 }
 
 .run-panel-btn:active:enabled {
-    background: rgba(0, 0, 0, 0.1);
+    background: var(--button-active-overlay);
 }
 
 .run-panel-btn:disabled {
@@ -77,7 +77,7 @@
 .run-panel-btn-primary {
     border-color: var(--accent);
     background: var(--accent);
-    color: #fff;
+    color: var(--text-bright);
 }
 
 .run-panel-btn-primary:hover:enabled {
@@ -85,7 +85,6 @@
 }
 
 .run-panel-icon-btn {
-    /* border: 1px solid var(--border); */
     border: none;
     background: var(--bg-panel);
     color: var(--text-primary);
@@ -99,15 +98,15 @@
 }
 
 .run-panel-icon-btn.danger {
-    color: var(--color-red);
+    color: var(--red);
 }
 
 .run-panel-icon-btn:hover:enabled {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--icon-hover-overlay);
 }
 
 .run-panel-icon-btn:active:enabled {
-    background: rgba(0, 0, 0, 0.1);
+    background: var(--button-active-overlay);
 }
 
 .run-panel-icon-btn:disabled {
@@ -122,7 +121,7 @@
 }
 
 .run-panel-error {
-    color: var(--color-red);
+    color: var(--red);
 }
 
 .run-panel-link {

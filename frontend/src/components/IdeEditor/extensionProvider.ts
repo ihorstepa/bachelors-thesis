@@ -65,7 +65,7 @@ class ExtensionProvider {
             highlightSpecialChars(),
             indentationMarkers({
                 highlightActiveBlock: false,
-                colors: { dark: '#3b3f46' },
+                colors: { dark: 'var(--border-color-soft)' },
             }),
             indentOnInput(),
             indentUnit.of('    '),

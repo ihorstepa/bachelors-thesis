@@ -279,7 +279,7 @@ function FileTree({ canWrite }: Props): JSX.Element {
             <DragDropProvider onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
                 <FileTreeRoot onContextMenu={handleRootContextMenu}>
                     {editState?.mode === 'create' && editState.parentId === null && (
-                        <div className='tree-node tree-node-create-row' style={{ paddingLeft: 12 }}>
+                        <div className='tree-node tree-node-create-row' style={{ paddingLeft: 'var(--tree-indent-base)' }}>
                             <div className='tree-node-left'>
                                 <FileTreeInput
                                     createType={editState.type}

@@ -3,7 +3,7 @@
     align-items: center;
     gap: 10px;
     padding: 14px 24px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--border-color);
     flex-shrink: 0;
     position: relative;
     z-index: 151;
@@ -11,10 +11,10 @@
 
 .dashboard-menu-btn {
     display: none;
-    width: 36px;
-    height: 36px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    width: var(--control-size);
+    height: var(--control-size);
+    border: 1px solid var(--border-color);
+    border-radius: var(--control-radius);
     background: transparent;
     color: var(--text-muted);
     align-items: center;
@@ -32,9 +32,9 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background-color: var(--bg-input, #2c313a);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--control-radius);
     padding: 7px 12px;
     transition: border-color 0.15s;
     min-width: 0;
@@ -56,7 +56,7 @@
     color: var(--text-primary);
     font-size: 13px;
     width: 100%;
-    font-family: 'Bricolage Grotesque', sans-serif;
+    font-family: var(--font-sans);
 }
 
 .dashboard-search input::placeholder {
@@ -68,7 +68,7 @@
     display: flex;
     align-items: center;
     gap: 7px;
-    border-radius: 8px;
+    border-radius: var(--control-radius);
     font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
@@ -82,7 +82,7 @@
     background-color: color-mix(in srgb, var(--accent) 15%, transparent);
     border: 1px solid var(--accent);
     color: var(--accent);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     letter-spacing: 0.2px;
 }
 
@@ -92,10 +92,10 @@
 
 .dashboard-new-btn {
     background-color: var(--accent);
-    color: #fff;
+    color: var(--text-bright);
     border: none;
     padding: 8px 14px;
-    font-family: 'Bricolage Grotesque', sans-serif;
+    font-family: var(--font-sans);
 }
 
 .dashboard-new-btn:hover {
@@ -140,8 +140,8 @@
 
     .dashboard-playground-btn,
     .dashboard-new-btn {
-        width: 36px;
-        height: 36px;
+        width: var(--control-size);
+        height: var(--control-size);
         padding: 0;
         border-radius: 9px;
         justify-content: center;
