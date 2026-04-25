@@ -1,5 +1,5 @@
-import mixin from '@/utils/mixin'
 import { BaseService, Observable } from '@/core/general'
+import mixin from '@/utils/mixin'
 
 export type TabEvents = {
     readonly change: []

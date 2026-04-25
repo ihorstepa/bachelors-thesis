@@ -1,9 +1,9 @@
-import type { WASIFS, WASIExecutionResult } from '@runno/wasi'
+import type { WASIExecutionResult,WASIFS } from '@runno/wasi'
 
 import { wrappedMainPath } from '@/workers/codeRunner/mainWrapper'
 import { CompilerInstance } from '@/workers/codeRunner/pipeline/compilerInstance'
-import { isCppFile, isSourceFile, projectPath } from '@/workers/codeRunner/shared'
 import type { PipelineIo } from '@/workers/codeRunner/shared'
+import { isCppFile, isSourceFile, projectPath } from '@/workers/codeRunner/shared'
 
 export type CompilationResult = WASIExecutionResult & { objectFilePaths: string[] }
 

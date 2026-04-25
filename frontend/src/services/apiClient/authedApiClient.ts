@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '@/config'
-import type { AuthManager } from '@/core/authManager'
 import { ApiClient } from '@/core/apiClient'
+import type { AuthManager } from '@/core/authManager'
 import { HttpError, httpErrorFromResponse } from '@/errors/http'
 import { withTimeout } from '@/utils/functions'
 

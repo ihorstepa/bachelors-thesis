@@ -1,12 +1,14 @@
-import { useEffect } from 'react'
-import type { JSX } from 'react'
-
-import { useTabs } from '@/contextProviders/TabsProvider'
-import CodeMirror from '@/components/IdeEditor/CodeMirror'
-import { useService } from '@/contextProviders/ServiceProvider'
-import { PresenceService } from '@/core/presenceService'
-import NotificationPopup, { useNotifications } from '@/components/IdeEditor/IdeNotification'
 import '@/components/IdeEditor/IdeEditor.css'
+
+import type { JSX } from 'react'
+import { useCallback, useEffect } from 'react'
+
+import CodeMirror from '@/components/IdeEditor/CodeMirror'
+import NotificationPopup from '@/components/IdeEditor/IdeNotification'
+import { useNotifications } from '@/components/IdeEditor/useNotifications'
+import { useService } from '@/contextProviders/service/ServiceContext'
+import { useTabs } from '@/contextProviders/tabs/TabsContext'
+import { PresenceService } from '@/core/presenceService'
 
 type Props = {
     canWrite: boolean
@@ -17,13 +19,13 @@ function IdeEditor({ canWrite }: Props): JSX.Element {
     const { tabs, activeId } = useTabs()
     const { notifications, notify, dismiss, clear } = useNotifications()
 
-    const syncOfflinePopup = () => {
+    const syncOfflinePopup = useCallback(() => {
         if (navigator.onLine) {
             clear('offline')
         } else {
             notify('offline', 'error', 'Offline', true)
         }
-    }
+    }, [clear, notify])
 
     useEffect(() => {
         syncOfflinePopup()

@@ -1,20 +1,21 @@
-import { useState, useRef, useEffect } from 'react'
-import ReactCodeMirror from '@uiw/react-codemirror'
 import type { EditorView, ViewUpdate } from '@codemirror/view'
+import ReactCodeMirror from '@uiw/react-codemirror'
 import type { JSX } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import * as Y from 'yjs'
 
-import { useService } from '@/contextProviders/ServiceProvider'
+import ExtensionProvider from '@/components/IdeEditor/extensionProvider'
+import { getLanguageName } from '@/components/IdeEditor/extensions/language'
+import type { NotifyFn } from '@/components/IdeEditor/useNotifications'
+import Spinner from '@/components/Spinner/Spinner'
+import { useEditor } from '@/contextProviders/editor/EditorContext'
+import { useService } from '@/contextProviders/service/ServiceContext'
+import type { SharedFile } from '@/core/fileSyncManager'
 import { FileSyncManager } from '@/core/fileSyncManager'
+import type { NodeMeta } from '@/core/fileSystemManager'
+import { FileSystemManager } from '@/core/fileSystemManager'
 import { PresenceService } from '@/core/presenceService'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
-import type { SharedFile } from '@/core/fileSyncManager'
-import ExtensionProvider from './extensionProvider'
-import { FileSystemManager, type NodeMeta } from '@/core/fileSystemManager'
-import { useEditor } from '@/contextProviders/EditorProvider'
-import Spinner from '@/components/Spinner/Spinner'
-import type { NotifyFn } from './IdeNotification'
-import { getLanguageName } from './extensions/language'
 
 type Props = {
     fileId: string
@@ -31,13 +32,14 @@ function CodeMirror({ fileId, isActive, canWrite, onNotify }: Props): JSX.Elemen
     const [file, setFile] = useState<SharedFile | null>(null)
     const [meta, setMeta] = useState<NodeMeta | null>(null)
     const [isSynced, setIsSynced] = useState(false)
+    const [undoManager, setUndoManager] = useState<Y.UndoManager | null>(null)
     const editorViewRef = useRef<EditorView | null>(null)
     const undoManagerRef = useRef<Y.UndoManager | null>(null)
     const { setEditorState, editorViewRef: sharedEditorViewRef, activeUndoManagerRef } = useEditor()
 
     const [extensionProvider] = useState(() => new ExtensionProvider())
 
-    const clearSharedEditorBindings = () => {
+    const clearSharedEditorBindings = useCallback(() => {
         const currentView = editorViewRef.current
         if (sharedEditorViewRef.current === currentView) {
             sharedEditorViewRef.current = null
@@ -45,25 +47,25 @@ function CodeMirror({ fileId, isActive, canWrite, onNotify }: Props): JSX.Elemen
         if (activeUndoManagerRef.current === undoManagerRef.current) {
             activeUndoManagerRef.current = null
         }
-    }
+    }, [sharedEditorViewRef, activeUndoManagerRef])
 
-    const setSharedEditorBindings = () => {
+    const setSharedEditorBindings = useCallback(() => {
         const currentView = editorViewRef.current
         if (currentView) {
             sharedEditorViewRef.current = currentView
         }
         activeUndoManagerRef.current = undoManagerRef.current
-    }
+    }, [sharedEditorViewRef, activeUndoManagerRef])
 
     const extensions =
-        file && meta && undoManagerRef.current
+        file && meta && undoManager
             ? extensionProvider.getExtensions(
                   file,
                   meta,
                   (message) => {
                       onNotify('char-limit', 'warning', message)
                   },
-                  undoManagerRef.current,
+                  undoManager,
               )
             : []
 
@@ -93,11 +95,11 @@ function CodeMirror({ fileId, isActive, canWrite, onNotify }: Props): JSX.Elemen
             const openedFile = await fileSyncManager.openFile(fileId)
 
             if (isAborted()) return
-            undoManagerRef.current = new Y.UndoManager(openedFile.doc.getText())
+            const nextUndoManager = new Y.UndoManager(openedFile.doc.getText())
+            undoManagerRef.current = nextUndoManager
+            setUndoManager(nextUndoManager)
             setFile(openedFile)
             setMeta(fileSystemManager.getMeta(fileId))
-
-            // await file.synced
 
             if (isAborted()) return
             setIsSynced(true)
@@ -109,6 +111,7 @@ function CodeMirror({ fileId, isActive, canWrite, onNotify }: Props): JSX.Elemen
             setFile(null)
             setMeta(null)
             setIsSynced(false)
+            setUndoManager(null)
             undoManagerRef.current = null
         },
         [fileId],
@@ -131,7 +134,16 @@ function CodeMirror({ fileId, isActive, canWrite, onNotify }: Props): JSX.Elemen
                 },
             })
         }
-    }, [isActive, file, fileId, presenceService, sharedEditorViewRef, activeUndoManagerRef])
+    }, [
+        isActive,
+        file,
+        fileId,
+        presenceService,
+        sharedEditorViewRef,
+        activeUndoManagerRef,
+        clearSharedEditorBindings,
+        setSharedEditorBindings,
+    ])
 
     if (!file || !isSynced) {
         return (

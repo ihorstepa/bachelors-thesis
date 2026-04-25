@@ -1,5 +1,5 @@
-import { parseTar } from 'nanotar'
 import type { WASIFS } from '@runno/wasi'
+import { parseTar } from 'nanotar'
 
 import { toBinaryFile } from '@/workers/codeRunner/shared'
 

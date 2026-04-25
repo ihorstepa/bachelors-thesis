@@ -1,15 +1,16 @@
-import { useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
-import { VscClose } from 'react-icons/vsc'
-
-import GhostButton from '@/components/GhostButton/GhostButton'
-import IdeAboutModal from '@/components/AboutIdeModal/IdeAboutModal'
-import IdeContextMenu, { type IdeContextMenuItem } from '@/components/IdeContextMenu/IdeContextMenu'
-import { useService } from '@/contextProviders/ServiceProvider'
-import { ExportService } from '@/core/exportService'
-import { useEditor } from '@/contextProviders/EditorProvider'
-import { runEditMenuAction, type EditMenuAction } from '@/components/IdeTopBar/editActions'
 import '@/components/IdeTopBar/IdeTopBar.css'
+
+import { useRef, useState } from 'react'
+import { VscClose } from 'react-icons/vsc'
+import { useNavigate, useParams } from 'react-router'
+
+import IdeAboutModal from '@/components/AboutIdeModal/IdeAboutModal'
+import ContextMenu, { type IdeContextMenuItem } from '@/components/ContextMenu/ContextMenu'
+import GhostButton from '@/components/GhostButton/GhostButton'
+import { type EditMenuAction,runEditMenuAction } from '@/components/IdeTopBar/editActions'
+import { useEditor } from '@/contextProviders/editor/EditorContext'
+import { useService } from '@/contextProviders/service/ServiceContext'
+import { ExportService } from '@/core/exportService'
 
 type MenuConfig = {
     id: string
@@ -150,7 +151,7 @@ function IdeTopBar({ projectName, canWrite }: Props) {
                                 {menu.label}
                             </GhostButton>
 
-                            <IdeContextMenu
+                            <ContextMenu
                                 sections={menu.sections}
                                 isOpen={activeMenuId === menu.id}
                                 onClose={() => handleMenuClose(menu.id)}
@@ -175,3 +176,4 @@ function IdeTopBar({ projectName, canWrite }: Props) {
 }
 
 export default IdeTopBar
+

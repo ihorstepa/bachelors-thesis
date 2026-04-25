@@ -1,17 +1,17 @@
-import { useSyncExternalStore } from 'react'
 import { useDraggable, useDroppable } from '@dnd-kit/react'
-import { FaChevronRight, FaChevronDown } from 'react-icons/fa'
 import type { JSX } from 'react'
+import { useSyncExternalStore } from 'react'
+import { FaChevronDown,FaChevronRight } from 'react-icons/fa'
 
-import { useService } from '@/contextProviders/ServiceProvider'
-import { useFileTree } from '@/contextProviders/FileTreeProvider'
-import { PresenceService } from '@/core/presenceService'
-import { useTabs } from '@/contextProviders/TabsProvider'
-import FileIcon from '@/components/Icons/FileIcon'
 import FileTreeInput from '@/components/FileTree/FileTreeInput'
-import type { PresenceEntry } from '@/core/presenceService'
-import type { TreeNode } from '@/core/fileTreeManager'
+import FileIcon from '@/components/Icons/FileIcon'
+import { useFileTree } from '@/contextProviders/fileTree/FileTreeContext'
+import { useService } from '@/contextProviders/service/ServiceContext'
+import { useTabs } from '@/contextProviders/tabs/TabsContext'
 import type { NodeType } from '@/core/fileSystemManager'
+import type { TreeNode } from '@/core/fileTreeManager'
+import type { PresenceEntry } from '@/core/presenceService'
+import { PresenceService } from '@/core/presenceService'
 import type { NullableString } from '@/utils/types'
 
 export type FileTreeEditState =
@@ -183,3 +183,5 @@ export function FileTreeItem({
         </>
     )
 }
+
+

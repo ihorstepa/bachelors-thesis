@@ -1,13 +1,13 @@
+import '@/components/DashboardContent/DashboardContent.css'
+
 import { VscRefresh } from 'react-icons/vsc'
 
-import Spinner from '@/components/Spinner/Spinner'
-import { useAuth } from '@/contextProviders/AuthProvider'
-import { useProjects } from '@/contextProviders/ProjectsProvider'
-import type { ProjectPreview } from '@/core/projectManager'
-import type { DashboardNav } from '@/components/DashboardSidebar/DashboardSidebar'
 import DashboardProjectsTable from '@/components/DashboardContent/DashboardProjectsTable'
-
-import '@/components/DashboardContent/DashboardContent.css'
+import type { DashboardNav } from '@/components/DashboardSidebar/DashboardSidebar'
+import Spinner from '@/components/Spinner/Spinner'
+import { useAuth } from '@/contextProviders/auth/AuthContext'
+import { useProjects } from '@/contextProviders/projects/ProjectsContext'
+import type { ProjectPreview } from '@/core/projectManager'
 
 function filterByNav(projects: ProjectPreview[], activeNav: DashboardNav, currentUserId: string): ProjectPreview[] {
     if (activeNav === 'favorite') {
@@ -95,3 +95,5 @@ function DashboardContent({ activeNav, search, onOpenMembers, onRenameProject, o
 }
 
 export default DashboardContent
+
+

@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '@/config'
+import type { AuthUser } from '@/core/authManager'
 import { AuthManager } from '@/core/authManager'
 import { HttpError, httpErrorFromResponse } from '@/errors/http'
-import type { AuthUser } from '@/core/authManager'
 import { isObject, withTimeout } from '@/utils/functions'
 
 class UserAuthManager extends AuthManager {

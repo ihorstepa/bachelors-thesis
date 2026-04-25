@@ -1,8 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-import type { CSSProperties } from 'react'
+import '@/components/ContextMenu/ContextMenu.css'
 
-import '@/components/IdeContextMenu/IdeContextMenu.css'
+import type { CSSProperties } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 const scrollKeys = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ', 'Spacebar'])
 
@@ -31,7 +31,7 @@ type Props = {
     className?: string
 }
 
-function IdeContextMenu({
+function ContextMenu({
     sections,
     isOpen,
     onClose,
@@ -43,27 +43,20 @@ function IdeContextMenu({
 }: Props) {
     const wrapperRef = useRef<HTMLDivElement>(null)
     const panelRef = useRef<HTMLDivElement>(null)
-    const [panelStyle, setPanelStyle] = useState<CSSProperties>({})
 
     const getPositionStyle = (left: number, top: number): CSSProperties => {
         return floating ? { position: 'fixed', left, top } : { left, top }
     }
 
     useLayoutEffect(() => {
-        if (!isOpen || !anchorPoint) {
-            setPanelStyle({})
-            return
-        }
+        if (!isOpen || !anchorPoint) return
+
+        const panel = panelRef.current
+        if (!panel) return
 
         const viewportPadding = 8
         let left = anchorPoint.x
         let top = anchorPoint.y
-
-        const panel = panelRef.current
-        if (!panel) {
-            setPanelStyle(getPositionStyle(left, top))
-            return
-        }
 
         const rect = panel.getBoundingClientRect()
 
@@ -74,8 +67,12 @@ function IdeContextMenu({
             top = Math.max(viewportPadding, window.innerHeight - rect.height - viewportPadding)
         }
 
-        setPanelStyle(getPositionStyle(left, top))
-    }, [anchorPoint, floating, isOpen])
+        left = Math.max(viewportPadding, left)
+        top = Math.max(viewportPadding, top)
+
+        panel.style.left = `${left}px`
+        panel.style.top = `${top}px`
+    }, [anchorPoint, isOpen, floating, sections])
 
     useEffect(() => {
         if (!isOpen) return
@@ -133,7 +130,7 @@ function IdeContextMenu({
         <div className={floating ? 'ide-context-menu-floating' : 'ide-context-menu'} ref={wrapperRef}>
             <div
                 ref={panelRef}
-                style={anchorPoint ? panelStyle : undefined}
+                style={anchorPoint ? getPositionStyle(anchorPoint.x, anchorPoint.y) : undefined}
                 className={`ide-context-menu-panel ${className ?? ''}`}
                 role='menu'
             >
@@ -163,4 +160,4 @@ function IdeContextMenu({
     return <>{floating ? createPortal(menu, document.body) : menu}</>
 }
 
-export default IdeContextMenu
+export default ContextMenu

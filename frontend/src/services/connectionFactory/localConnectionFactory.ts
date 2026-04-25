@@ -1,9 +1,9 @@
-import { Awareness } from 'y-protocols/awareness'
 import { IndexeddbPersistence } from 'y-indexeddb'
+import { Awareness } from 'y-protocols/awareness'
 import { Doc } from 'yjs'
 
-import { ConnectionFactory } from '@/core/connectionFactory'
 import type { Connection, ConnectionConfig } from '@/core/connectionFactory'
+import { ConnectionFactory } from '@/core/connectionFactory'
 
 class LocalConnectionFactory extends ConnectionFactory {
     private namespace: string

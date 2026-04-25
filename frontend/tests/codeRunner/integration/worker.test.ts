@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { ProjectFile, WorkerInMessage, WorkerOutMessage } from '@/workers/codeRunner/shared'
 
-import { expectedCOutput, expectedCppOutput, generateCProject, generateCppProject } from '../fixtures'
+import { expectedCOutput, expectedCppOutput, generateCppProject,generateCProject } from '../fixtures'
 
 function formatWorkerErrorEvent(error: ErrorEvent): string {
     const details = [

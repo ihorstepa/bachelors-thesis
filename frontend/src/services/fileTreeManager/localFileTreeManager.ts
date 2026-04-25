@@ -1,7 +1,7 @@
-import { FileTreeManager } from '@/core/fileTreeManager'
-import { FileSystemManager } from '@/core/fileSystemManager'
-import type { TreeNode } from '@/core/fileTreeManager'
 import type { NodeMeta } from '@/core/fileSystemManager'
+import type { FileSystemManager } from '@/core/fileSystemManager'
+import type { TreeNode } from '@/core/fileTreeManager'
+import { FileTreeManager } from '@/core/fileTreeManager'
 import type { NullableString } from '@/utils/types'
 
 class LocalFileTreeManager extends FileTreeManager {
@@ -52,7 +52,11 @@ class LocalFileTreeManager extends FileTreeManager {
     public toggleExpand(id: string): void {
         const next = new Set(this.expanded)
 
-        next.has(id) ? next.delete(id) : next.add(id)
+        if (next.has(id)) {
+            next.delete(id)
+        } else {
+            next.add(id)
+        }
         this.expanded = next
 
         this.emit('expand', next)
@@ -117,7 +121,11 @@ class LocalFileTreeManager extends FileTreeManager {
 
         const sort = (nodes: TreeNode[]) => {
             nodes.sort((a, b) => (a.type !== b.type ? (a.type === 'dir' ? -1 : 1) : a.name.localeCompare(b.name)))
-            nodes.forEach((n) => n.children.length && sort(n.children))
+            nodes.forEach((n) => {
+                if (n.children.length > 0) {
+                    sort(n.children)
+                }
+            })
         }
         sort(roots)
 

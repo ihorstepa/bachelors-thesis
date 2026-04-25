@@ -1,12 +1,12 @@
-import * as Y from 'yjs'
 import { nanoid } from 'nanoid'
+import * as Y from 'yjs'
 
-import * as err from '@/errors/fileSystem'
-import { validateNodeName } from '@/utils/validators'
-import { FileSystemManager } from '@/core/fileSystemManager'
+import type { Connection,ConnectionFactory } from '@/core/connectionFactory'
 import type { NodeMeta, NodeType } from '@/core/fileSystemManager'
+import { FileSystemManager } from '@/core/fileSystemManager'
+import * as err from '@/errors/fileSystem'
 import type { NullableString } from '@/utils/types'
-import type { ConnectionFactory, Connection } from '@/core/connectionFactory'
+import { validateNodeName } from '@/utils/validators'
 
 type IndexEntry = {
     ids: Set<string>
@@ -105,7 +105,9 @@ class SharedFileSystemManager extends FileSystemManager {
         this.metaMap.set(nodeId, { ...node, parentId })
     }
 
-    public copy(_: string, __: NullableString): string {
+    public copy(nodeId: string, targetParentId: NullableString): string {
+        void nodeId
+        void targetParentId
         // TODO
         return ''
     }

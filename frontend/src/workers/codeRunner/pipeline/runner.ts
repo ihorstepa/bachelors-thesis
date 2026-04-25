@@ -1,5 +1,5 @@
-import { WASIWorkerHost } from '@runno/wasi'
 import type { WASIFS } from '@runno/wasi'
+import { WASIWorkerHost } from '@runno/wasi'
 
 import type { PipelineIo } from '@/workers/codeRunner/shared'
 

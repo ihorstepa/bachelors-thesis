@@ -1,31 +1,12 @@
-import { createContext, useContext, useState } from 'react'
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 
+import { AuthContext,type AuthState } from '@/contextProviders/auth/AuthContext'
+import { useService } from '@/contextProviders/service/ServiceContext'
 import { AuthManager as AuthHttpClientBase, type AuthUser } from '@/core/authManager'
-import { useService } from '@/contextProviders/ServiceProvider'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 
 type AuthStatus = 'unknown' | 'authenticated' | 'anonymous'
-
-type AuthState = {
-    isInitializing: boolean
-    isAuthenticated: boolean
-    user: AuthUser | null
-    token: string | null
-    login(email: string, password: string): Promise<void>
-    register(email: string, password: string, username: string): Promise<void>
-    logout(): void
-}
-
-const AuthContext = createContext<AuthState | null>(null)
-
-export function useAuth(): AuthState {
-    const context = useContext(AuthContext)
-    if (context == null) {
-        throw new Error('useAuth must be used inside AuthProvider')
-    }
-    return context
-}
 
 type Props = {
     children: ReactNode
@@ -111,3 +92,5 @@ function AuthProvider({ children }: Props) {
 }
 
 export default AuthProvider
+
+

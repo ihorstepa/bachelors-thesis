@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router'
 
-import { useAuth } from '@/contextProviders/AuthProvider'
 import FullScreenLoader from '@/components/FullScreenLoader/FullScreenLoader'
+import { useAuth } from '@/contextProviders/auth/AuthContext'
 
 function RequireAuth() {
     const auth = useAuth()
@@ -19,3 +19,5 @@ function RequireAuth() {
 }
 
 export default RequireAuth
+
+

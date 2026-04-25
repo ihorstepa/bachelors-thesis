@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router'
 
-import { useAuth } from '@/contextProviders/AuthProvider'
 import FullScreenLoader from '@/components/FullScreenLoader/FullScreenLoader'
+import { useAuth } from '@/contextProviders/auth/AuthContext'
 
 function RedirectIfAuthenticated() {
     const auth = useAuth()
@@ -20,3 +20,5 @@ function RedirectIfAuthenticated() {
 }
 
 export default RedirectIfAuthenticated
+
+

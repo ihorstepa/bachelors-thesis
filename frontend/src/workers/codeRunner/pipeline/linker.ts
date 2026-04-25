@@ -1,5 +1,5 @@
-import { WASI } from '@runno/wasi'
 import type { WASIExecutionResult, WASIFS } from '@runno/wasi'
+import { WASI } from '@runno/wasi'
 
 import type { PipelineIo } from '@/workers/codeRunner/shared'
 

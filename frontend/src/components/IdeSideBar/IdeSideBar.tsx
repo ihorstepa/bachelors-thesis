@@ -1,15 +1,15 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router'
-import { VscFiles, VscSearch, VscSourceControl, VscRunAll, VscSettingsGear, VscAccount } from 'react-icons/vsc'
-import type { ComponentType, ReactNode } from 'react'
-
-import FileTree from '@/components/FileTree/FileTree'
-import IdeContextMenu from '@/components/IdeContextMenu/IdeContextMenu'
-import RunPanel from '@/components/RunPanel/RunPanel'
-import { useAuth } from '@/contextProviders/AuthProvider'
-import type { IdeContextMenuItem } from '@/components/IdeContextMenu/IdeContextMenu'
-
 import '@/components/IdeSideBar/IdeSideBar.css'
+
+import type { ComponentType, ReactNode } from 'react'
+import { useState } from 'react'
+import { VscAccount,VscFiles, VscRunAll, VscSearch, VscSettingsGear, VscSourceControl } from 'react-icons/vsc'
+import { useNavigate } from 'react-router'
+
+import type { IdeContextMenuItem } from '@/components/ContextMenu/ContextMenu'
+import ContextMenu from '@/components/ContextMenu/ContextMenu'
+import FileTree from '@/components/FileTree/FileTree'
+import RunPanel from '@/components/RunPanel/RunPanel'
+import { useAuth } from '@/contextProviders/auth/AuthContext'
 
 type View = 'explorer' | 'search' | 'run' | 'sourceControl'
 type Menu = 'account' | 'settings'
@@ -127,7 +127,7 @@ function IdeSideBar({ canWrite }: Props) {
                                 <Icon />
                             </button>
                             {menuSections && (
-                                <IdeContextMenu
+                                <ContextMenu
                                     sections={menuSections}
                                     isOpen={activeExtraMenuId === id}
                                     onClose={() => setActiveExtraMenuId(null)}
@@ -145,3 +145,4 @@ function IdeSideBar({ canWrite }: Props) {
 }
 
 export default IdeSideBar
+

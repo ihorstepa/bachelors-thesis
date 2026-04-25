@@ -1,6 +1,6 @@
-import { ProjectIndexService } from '@/core/projectIndexService'
-import { FileSystemManager } from '@/core/fileSystemManager'
+import type { FileSystemManager } from '@/core/fileSystemManager'
 import type { FileLocation } from '@/core/projectIndexService'
+import { ProjectIndexService } from '@/core/projectIndexService'
 
 class LocalProjectIndexService extends ProjectIndexService {
     private fileSystemManager: FileSystemManager

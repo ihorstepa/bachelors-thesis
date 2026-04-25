@@ -1,38 +1,35 @@
-import React, { createContext, useState, useContext, useMemo, useRef } from 'react'
+import React, { useContext, useMemo, useRef,useState } from 'react'
 
 import FullScreenLoader from '@/components/FullScreenLoader/FullScreenLoader'
-import useAsyncEffect from '@/hooks/useAsyncEffect'
-import CppCodeRunner from '@/services/codeRunner/cppCodeRunner'
-import { CodeRunner } from '@/core/codeRunner'
-import { ProjectIndexService } from '@/core/projectIndexService'
-import LocalProjectIndexService from '@/services/projectIndexService/localProjectIndexService'
-import WSConnectionFactory from '@/services/connectionFactory/wsConnectionFactory'
-import LocalConnectionFactory from '@/services/connectionFactory/localConnectionFactory'
-import SharedFileSystemManager from '@/services/fileSystemManager/sharedFileSystemManager'
-import FileSystemPresenceService from '@/services/presenceService/fileSystemPresenceService'
-import MultipleFileSyncManager from '@/services/fileSyncManager/multipleFileSyncManager'
-import PersistentTabManager from '@/services/tabManager/persistentTabManager'
-import LocalFileTreeManager from '@/services/fileTreeManager/localFileTreeManager'
-import UserAuthManager from '@/services/authManager/userAuthManager'
-import AuthedApiClient from '@/services/apiClient/authedApiClient'
-import UserProjectManager from '@/services/projectManager/userProjectManager'
-import BrowserProjectExportService from '@/services/exportService/browserProjectExportService'
-import { ConnectionFactory } from '@/core/connectionFactory'
-import { FileSystemManager } from '@/core/fileSystemManager'
-import { PresenceService } from '@/core/presenceService'
-import { FileSyncManager } from '@/core/fileSyncManager'
-import { TabManager } from '@/core/tabManager'
-import { FileTreeManager } from '@/core/fileTreeManager'
-import { AuthManager } from '@/core/authManager'
+import { ServiceContext, type ServiceRegistry } from '@/contextProviders/service/ServiceContext'
 import { ApiClient } from '@/core/apiClient'
-import { ProjectManager } from '@/core/projectManager'
+import { AuthManager } from '@/core/authManager'
+import { CodeRunner } from '@/core/codeRunner'
+import { ConnectionFactory } from '@/core/connectionFactory'
 import { ExportService } from '@/core/exportService'
-import type { AbstractClass } from '@/utils/types'
+import { FileSyncManager } from '@/core/fileSyncManager'
+import { FileSystemManager } from '@/core/fileSystemManager'
+import { FileTreeManager } from '@/core/fileTreeManager'
 import type { BaseService } from '@/core/general'
-
-type ServiceRegistry = Map<AbstractClass<BaseService>, BaseService>
-
-const ServiceContext = createContext<ServiceRegistry>(new Map())
+import { PresenceService } from '@/core/presenceService'
+import { ProjectIndexService } from '@/core/projectIndexService'
+import { ProjectManager } from '@/core/projectManager'
+import { TabManager } from '@/core/tabManager'
+import useAsyncEffect from '@/hooks/useAsyncEffect'
+import AuthedApiClient from '@/services/apiClient/authedApiClient'
+import UserAuthManager from '@/services/authManager/userAuthManager'
+import CppCodeRunner from '@/services/codeRunner/cppCodeRunner'
+import LocalConnectionFactory from '@/services/connectionFactory/localConnectionFactory'
+import WSConnectionFactory from '@/services/connectionFactory/wsConnectionFactory'
+import BrowserProjectExportService from '@/services/exportService/browserProjectExportService'
+import MultipleFileSyncManager from '@/services/fileSyncManager/multipleFileSyncManager'
+import SharedFileSystemManager from '@/services/fileSystemManager/sharedFileSystemManager'
+import LocalFileTreeManager from '@/services/fileTreeManager/localFileTreeManager'
+import FileSystemPresenceService from '@/services/presenceService/fileSystemPresenceService'
+import LocalProjectIndexService from '@/services/projectIndexService/localProjectIndexService'
+import UserProjectManager from '@/services/projectManager/userProjectManager'
+import PersistentTabManager from '@/services/tabManager/persistentTabManager'
+import type { AbstractClass } from '@/utils/types'
 
 function initGlobalServices(): ServiceRegistry {
     const services: ServiceRegistry = new Map()
@@ -94,15 +91,6 @@ function destroyServices(registry: ServiceRegistry): void {
     })
 }
 
-export function useService<T extends BaseService>(baseClass: AbstractClass<T>): T {
-    const registry = useContext(ServiceContext)
-    const service = registry.get(baseClass)
-    if (!service) {
-        throw new Error(`Service with class ${baseClass.name} is not registered`)
-    }
-    return service as T
-}
-
 type GlobalServiceProviderProps = {
     children: React.ReactNode
 }
@@ -127,6 +115,7 @@ export function IdeServiceProvider({
     children,
 }: IdeServiceProviderProps): React.ReactNode {
     const parentRegistry = useContext(ServiceContext)
+    const [registry, setRegistry] = useState<ServiceRegistry>(new Map())
     const registryRef = useRef<ServiceRegistry>(new Map())
     const ideServiceKeysRef = useRef<Set<AbstractClass<BaseService>>>(new Set())
     const [ready, setReady] = useState(false)
@@ -146,6 +135,7 @@ export function IdeServiceProvider({
                 }
             })
             registryRef.current = ideServices
+            setRegistry(ideServices)
             setReady(true)
         },
         () => {
@@ -155,6 +145,7 @@ export function IdeServiceProvider({
             })
 
             registryRef.current = new Map()
+            setRegistry(new Map())
             ideServiceKeysRef.current = new Set()
             setReady(false)
         },
@@ -163,5 +154,7 @@ export function IdeServiceProvider({
 
     if (!ready) return <FullScreenLoader />
 
-    return <ServiceContext value={registryRef.current}>{children}</ServiceContext>
+    return <ServiceContext value={registry}>{children}</ServiceContext>
 }
+
+

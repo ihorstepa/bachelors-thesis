@@ -23,14 +23,14 @@ function copyPrototypeChain(source: AbstractClass, target: AbstractClass): void 
 function mixin<TClasses extends AbstractClass[]>(...classes: TClasses): MergedClass<TClasses> {
     const [Base, ...mixins] = classes
     mixins.forEach((mixin) => copyPrototypeChain(mixin, Base))
-    return class extends (Base as any) {
-        constructor(...args: any[]) {
-            super(...args)
+    return class extends (Base as unknown as ConcreteClass) {
+        constructor(...args: unknown[]) {
+            super(...(args as []))
             mixins.forEach((mixin) => {
                 Object.assign(this, new (mixin as ConcreteClass)())
             })
         }
-    } as MergedClass<TClasses>
+    } as unknown as MergedClass<TClasses>
 }
 
 export default mixin

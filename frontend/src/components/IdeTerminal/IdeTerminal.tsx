@@ -1,14 +1,15 @@
-import { useCallback, useEffect, useRef } from 'react'
-import { Terminal as XTerm } from '@xterm/xterm'
-import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
+import '@/components/IdeTerminal/IdeTerminal.css'
+
+import { FitAddon } from '@xterm/addon-fit'
+import { Terminal as XTerm } from '@xterm/xterm'
+import { useCallback, useEffect, useRef } from 'react'
 
 import TerminalHeader from '@/components/IdeTerminal/TerminalHeader'
 import { TerminalInputController } from '@/components/IdeTerminal/terminalInputController'
-import { useCodeRunner } from '@/contextProviders/CodeRunnerProvider'
+import { useCodeRunner } from '@/contextProviders/codeRunner/CodeRunnerContext'
+import { useTerminal } from '@/contextProviders/terminal/TerminalContext'
 import type { CodeRunnerStatus } from '@/core/codeRunner'
-import { useTerminal } from '@/contextProviders/TerminalProvider'
-import '@/components/IdeTerminal/IdeTerminal.css'
 
 const ansi = {
     dim: (text: string) => `\u001b[90m${text}\u001b[0m`,
@@ -40,14 +41,16 @@ function IdeTerminal() {
     const terminalRef = useRef<XTerm | null>(null)
     const fitAddonRef = useRef<FitAddon | null>(null)
     const inputEnabledRef = useRef(canSendInput)
+    const statusRef = useRef(status)
     const isActiveRef = useRef(isActive)
     const inputControllerRef = useRef<TerminalInputController | null>(null)
     const placeholderShownRef = useRef(false)
 
     useEffect(() => {
         inputEnabledRef.current = canSendInput
+        statusRef.current = status
         isActiveRef.current = isActive
-    }, [canSendInput, isActive])
+    }, [canSendInput, status, isActive])
 
     useEffect(() => {
         const computed = getComputedStyle(document.documentElement)
@@ -81,7 +84,7 @@ function IdeTerminal() {
         terminal.open(containerRef.current!)
         fitAddon.fit()
 
-        if (status === 'idle') {
+        if (statusRef.current === 'idle') {
             terminal.write(toTerminalText(messages.nothingRunning))
             placeholderShownRef.current = true
         }
@@ -142,7 +145,7 @@ function IdeTerminal() {
             fitAddonRef.current = null
             inputControllerRef.current = null
         }
-    }, [])
+    }, [runner])
 
     useEffect(() => {
         const terminal = terminalRef.current

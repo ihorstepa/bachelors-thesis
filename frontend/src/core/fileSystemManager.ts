@@ -1,7 +1,7 @@
-import mixin from '@/utils/mixin'
-import { BaseService, Observable } from '@/core/general'
-import type { NullableString } from '@/utils/types'
 import type { Connection } from '@/core/connectionFactory'
+import { BaseService, Observable } from '@/core/general'
+import mixin from '@/utils/mixin'
+import type { NullableString } from '@/utils/types'
 
 export type NodeType = 'file' | 'dir'
 

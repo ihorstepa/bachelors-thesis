@@ -1,6 +1,6 @@
-import { useRef } from 'react'
-
 import '@/components/TextInput/TextInput.css'
+
+import { useRef } from 'react'
 
 type Props = {
     onConfirm: (name: string) => void
@@ -19,7 +19,11 @@ function TextInput({ onConfirm, onCancel }: Props) {
             onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                     const val = ref.current?.value.trim() ?? ''
-                    val ? onConfirm(val) : onCancel()
+                    if (val) {
+                        onConfirm(val)
+                    } else {
+                        onCancel()
+                    }
                 } else if (e.key === 'Escape') {
                     onCancel()
                 }

@@ -1,10 +1,10 @@
-import { WebsocketProvider } from 'y-websocket'
 import { IndexeddbPersistence } from 'y-indexeddb'
+import { WebsocketProvider } from 'y-websocket'
 import { Doc } from 'yjs'
 
 import { WS_URL } from '@/config'
-import { ConnectionFactory } from '@/core/connectionFactory'
 import type { Connection, ConnectionConfig } from '@/core/connectionFactory'
+import { ConnectionFactory } from '@/core/connectionFactory'
 
 class WSConnectionFactory extends ConnectionFactory {
     public projectId: string

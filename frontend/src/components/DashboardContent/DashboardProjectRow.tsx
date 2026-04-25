@@ -1,8 +1,8 @@
 import { useRef } from 'react'
 import { VscEye, VscStarFull } from 'react-icons/vsc'
 
-import type { ProjectPreview } from '@/core/projectManager'
 import DashboardProjectRowMenu from '@/components/DashboardContent/DashboardProjectRowMenu'
+import type { ProjectPreview } from '@/core/projectManager'
 
 function formatRelativeTime(isoString: string): string {
     const diff = Date.now() - new Date(isoString).getTime()

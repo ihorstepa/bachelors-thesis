@@ -5,7 +5,7 @@ export abstract class BaseService {
     public destroy?(): void
 }
 
-export abstract class Observable<T extends Record<string, any[]>> {
+export abstract class Observable<T extends Record<string, unknown[]>> {
     protected observers: { [K in keyof T]?: Set<(...args: T[K]) => void> } = {}
 
     public on<K extends keyof T>(event: K, callback: (...args: T[K]) => void): () => void {

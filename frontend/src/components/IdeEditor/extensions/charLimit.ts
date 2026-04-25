@@ -1,5 +1,5 @@
-import { EditorState } from '@codemirror/state'
 import type { Extension } from '@codemirror/state'
+import { EditorState } from '@codemirror/state'
 
 export const MAX_EDITOR_CHARS = 5_000_000
 

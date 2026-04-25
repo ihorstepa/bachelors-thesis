@@ -1,9 +1,11 @@
-import { useEditor } from '@/contextProviders/EditorProvider'
-import { useCodeRunner } from '@/contextProviders/CodeRunnerProvider'
-import type { CodeRunnerStatus } from '@/core/codeRunner'
 import '@/components/IdeStatusBar/IdeStatusBar.css'
+
 import { VscTerminal } from 'react-icons/vsc'
-import { useTerminal } from '@/contextProviders/TerminalProvider'
+
+import { useCodeRunner } from '@/contextProviders/codeRunner/CodeRunnerContext'
+import { useEditor } from '@/contextProviders/editor/EditorContext'
+import { useTerminal } from '@/contextProviders/terminal/TerminalContext'
+import type { CodeRunnerStatus } from '@/core/codeRunner'
 
 function getActiveStage(status: CodeRunnerStatus): string | null {
     if (status === 'syncing') return 'Syncing...'
@@ -35,3 +37,5 @@ function IdeStatusBar() {
 }
 
 export default IdeStatusBar
+
+

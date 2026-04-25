@@ -1,38 +1,38 @@
-import * as Y from 'yjs'
-import { EditorState, Compartment, StateEffect } from '@codemirror/state'
-import {
-    keymap,
-    highlightSpecialChars,
-    drawSelection,
-    highlightActiveLine,
-    dropCursor,
-    rectangularSelection,
-    crosshairCursor,
-    lineNumbers,
-    highlightActiveLineGutter,
-    scrollPastEnd,
-} from '@codemirror/view'
-import { indentOnInput, indentUnit, bracketMatching, foldGutter, foldKeymap } from '@codemirror/language'
-import { defaultKeymap } from '@codemirror/commands'
-import { search, searchKeymap, highlightSelectionMatches } from '@codemirror/search'
 import {
     autocompletion,
-    completionKeymap,
     closeBrackets,
     closeBracketsKeymap,
     completeAnyWord,
+    completionKeymap,
 } from '@codemirror/autocomplete'
+import { defaultKeymap } from '@codemirror/commands'
+import { bracketMatching, foldGutter, foldKeymap,indentOnInput, indentUnit } from '@codemirror/language'
 import { lintKeymap } from '@codemirror/lint'
+import { highlightSelectionMatches,search, searchKeymap } from '@codemirror/search'
+import type { Extension , StateEffect } from '@codemirror/state'
+import { Compartment, EditorState } from '@codemirror/state'
 import { oneDark } from '@codemirror/theme-one-dark'
-import { yCollab, yUndoManagerKeymap } from 'y-codemirror.next'
+import {
+    crosshairCursor,
+    drawSelection,
+    dropCursor,
+    highlightActiveLine,
+    highlightActiveLineGutter,
+    highlightSpecialChars,
+    keymap,
+    lineNumbers,
+    rectangularSelection,
+    scrollPastEnd,
+} from '@codemirror/view'
 import { indentationMarkers } from '@replit/codemirror-indentation-markers'
-import { language } from '@/components/IdeEditor/extensions/language'
+import { yCollab, yUndoManagerKeymap } from 'y-codemirror.next'
+import type * as Y from 'yjs'
+
 import { charLimit } from '@/components/IdeEditor/extensions/charLimit'
 import { createFoldMarker } from '@/components/IdeEditor/extensions/foldMarker'
-import { createCustomSearchPanel } from '@/components/IdeEditor/extensions/searchPanel'
+import { language } from '@/components/IdeEditor/extensions/language'
 import { overlayScrollbar } from '@/components/IdeEditor/extensions/scrollbar'
-import type { Extension } from '@codemirror/state'
-
+import { createCustomSearchPanel } from '@/components/IdeEditor/extensions/searchPanel'
 import type { SharedFile } from '@/core/fileSyncManager'
 import type { NodeMeta } from '@/core/fileSystemManager'
 

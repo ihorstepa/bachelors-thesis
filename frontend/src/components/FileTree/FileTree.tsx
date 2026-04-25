@@ -1,30 +1,30 @@
-import { useEffect, useState } from 'react'
-import { DragDropProvider, DragOverlay } from '@dnd-kit/react'
-import type { DragStartEvent, DragEndEvent } from '@dnd-kit/react'
-import type { CSSProperties, JSX } from 'react'
-
-import { useFileTree } from '@/contextProviders/FileTreeProvider'
-import { FileTreeItem } from '@/components/FileTree/FileTreeItem'
-import FileTreeDragPreview from '@/components/FileTree/FileTreeDragPreview'
-import FileTreeToolBar from '@/components/FileTree/FileTreeToolBar'
-import { useService } from '@/contextProviders/ServiceProvider'
-import { FileSystemManager } from '@/core/fileSystemManager'
-import { useTabs } from '@/contextProviders/TabsProvider'
-import FileTreeRoot from '@/components/FileTree/FileTreeRoot'
-import IdeContextMenu from '@/components/IdeContextMenu/IdeContextMenu'
-import FileTreeInput from '@/components/FileTree/FileTreeInput'
-import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
-import { buildFileTreeContextMenuSections } from '@/components/FileTree/fileTreeContextMenuSections'
-import { MAX_PROJECT_FILES } from '@/config'
-import type { FileTreeContextMenuState } from '@/components/FileTree/fileTreeContextMenuSections'
-import type { NullableString } from '@/utils/types'
-import type { TreeNode } from '@/core/fileTreeManager'
-import type { NodeType } from '@/core/fileSystemManager'
-import type { FileTreeEditState } from '@/components/FileTree/FileTreeItem'
-import * as err from '@/errors/fileSystem'
-import { validateNodeName } from '@/utils/validators'
-
 import '@/components/FileTree/FileTree.css'
+
+import type { DragEndEvent,DragStartEvent } from '@dnd-kit/react'
+import { DragDropProvider, DragOverlay } from '@dnd-kit/react'
+import type { CSSProperties, JSX } from 'react'
+import { useEffect, useState } from 'react'
+
+import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
+import ContextMenu from '@/components/ContextMenu/ContextMenu'
+import type { FileTreeContextMenuState } from '@/components/FileTree/fileTreeContextMenuSections'
+import { buildFileTreeContextMenuSections } from '@/components/FileTree/fileTreeContextMenuSections'
+import FileTreeDragPreview from '@/components/FileTree/FileTreeDragPreview'
+import FileTreeInput from '@/components/FileTree/FileTreeInput'
+import type { FileTreeEditState } from '@/components/FileTree/FileTreeItem'
+import { FileTreeItem } from '@/components/FileTree/FileTreeItem'
+import FileTreeRoot from '@/components/FileTree/FileTreeRoot'
+import FileTreeToolBar from '@/components/FileTree/FileTreeToolBar'
+import { MAX_PROJECT_FILES } from '@/config'
+import { useFileTree } from '@/contextProviders/fileTree/FileTreeContext'
+import { useService } from '@/contextProviders/service/ServiceContext'
+import { useTabs } from '@/contextProviders/tabs/TabsContext'
+import type { NodeType } from '@/core/fileSystemManager'
+import { FileSystemManager } from '@/core/fileSystemManager'
+import type { TreeNode } from '@/core/fileTreeManager'
+import * as err from '@/errors/fileSystem'
+import type { NullableString } from '@/utils/types'
+import { validateNodeName } from '@/utils/validators'
 
 function countFiles(nodes: TreeNode[]): number {
     return nodes.reduce((acc, node) => acc + (node.type === 'file' ? 1 : 0) + countFiles(node.children), 0)
@@ -279,7 +279,10 @@ function FileTree({ canWrite }: Props): JSX.Element {
             <DragDropProvider onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
                 <FileTreeRoot onContextMenu={handleRootContextMenu}>
                     {editState?.mode === 'create' && editState.parentId === null && (
-                        <div className='tree-node tree-node-create-row' style={{ paddingLeft: 'var(--tree-indent-base)' }}>
+                        <div
+                            className='tree-node tree-node-create-row'
+                            style={{ paddingLeft: 'var(--tree-indent-base)' }}
+                        >
                             <div className='tree-node-left'>
                                 <FileTreeInput
                                     createType={editState.type}
@@ -311,7 +314,7 @@ function FileTree({ canWrite }: Props): JSX.Element {
                         : null}
                 </DragOverlay>
             </DragDropProvider>
-            <IdeContextMenu
+            <ContextMenu
                 sections={contextMenuSections}
                 isOpen={contextMenu != null}
                 onClose={closeMenu}
@@ -340,3 +343,4 @@ function FileTree({ canWrite }: Props): JSX.Element {
 }
 
 export default FileTree
+

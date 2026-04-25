@@ -1,17 +1,18 @@
+import '@/pages/Dashboard/Dashboard.css'
+
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
-import { useAuth } from '@/contextProviders/AuthProvider'
-import { useProjects } from '@/contextProviders/ProjectsProvider'
-import NewProjectModal from '@/components/NewProjectModal/NewProjectModal'
-import ManageMembersModal from '@/components/ManageMembersModal/ManageMembersModal'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
-import type { ProjectPreview } from '@/core/projectManager'
-import DashboardSidebar from '@/components/DashboardSidebar/DashboardSidebar'
-import type { DashboardNav } from '@/components/DashboardSidebar/DashboardSidebar'
-import DashboardTopBar from '@/components/DashboardTopBar/DashboardTopBar'
 import DashboardContent from '@/components/DashboardContent/DashboardContent'
-import '@/pages/Dashboard/Dashboard.css'
+import type { DashboardNav } from '@/components/DashboardSidebar/DashboardSidebar'
+import DashboardSidebar from '@/components/DashboardSidebar/DashboardSidebar'
+import DashboardTopBar from '@/components/DashboardTopBar/DashboardTopBar'
+import ManageMembersModal from '@/components/ManageMembersModal/ManageMembersModal'
+import NewProjectModal from '@/components/NewProjectModal/NewProjectModal'
+import { useAuth } from '@/contextProviders/auth/AuthContext'
+import { useProjects } from '@/contextProviders/projects/ProjectsContext'
+import type { ProjectPreview } from '@/core/projectManager'
 
 function Dashboard() {
     const navigate = useNavigate()
@@ -157,3 +158,5 @@ function Dashboard() {
 }
 
 export default Dashboard
+
+

@@ -1,11 +1,12 @@
-import { useEffect } from 'react'
-import { VscTerminal } from 'react-icons/vsc'
-import { FaStop } from 'react-icons/fa'
-
-import { useCodeRunner } from '@/contextProviders/CodeRunnerProvider'
-import { useTerminal } from '@/contextProviders/TerminalProvider'
-import type { CodeRunnerStatus } from '@/core/codeRunner'
 import '@/components/RunPanel/RunPanel.css'
+
+import { useEffect } from 'react'
+import { FaStop } from 'react-icons/fa'
+import { VscTerminal } from 'react-icons/vsc'
+
+import { useCodeRunner } from '@/contextProviders/codeRunner/CodeRunnerContext'
+import { useTerminal } from '@/contextProviders/terminal/TerminalContext'
+import type { CodeRunnerStatus } from '@/core/codeRunner'
 
 const runButtonLabels: Partial<Record<CodeRunnerStatus, string>> = {
     syncing: 'Syncing...',
@@ -101,3 +102,5 @@ function RunPanel({ canWrite }: Props) {
 }
 
 export default RunPanel
+
+

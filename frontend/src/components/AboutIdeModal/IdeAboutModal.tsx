@@ -1,8 +1,8 @@
+import '@/components/AboutIdeModal/IdeAboutModal.css'
+
 import { VscClose } from 'react-icons/vsc'
 
 import ModalShell from '@/components/ModalShell/ModalShell'
-
-import '@/components/AboutIdeModal/IdeAboutModal.css'
 
 type Props = {
     onClose(): void

@@ -1,12 +1,12 @@
-import { ProjectFs } from '@/workers/codeRunner/projectFs'
-import { ToolchainLoader } from '@/workers/codeRunner/toolchainLoader'
+import { normalizeError } from '@/utils/functions'
+import { assertNever } from '@/utils/functions'
 import { Compiler } from '@/workers/codeRunner/pipeline/compiler'
 import { Linker } from '@/workers/codeRunner/pipeline/linker'
 import { Runner } from '@/workers/codeRunner/pipeline/runner'
-import { normalizeError } from '@/utils/functions'
-import { assertNever } from '@/utils/functions'
-import type { Toolchain } from '@/workers/codeRunner/toolchainLoader'
+import { ProjectFs } from '@/workers/codeRunner/projectFs'
 import type { PipelineIo, ProjectFile, WorkerInMessage, WorkerOutMessage } from '@/workers/codeRunner/shared'
+import type { Toolchain } from '@/workers/codeRunner/toolchainLoader'
+import { ToolchainLoader } from '@/workers/codeRunner/toolchainLoader'
 
 type RunPhase = 'idle' | 'starting up' | 'loading toolchain' | 'preparing FS' | 'compiling' | 'linking' | 'running'
 
@@ -97,11 +97,12 @@ self.addEventListener('message', async (event: MessageEvent<WorkerInMessage>) =>
             state.phase = 'starting up'
             run(msg.files, msg.entrypoint)
             break
-        case 'stdin':
+        case 'stdin': {
             if (!state.runner) return
             const text = stdinDecoder.decode(msg.bytes)
             state.runner.pushStdin(text)
             break
+        }
         default:
             return assertNever(msg)
     }

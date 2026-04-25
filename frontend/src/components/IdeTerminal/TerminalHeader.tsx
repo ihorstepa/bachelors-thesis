@@ -1,5 +1,5 @@
-import { VscChromeClose, VscClearAll } from 'react-icons/vsc'
 import { FaStop } from 'react-icons/fa'
+import { VscChromeClose, VscClearAll } from 'react-icons/vsc'
 
 import GhostButton from '@/components/GhostButton/GhostButton'
 

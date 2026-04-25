@@ -1,5 +1,6 @@
+import type { FileSystemManager} from '@/core/fileSystemManager';
+import { type NodeMeta } from '@/core/fileSystemManager'
 import { TabManager } from '@/core/tabManager'
-import { FileSystemManager, type NodeMeta } from '@/core/fileSystemManager'
 import { LRUSet } from '@/utils/classes'
 
 type TabState = {

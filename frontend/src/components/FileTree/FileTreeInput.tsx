@@ -1,6 +1,6 @@
+import type { JSX } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { FaChevronRight } from 'react-icons/fa'
-import type { JSX } from 'react'
 
 import FileIcon from '@/components/Icons/FileIcon'
 import type { NodeType } from '@/core/fileSystemManager'

@@ -1,10 +1,12 @@
-import { useState } from 'react'
-import { VscLock, VscMail } from 'react-icons/vsc'
-import { FaRegUser } from 'react-icons/fa'
+import '@/components/AuthForm/AuthForm.css'
+
 import type { SyntheticEvent } from 'react'
+import { useState } from 'react'
+import { FaRegUser } from 'react-icons/fa'
+import { VscLock, VscMail } from 'react-icons/vsc'
 
 import FormInput from '@/components/FormInput/FormInput'
-import { useAuth } from '@/contextProviders/AuthProvider'
+import { useAuth } from '@/contextProviders/auth/AuthContext'
 import { getAuthErrorMessage } from '@/errors/auth'
 import {
     AUTH_EMAIL_MAX_LENGTH,
@@ -15,7 +17,6 @@ import {
     validateLoginInput,
     validateRegisterInput,
 } from '@/utils/validators'
-import '@/components/AuthForm/AuthForm.css'
 
 type Mode = 'login' | 'register'
 type AuthFormFields = 'identifier' | 'email' | 'username' | 'password' | 'confirmPassword'
@@ -203,3 +204,5 @@ function AuthForm() {
 }
 
 export default AuthForm
+
+

@@ -1,6 +1,5 @@
-import type { AccessType } from '@/core/projectManager'
-
 import Spinner from '@/components/Spinner/Spinner'
+import type { AccessType } from '@/core/projectManager'
 
 type Props = {
     username: string

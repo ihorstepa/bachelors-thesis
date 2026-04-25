@@ -1,3 +1,13 @@
+import {
+    closeSearchPanel,
+    findNext,
+    findPrevious,
+    getSearchQuery,
+    replaceAll,
+    replaceNext,
+    SearchQuery,
+    setSearchQuery,
+} from '@codemirror/search'
 import type { EditorView, Panel, ViewUpdate } from '@codemirror/view'
 import { createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
@@ -14,16 +24,6 @@ import {
     VscReplaceAll,
     VscWholeWord,
 } from 'react-icons/vsc'
-import {
-    SearchQuery,
-    closeSearchPanel,
-    findNext,
-    findPrevious,
-    getSearchQuery,
-    replaceAll,
-    replaceNext,
-    setSearchQuery,
-} from '@codemirror/search'
 
 type IconButton = HTMLButtonElement & { iconRoot?: Root }
 

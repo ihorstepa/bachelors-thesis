@@ -19,7 +19,7 @@ function useAsyncEffect(
             aborted = true
             destroy?.()
         }
-    }, deps)
+    }, deps) // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 export default useAsyncEffect

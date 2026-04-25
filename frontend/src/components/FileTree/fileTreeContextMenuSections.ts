@@ -1,6 +1,6 @@
+import type { IdeContextMenuItem } from '@/components/ContextMenu/ContextMenu'
 import type { NodeType } from '@/core/fileSystemManager'
 import type { NullableString } from '@/utils/types'
-import type { IdeContextMenuItem } from '@/components/IdeContextMenu/IdeContextMenu'
 
 export type FileTreeContextTarget = {
     nodeId: NullableString

@@ -1,35 +1,36 @@
-import { Routes, Route, useLocation } from 'react-router'
-import { useEffect, useState } from 'react'
-
-import { GlobalServiceProvider } from '@/contextProviders/ServiceProvider'
-import AuthProvider from '@/contextProviders/AuthProvider'
-import ProjectsProvider from '@/contextProviders/ProjectsProvider'
-import RequireAuth from '@/components/AuthForm/RequireAuth'
-import RedirectIfAuthenticated from '@/components/AuthForm/RedirectIfAuthenticated'
-import Dashboard from '@/pages/Dashboard/Dashboard'
-import Ide from '@/pages/Ide/Ide'
-import Auth from '@/pages/Auth/Auth'
-import FullScreenLoader from '@/components/FullScreenLoader/FullScreenLoader'
 import '@/App.css'
 
-function RouteTransitionOverlay() {
-    const location = useLocation()
-    const [visible, setVisible] = useState(false)
+import { useEffect, useState } from 'react'
+import { Route, Routes, useLocation } from 'react-router'
+
+import RedirectIfAuthenticated from '@/components/AuthForm/RedirectIfAuthenticated'
+import RequireAuth from '@/components/AuthForm/RequireAuth'
+import FullScreenLoader from '@/components/FullScreenLoader/FullScreenLoader'
+import AuthProvider from '@/contextProviders/auth/AuthProvider'
+import ProjectsProvider from '@/contextProviders/projects/ProjectsProvider'
+import { GlobalServiceProvider } from '@/contextProviders/service/ServiceProvider'
+import Auth from '@/pages/Auth/Auth'
+import Dashboard from '@/pages/Dashboard/Dashboard'
+import Ide from '@/pages/Ide/Ide'
+
+type RouteTransitionOverlayProps = {
+    pathname: string
+}
+
+function RouteTransitionOverlay({ pathname }: RouteTransitionOverlayProps) {
+    const [visible, setVisible] = useState(true)
 
     useEffect(() => {
-        setVisible(true)
         const timeout = window.setTimeout(() => setVisible(false), 180)
         return () => window.clearTimeout(timeout)
-    }, [location.pathname])
+    }, [pathname])
 
-    if (!visible) {
-        return null
-    }
-
-    return <FullScreenLoader />
+    return visible ? <FullScreenLoader /> : null
 }
 
 function App() {
+    const location = useLocation()
+
     return (
         <GlobalServiceProvider>
             <AuthProvider>
@@ -49,10 +50,11 @@ function App() {
                         <Route path='/ide/:projectId?' element={<Ide />} />
                     </Route>
                 </Routes>
-                <RouteTransitionOverlay />
+                <RouteTransitionOverlay pathname={location.pathname} />
             </AuthProvider>
         </GlobalServiceProvider>
     )
 }
 
 export default App
+

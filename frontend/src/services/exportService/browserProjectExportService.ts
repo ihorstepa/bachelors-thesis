@@ -1,8 +1,8 @@
 import JSZip from 'jszip'
 
 import { ExportService } from '@/core/exportService'
-import { FileSyncManager } from '@/core/fileSyncManager'
-import { ProjectIndexService } from '@/core/projectIndexService'
+import type { FileSyncManager } from '@/core/fileSyncManager'
+import type { ProjectIndexService } from '@/core/projectIndexService'
 
 class BrowserProjectExportService extends ExportService {
     private projectIndexService: ProjectIndexService

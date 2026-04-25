@@ -1,27 +1,9 @@
-import { createContext, useContext, useState, useSyncExternalStore } from 'react'
 import type { ReactNode } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 
-import { useService } from '@/contextProviders/ServiceProvider'
-import { CodeRunner, type CodeRunnerStatus } from '@/core/codeRunner'
-
-type CodeRunnerState = {
-    status: CodeRunnerStatus
-    canSendInput: boolean
-    hasConfig: boolean
-    targets: string[]
-    selectedTarget: string
-    setSelectedTarget: (target: string) => void
-    error: string | null
-    runner: CodeRunner
-}
-
-const CodeRunnerContext = createContext<CodeRunnerState | null>(null)
-
-export function useCodeRunner(): CodeRunnerState {
-    const ctx = useContext(CodeRunnerContext)
-    if (!ctx) throw new Error('useCodeRunner must be used within CodeRunnerProvider')
-    return ctx
-}
+import { CodeRunnerContext, type CodeRunnerState } from '@/contextProviders/codeRunner/CodeRunnerContext'
+import { useService } from '@/contextProviders/service/ServiceContext'
+import { CodeRunner } from '@/core/codeRunner'
 
 type Props = { children: ReactNode }
 
@@ -52,3 +34,5 @@ function CodeRunnerProvider({ children }: Props) {
 }
 
 export default CodeRunnerProvider
+
+

@@ -1,7 +1,8 @@
-import { FileSyncManager } from '@/core/fileSyncManager'
+import type { Connection,ConnectionFactory } from '@/core/connectionFactory'
 import type { SharedFile } from '@/core/fileSyncManager'
-import type { ConnectionFactory, Connection } from '@/core/connectionFactory'
-import { FileSystemManager, type NodeMeta } from '@/core/fileSystemManager'
+import { FileSyncManager } from '@/core/fileSyncManager'
+import type { FileSystemManager} from '@/core/fileSystemManager';
+import { type NodeMeta } from '@/core/fileSystemManager'
 
 class MultipleFileSyncManager extends FileSyncManager {
     private connectionFactory: ConnectionFactory

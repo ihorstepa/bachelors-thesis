@@ -1,22 +1,10 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-import { useService } from '@/contextProviders/ServiceProvider'
-import { CodeRunner } from '@/core/codeRunner'
+import { useService } from '@/contextProviders/service/ServiceContext'
+import { TerminalContext, type TerminalState } from '@/contextProviders/terminal/TerminalContext'
 import type { CodeRunnerStatus } from '@/core/codeRunner'
-
-type TerminalState = {
-    terminalOpen: boolean
-    setTerminalOpen: (value: boolean) => void
-}
-
-const TerminalContext = createContext<TerminalState | null>(null)
-
-export function useTerminal(): TerminalState {
-    const ctx = useContext(TerminalContext)
-    if (!ctx) throw new Error('useTerminal must be used within TerminalProvider')
-    return ctx
-}
+import { CodeRunner } from '@/core/codeRunner'
 
 type Props = { children: ReactNode }
 
@@ -58,3 +46,5 @@ function TerminalProvider({ children }: Props) {
 }
 
 export default TerminalProvider
+
+

@@ -1,13 +1,14 @@
+import '@/components/ManageMembersModal/ManageMembersModal.css'
+
 import { useState } from 'react'
 import { VscClose } from 'react-icons/vsc'
-import type { AccessType, ProjectMember } from '@/core/projectManager'
-import Spinner from '@/components/Spinner/Spinner'
-import ModalShell from '@/components/ModalShell/ModalShell'
-import useAsyncEffect from '@/hooks/useAsyncEffect'
-import MemberRow from '@/components/ManageMembersModal/MemberRow'
-import MemberForm from '@/components/ManageMembersModal/MemberForm'
 
-import '@/components/ManageMembersModal/ManageMembersModal.css'
+import MemberForm from '@/components/ManageMembersModal/MemberForm'
+import MemberRow from '@/components/ManageMembersModal/MemberRow'
+import ModalShell from '@/components/ModalShell/ModalShell'
+import Spinner from '@/components/Spinner/Spinner'
+import type { AccessType, ProjectMember } from '@/core/projectManager'
+import useAsyncEffect from '@/hooks/useAsyncEffect'
 
 type Props = {
     projectName: string

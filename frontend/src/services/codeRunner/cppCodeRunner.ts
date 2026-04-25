@@ -1,13 +1,13 @@
 import type * as Y from 'yjs'
 
-import { CodeRunner } from '@/core/codeRunner'
-import { FileSyncManager } from '@/core/fileSyncManager'
-import { ProjectIndexService } from '@/core/projectIndexService'
-import { FileSystemManager } from '@/core/fileSystemManager'
-import { TabManager } from '@/core/tabManager'
-import { assertNever, normalizePath } from '@/utils/functions'
 import type { CodeRunnerStatus } from '@/core/codeRunner'
-import type { WorkerOutMessage, ProjectFile, WorkerInMessage } from '@/workers/codeRunner/shared'
+import { CodeRunner } from '@/core/codeRunner'
+import type { FileSyncManager } from '@/core/fileSyncManager'
+import type { FileSystemManager } from '@/core/fileSystemManager'
+import type { ProjectIndexService } from '@/core/projectIndexService'
+import type { TabManager } from '@/core/tabManager'
+import { assertNever, normalizePath } from '@/utils/functions'
+import type { ProjectFile, WorkerInMessage,WorkerOutMessage } from '@/workers/codeRunner/shared'
 
 type RunConfig = { targets?: Record<string, { entry?: string }> }
 

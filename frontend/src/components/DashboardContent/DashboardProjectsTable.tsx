@@ -1,12 +1,12 @@
+import '@/components/DashboardContent/DashboardProjectsTable.css'
+
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
-import { useAuth } from '@/contextProviders/AuthProvider'
-import { useProjects } from '@/contextProviders/ProjectsProvider'
-import type { ProjectPreview } from '@/core/projectManager'
 import DashboardProjectRow from '@/components/DashboardContent/DashboardProjectRow'
-
-import '@/components/DashboardContent/DashboardProjectsTable.css'
+import { useAuth } from '@/contextProviders/auth/AuthContext'
+import { useProjects } from '@/contextProviders/projects/ProjectsContext'
+import type { ProjectPreview } from '@/core/projectManager'
 
 type Props = {
     projects: ProjectPreview[]
@@ -96,3 +96,5 @@ function DashboardProjectsTable({ projects, onOpenMembers, onRenameProject, onDe
 }
 
 export default DashboardProjectsTable
+
+

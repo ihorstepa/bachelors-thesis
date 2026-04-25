@@ -1,17 +1,12 @@
-import type { JSX, ReactNode } from 'react'
-import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import '@/components/OverlayScrollbar/OverlayScrollbar.css'
+
+import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
+import type { JSX, ReactNode } from 'react'
+
+import { baseScrollbarOptions } from '@/components/OverlayScrollbar/baseScrollbarOptions'
 
 export type ScrollbarTheme = 'os-theme-ide' | 'os-theme-ide-tabs'
 type OverflowMode = 'scroll' | 'hidden'
-
-export const baseScrollbarOptions = {
-    autoHide: 'leave' as const,
-    autoHideDelay: 700,
-    dragScroll: true,
-    clickScroll: false,
-    pointers: ['mouse', 'touch', 'pen'] as string[],
-}
 
 type Props = {
     variant: 'tabs' | 'tree'

@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
-import type { ReactNode } from 'react'
-
 import '@/components/ModalShell/ModalShell.css'
+
+import type { ReactNode } from 'react'
+import { useEffect } from 'react'
 
 type Props = {
     className?: string

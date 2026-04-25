@@ -1,5 +1,5 @@
-import type { Doc } from 'yjs'
 import type { Awareness } from 'y-protocols/awareness'
+import type { Doc } from 'yjs'
 
 import { BaseService } from '@/core/general'
 

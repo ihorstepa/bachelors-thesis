@@ -1,8 +1,8 @@
-import { WASI } from '@runno/wasi'
 import type { WASIFS } from '@runno/wasi'
+import { WASI } from '@runno/wasi'
 
-import type { CompilerInstanceInMessage, CompilerInstanceOutMessage } from '@/workers/codeRunner/shared'
 import { assertNever } from '@/utils/functions'
+import type { CompilerInstanceInMessage, CompilerInstanceOutMessage } from '@/workers/codeRunner/shared'
 
 type WorkerState = {
     binary: Uint8Array | null

@@ -1,8 +1,10 @@
+import '@/components/NewProjectModal/NewProjectModal.css'
+
 import { useState } from 'react'
 import { VscClose } from 'react-icons/vsc'
-import Spinner from '@/components/Spinner/Spinner'
+
 import ModalShell from '@/components/ModalShell/ModalShell'
-import '@/components/NewProjectModal/NewProjectModal.css'
+import Spinner from '@/components/Spinner/Spinner'
 
 type Props = {
     title?: string

@@ -1,21 +1,23 @@
+import '@/components/IdeTabs/IdeTabs.css'
+
+import type { DragEndEvent } from '@dnd-kit/react'
 import { DragDropProvider } from '@dnd-kit/react'
 import { isSortable } from '@dnd-kit/react/sortable'
 
-import OverlayScrollbar from '@/components/OverlayScrollbar/OverlayScrollbar'
 import TabItem from '@/components/IdeTabs/TabItem'
+import OverlayScrollbar from '@/components/OverlayScrollbar/OverlayScrollbar'
+import { useService } from '@/contextProviders/service/ServiceContext'
+import { useTabs } from '@/contextProviders/tabs/TabsContext'
 import { FileSystemManager } from '@/core/fileSystemManager'
-import { useService } from '@/contextProviders/ServiceProvider'
-import { useTabs } from '@/contextProviders/TabsProvider'
-
-import '@/components/IdeTabs/IdeTabs.css'
 
 function IdeTabs() {
     const { tabs, activeId, tabManager } = useTabs()
     const fileSystemManager = useService(FileSystemManager)
 
-    const handleDragEnd = (event: any) => {
+    const handleDragEnd: DragEndEvent = (event) => {
         if (event.canceled) return
         const { source, target } = event.operation
+        if (!source || !target) return
 
         if (isSortable(source) && isSortable(target) && source.index !== target.index) {
             tabManager.reorder(source.index, target.index)
@@ -54,3 +56,4 @@ function IdeTabs() {
 }
 
 export default IdeTabs
+

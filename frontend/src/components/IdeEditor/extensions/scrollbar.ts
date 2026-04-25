@@ -1,6 +1,7 @@
 import { ViewPlugin } from '@codemirror/view'
 import { OverlayScrollbars } from 'overlayscrollbars'
-import { baseScrollbarOptions } from '@/components/OverlayScrollbar/OverlayScrollbar'
+
+import { baseScrollbarOptions } from '@/components/OverlayScrollbar/baseScrollbarOptions'
 
 export const overlayScrollbar = ViewPlugin.define((view) => {
     const scrollDOM = view.scrollDOM

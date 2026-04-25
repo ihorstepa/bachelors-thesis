@@ -1,9 +1,10 @@
+import '@/components/ConfirmModal/ConfirmModal.css'
+
 import { useState } from 'react'
 import { VscClose } from 'react-icons/vsc'
 
 import ModalShell from '@/components/ModalShell/ModalShell'
 import Spinner from '@/components/Spinner/Spinner'
-import '@/components/ConfirmModal/ConfirmModal.css'
 
 type Props = {
     title: string

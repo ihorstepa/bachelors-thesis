@@ -1,7 +1,8 @@
-import type { RefObject } from 'react'
 import { openSearchPanel } from '@codemirror/search'
 import { EditorView } from '@codemirror/view'
+import type { RefObject } from 'react'
 import type * as Y from 'yjs'
+
 import { assertNever } from '@/utils/functions'
 
 export const editMenuActions = ['undo', 'redo', 'cut', 'copy', 'paste', 'find'] as const

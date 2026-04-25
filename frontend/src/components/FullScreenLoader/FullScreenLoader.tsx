@@ -1,6 +1,6 @@
-import Spinner from '@/components/Spinner/Spinner'
-
 import '@/components/FullScreenLoader/FullScreenLoader.css'
+
+import Spinner from '@/components/Spinner/Spinner'
 
 type Props = {
     label?: string

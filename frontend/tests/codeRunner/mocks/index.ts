@@ -1,9 +1,9 @@
-import * as Y from 'yjs'
 import { vi } from 'vitest'
+import * as Y from 'yjs'
 
 import { FileSyncManager, type SharedFile } from '@/core/fileSyncManager'
 import { FileSystemManager, type NodeMeta, type NodeType } from '@/core/fileSystemManager'
-import { ProjectIndexService, type FileLocation } from '@/core/projectIndexService'
+import { type FileLocation,ProjectIndexService } from '@/core/projectIndexService'
 import { TabManager } from '@/core/tabManager'
 import CppCodeRunner from '@/services/codeRunner/cppCodeRunner'
 import type { WorkerInMessage, WorkerOutMessage } from '@/workers/codeRunner/shared'
@@ -33,7 +33,8 @@ export class MockWorker {
     })
     public readonly terminate = vi.fn((): void => {})
 
-    public constructor(..._args: unknown[]) {
+    public constructor(...args: unknown[]) {
+        void args
         MockWorker.instances.push(this)
     }
 
@@ -150,7 +151,9 @@ export class MockFileSystemManager extends FileSystemManager {
         this.emit('change')
     }
 
-    public copy(_nodeId: string, _targetParentId: string | null): string {
+    public copy(nodeId: string, targetParentId: string | null): string {
+        void nodeId
+        void targetParentId
         throw new Error('Not implemented in test double')
     }
 
@@ -202,7 +205,10 @@ export class MockTabManager extends TabManager {
         this.emit('activeChange', id)
     }
 
-    public reorder(_fromIndex: number, _toIndex: number): void {}
+    public reorder(fromIndex: number, toIndex: number): void {
+        void fromIndex
+        void toIndex
+    }
 
     public close(id: string): void {
         const index = this.opened.indexOf(id)

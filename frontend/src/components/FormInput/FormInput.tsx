@@ -1,6 +1,6 @@
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-
 import '@/components/FormInput/FormInput.css'
+
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 
 interface Props extends Omit<ComponentPropsWithoutRef<'input'>, 'onChange'> {
     label: string

@@ -1,8 +1,8 @@
-import { VscJson, VscMarkdown, VscFile, VscFileCode, VscTextSize } from 'react-icons/vsc'
-import type { IconType } from 'react-icons'
-import type { JSX } from 'react'
-
 import '@/components/Icons/Icons.css'
+
+import type { JSX } from 'react'
+import type { IconType } from 'react-icons'
+import { VscFile, VscFileCode, VscJson, VscMarkdown, VscTextSize } from 'react-icons/vsc'
 
 const iconMap: Record<string, IconType> = {
     c: VscFileCode,

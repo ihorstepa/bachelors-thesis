@@ -1,21 +1,8 @@
-import { createContext, useContext, useSyncExternalStore, type JSX } from 'react'
-import { useService } from '@/contextProviders/ServiceProvider'
-import { FileTreeManager, type TreeNode } from '@/core/fileTreeManager'
+import { type JSX,useSyncExternalStore } from 'react'
 
-type FileTreeState = {
-    tree: TreeNode[]
-    expanded: Set<string>
-    selectedId: string | null
-    fileTreeManager: FileTreeManager
-}
-
-const FileTreeContext = createContext<FileTreeState | null>(null)
-
-export function useFileTree(): FileTreeState {
-    const context = useContext(FileTreeContext)
-    if (!context) throw new Error('useFileTree must be used within FileTreeProvider')
-    return context
-}
+import { FileTreeContext, type FileTreeState } from '@/contextProviders/fileTree/FileTreeContext'
+import { useService } from '@/contextProviders/service/ServiceContext'
+import { FileTreeManager } from '@/core/fileTreeManager'
 
 type Props = {
     children: React.ReactNode
@@ -45,3 +32,5 @@ function FileTreeProvider({ children }: Props): JSX.Element {
 }
 
 export default FileTreeProvider
+
+

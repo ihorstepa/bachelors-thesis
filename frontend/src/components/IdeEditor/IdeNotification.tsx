@@ -1,43 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
 import type { JSX } from 'react'
+import { useEffect, useRef } from 'react'
 import { VscClose } from 'react-icons/vsc'
 
-export type Notification = {
-    id: string
-    source: 'char-limit' | 'offline'
-    type: 'error' | 'warning'
-    message: string
-    persistent?: boolean
-}
-
-export type NotifyFn = (
-    source: Notification['source'],
-    type: Notification['type'],
-    message: string,
-    persistent?: boolean,
-) => void
-
-export function useNotifications() {
-    const [notifications, setNotifications] = useState<Notification[]>([])
-
-    const notify = useCallback<NotifyFn>((source, type, message, persistent = false) => {
-        const id = `${Date.now()}-${Math.random()}`
-        setNotifications((prev) => [
-            ...prev.filter((n) => n.source !== source),
-            { id, source, type, message, persistent },
-        ])
-    }, [])
-
-    const dismiss = useCallback((id: string) => {
-        setNotifications((prev) => prev.filter((n) => n.id !== id))
-    }, [])
-
-    const clear = useCallback((source: Notification['source']) => {
-        setNotifications((prev) => prev.filter((n) => n.source !== source))
-    }, [])
-
-    return { notifications, notify, dismiss, clear }
-}
+import type { Notification } from '@/components/IdeEditor/useNotifications'
 
 type Props = {
     notifications: Notification[]
@@ -73,9 +38,10 @@ function NotificationPopup({ notifications, onDismiss }: Props): JSX.Element {
     }, [notifications, onDismiss])
 
     useEffect(() => {
+        const timeoutById = timeoutByIdRef.current
         return () => {
-            timeoutByIdRef.current.forEach((timeoutId) => clearTimeout(timeoutId))
-            timeoutByIdRef.current.clear()
+            timeoutById.forEach((timeoutId) => clearTimeout(timeoutId))
+            timeoutById.clear()
         }
     }, [])
 

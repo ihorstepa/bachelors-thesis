@@ -1,5 +1,6 @@
 import { useSortable } from '@dnd-kit/react/sortable'
 import { HiXMark } from 'react-icons/hi2'
+
 import FileIcon from '@/components/Icons/FileIcon'
 
 type Props = {

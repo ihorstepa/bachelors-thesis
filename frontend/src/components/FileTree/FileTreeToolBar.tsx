@@ -1,4 +1,4 @@
-import { VscNewFile, VscNewFolder, VscEdit, VscTrash } from 'react-icons/vsc'
+import { VscEdit, VscNewFile, VscNewFolder, VscTrash } from 'react-icons/vsc'
 
 import GhostButton from '@/components/GhostButton/GhostButton'
 import { MAX_PROJECT_FILES } from '@/config'

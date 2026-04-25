@@ -1,8 +1,8 @@
-import { useRef } from 'react'
+import { useState } from 'react'
 import { VscKebabVertical } from 'react-icons/vsc'
 
-import IdeContextMenu from '@/components/IdeContextMenu/IdeContextMenu'
-import type { IdeContextMenuItem } from '@/components/IdeContextMenu/IdeContextMenu'
+import type { IdeContextMenuItem } from '@/components/ContextMenu/ContextMenu'
+import ContextMenu from '@/components/ContextMenu/ContextMenu'
 
 type Props = {
     isOpen: boolean
@@ -29,7 +29,7 @@ function DashboardProjectRowMenu({
     onRename,
     onDelete,
 }: Props) {
-    const triggerRef = useRef<HTMLButtonElement | null>(null)
+    const [fallbackAnchorPoint, setFallbackAnchorPoint] = useState<{ x: number; y: number } | null>(null)
 
     const menuItems: IdeContextMenuItem[] = [
         { id: 'open', label: 'Open', onSelect: onOpen },
@@ -47,31 +47,31 @@ function DashboardProjectRowMenu({
         })
     }
 
-    const triggerRect = triggerRef.current?.getBoundingClientRect()
-    const anchorPoint = position ?? (triggerRect != null ? { x: triggerRect.right, y: triggerRect.bottom + 6 } : null)
+    const anchorPoint = position ?? fallbackAnchorPoint
 
     return (
         <div className='project-menu-wrap'>
             <button
-                ref={triggerRef}
                 type='button'
                 className='project-menu-trigger'
                 title='Project actions'
                 onClick={(e) => {
                     e.stopPropagation()
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    setFallbackAnchorPoint({ x: rect.right, y: rect.bottom + 6 })
                     onToggleMenu()
                 }}
             >
                 <VscKebabVertical />
             </button>
-            <IdeContextMenu
+            <ContextMenu
                 sections={[menuItems]}
                 isOpen={isOpen}
                 onClose={onToggleMenu}
                 anchorPoint={anchorPoint}
                 floating
                 lockScroll
-                isWithinBoundary={(target) => triggerRef.current?.contains(target) ?? false}
+                isWithinBoundary={(target) => target instanceof Element && target.closest('.project-menu-wrap') != null}
                 className='dashboard-project-menu-panel'
             />
         </div>
