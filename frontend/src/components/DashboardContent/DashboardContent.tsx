@@ -95,5 +95,3 @@ function DashboardContent({ activeNav, search, onOpenMembers, onRenameProject, o
 }
 
 export default DashboardContent
-
-

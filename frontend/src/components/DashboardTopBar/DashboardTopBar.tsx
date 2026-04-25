@@ -1,6 +1,6 @@
 import '@/components/DashboardTopBar/DashboardTopBar.css'
 
-import { VscAdd, VscBeaker, VscClose,VscMenu, VscSearch } from 'react-icons/vsc'
+import { VscAdd, VscBeaker, VscClose, VscMenu, VscSearch } from 'react-icons/vsc'
 
 type Props = {
     search: string

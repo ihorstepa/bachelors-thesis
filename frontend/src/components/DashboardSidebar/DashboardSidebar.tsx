@@ -1,7 +1,7 @@
 import '@/components/DashboardSidebar/DashboardSidebar.css'
 
 import type { ReactNode } from 'react'
-import { VscFile,VscFiles, VscOrganization, VscSettingsGear, VscSignOut, VscStarFull } from 'react-icons/vsc'
+import { VscFile, VscFiles, VscOrganization, VscSettingsGear, VscSignOut, VscStarFull } from 'react-icons/vsc'
 
 export type DashboardNav = 'all' | 'mine' | 'shared' | 'favorite'
 

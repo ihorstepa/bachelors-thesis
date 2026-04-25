@@ -76,18 +76,20 @@ const tryPersistencePluginRetrieve = async (plugins, assetId, asset) => {
  */
 const tryPersistencePluginDelete = (plugins, assetId, asset) => {
     if (asset.type === 'asset:retrievable:v1') {
-        return promise.all(
-            plugins.map(async (plugin) => {
-                if (plugin.delete == null) {
-                    return
-                }
-                try {
-                    await plugin.delete(assetId, asset)
-                } catch (err) {
-                    log.error({ err, assetId }, 'error deleting asset')
-                }
-            }),
-        ).then(() => { })
+        return promise
+            .all(
+                plugins.map(async (plugin) => {
+                    if (plugin.delete == null) {
+                        return
+                    }
+                    try {
+                        await plugin.delete(assetId, asset)
+                    } catch (err) {
+                        log.error({ err, assetId }, 'error deleting asset')
+                    }
+                }),
+            )
+            .then(() => {})
     }
     return Promise.resolve()
 }
@@ -157,9 +159,9 @@ export class Persistence {
             storedNongcDoc == null
                 ? Promise.resolve(null)
                 : tryPersistencePluginStore(this.plugins, nongcDocAssetId, {
-                    type: 'asset:ydoc:v1',
-                    update: storedNongcDoc,
-                }),
+                      type: 'asset:ydoc:v1',
+                      update: storedNongcDoc,
+                  }),
             tryPersistencePluginStore(this.plugins, contentmapAssetId, {
                 type: 'asset:contentmap:v1',
                 contentmap,
@@ -228,7 +230,7 @@ export class Persistence {
                 .map(async (row) => {
                     const assetId = object.assign({ type: /** @type {const} */ ('id:contentmap:v1'), t: row.t }, room)
                     const contentmapAsset = /** @type {s.Unwrap<typeof t.$contentMapAsset> | t.RetrievableAsset} */ (
-                        buffer.decodeAny(/** @type {Buffer} */(row.contentmap))
+                        buffer.decodeAny(/** @type {Buffer} */ (row.contentmap))
                     )
                     references?.push({ assetId, asset: contentmapAsset })
                     return tryPersistencePluginRetrieve(this.plugins, assetId, contentmapAsset).then((retrieved) => {
@@ -242,7 +244,7 @@ export class Persistence {
                 .map(async (row) => {
                     const assetId = object.assign({ type: /** @type {const} */ ('id:contentids:v1'), t: row.t }, room)
                     const contentidsAsset = /** @type {s.Unwrap<typeof t.$contentidsAsset> | t.RetrievableAsset} */ (
-                        buffer.decodeAny(/** @type {Buffer} */(row.contentids))
+                        buffer.decodeAny(/** @type {Buffer} */ (row.contentids))
                     )
                     references?.push({ assetId, asset: contentidsAsset })
                     return tryPersistencePluginRetrieve(this.plugins, assetId, contentidsAsset).then((retrieved) => {
@@ -259,7 +261,7 @@ export class Persistence {
                         room,
                     )
                     const gcDocAsset = /** @type {s.Unwrap<typeof t.$ydocAsset> | t.RetrievableAsset} */ (
-                        buffer.decodeAny(/** @type {Buffer} */(row.gcdoc))
+                        buffer.decodeAny(/** @type {Buffer} */ (row.gcdoc))
                     )
                     references?.push({ assetId, asset: gcDocAsset })
                     return tryPersistencePluginRetrieve(this.plugins, assetId, gcDocAsset).then((retrieved) => {
@@ -276,7 +278,7 @@ export class Persistence {
                         room,
                     )
                     const nongcDocAsset = /** @type {s.Unwrap<typeof t.$ydocAsset> | t.RetrievableAsset} */ (
-                        buffer.decodeAny(/** @type {Buffer} */(row.nongcdoc))
+                        buffer.decodeAny(/** @type {Buffer} */ (row.nongcdoc))
                     )
                     references?.push({ assetId, asset: nongcDocAsset })
                     return tryPersistencePluginRetrieve(this.plugins, assetId, nongcDocAsset).then((retrieved) => {

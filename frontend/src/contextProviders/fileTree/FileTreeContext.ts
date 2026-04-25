@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 
-import { type FileTreeManager,type TreeNode } from '@/core/fileTreeManager'
+import { type FileTreeManager, type TreeNode } from '@/core/fileTreeManager'
 
 export type FileTreeState = {
     tree: TreeNode[]
@@ -16,4 +16,3 @@ export function useFileTree(): FileTreeState {
     if (!context) throw new Error('useFileTree must be used within FileTreeProvider')
     return context
 }
-

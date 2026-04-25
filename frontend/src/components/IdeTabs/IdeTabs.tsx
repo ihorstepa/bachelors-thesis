@@ -56,4 +56,3 @@ function IdeTabs() {
 }
 
 export default IdeTabs
-

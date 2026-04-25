@@ -46,5 +46,3 @@ function TerminalProvider({ children }: Props) {
 }
 
 export default TerminalProvider
-
-

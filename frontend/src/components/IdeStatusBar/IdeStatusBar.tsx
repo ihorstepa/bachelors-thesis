@@ -37,5 +37,3 @@ function IdeStatusBar() {
 }
 
 export default IdeStatusBar
-
-

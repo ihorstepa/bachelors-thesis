@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 
-import { AuthContext,type AuthState } from '@/contextProviders/auth/AuthContext'
+import { AuthContext, type AuthState } from '@/contextProviders/auth/AuthContext'
 import { useService } from '@/contextProviders/service/ServiceContext'
 import { AuthManager as AuthHttpClientBase, type AuthUser } from '@/core/authManager'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
@@ -92,5 +92,3 @@ function AuthProvider({ children }: Props) {
 }
 
 export default AuthProvider
-
-

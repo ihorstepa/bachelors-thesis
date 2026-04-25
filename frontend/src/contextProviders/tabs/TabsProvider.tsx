@@ -26,5 +26,3 @@ function TabsProvider({ children }: Props) {
 }
 
 export default TabsProvider
-
-

@@ -3,7 +3,7 @@ import type { Awareness } from 'y-protocols/awareness'
 import type { FileSystemManager } from '@/core/fileSystemManager'
 import type { PresenceEntry, UserStatus } from '@/core/presenceService'
 import { PresenceService } from '@/core/presenceService'
-import { generateColorFromSeed,generateRandomColor, generateRandomName } from '@/utils/identity'
+import { generateColorFromSeed, generateRandomColor, generateRandomName } from '@/utils/identity'
 import type { NullableString } from '@/utils/types'
 
 class FileSystemPresenceService extends PresenceService {

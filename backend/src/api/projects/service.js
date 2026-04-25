@@ -63,14 +63,14 @@ const serializeProjectMembers = (ownerUser, members) => {
         ownerUser == null
             ? []
             : [
-                serializeMember({
-                    userId: ownerUser.id,
-                    username: ownerUser.username,
-                    email: ownerUser.email,
-                    accessType: /** @type {'rw'} */ ('rw'),
-                    isOwner: true,
-                }),
-            ]
+                  serializeMember({
+                      userId: ownerUser.id,
+                      username: ownerUser.username,
+                      email: ownerUser.email,
+                      accessType: /** @type {'rw'} */ ('rw'),
+                      isOwner: true,
+                  }),
+              ]
 
     return [...ownerMember, ...members.map((member) => serializeMember({ ...member, isOwner: false }))]
 }
@@ -92,7 +92,7 @@ const requireObjectBody = (body) => {
  */
 const parseValidatedProjectName = (body) => {
     const { name: rawName } = requireObjectBody(body)
-    const name = normalizeProjectName(/** @type {string} */(rawName ?? ''))
+    const name = normalizeProjectName(/** @type {string} */ (rawName ?? ''))
     validateProjectName(name)
     return name
 }
@@ -118,9 +118,7 @@ export class ProjectService {
 
         const projectCount = await this.repository.countProjectsByOwner(userId)
         if (projectCount >= PROJECT_MAX_PER_OWNER) {
-            throw new ProjectValidationError(
-                `Project limit reached (${PROJECT_MAX_PER_OWNER} projects max).`,
-            )
+            throw new ProjectValidationError(`Project limit reached (${PROJECT_MAX_PER_OWNER} projects max).`)
         }
 
         const project = await this.repository.createProject({ ownerId: userId, name })

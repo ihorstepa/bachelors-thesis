@@ -1,4 +1,4 @@
-import { type JSX,useSyncExternalStore } from 'react'
+import { type JSX, useSyncExternalStore } from 'react'
 
 import { FileTreeContext, type FileTreeState } from '@/contextProviders/fileTree/FileTreeContext'
 import { useService } from '@/contextProviders/service/ServiceContext'
@@ -32,5 +32,3 @@ function FileTreeProvider({ children }: Props): JSX.Element {
 }
 
 export default FileTreeProvider
-
-

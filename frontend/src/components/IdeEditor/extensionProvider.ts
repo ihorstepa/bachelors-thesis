@@ -6,10 +6,10 @@ import {
     completionKeymap,
 } from '@codemirror/autocomplete'
 import { defaultKeymap } from '@codemirror/commands'
-import { bracketMatching, foldGutter, foldKeymap,indentOnInput, indentUnit } from '@codemirror/language'
+import { bracketMatching, foldGutter, foldKeymap, indentOnInput, indentUnit } from '@codemirror/language'
 import { lintKeymap } from '@codemirror/lint'
-import { highlightSelectionMatches,search, searchKeymap } from '@codemirror/search'
-import type { Extension , StateEffect } from '@codemirror/state'
+import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search'
+import type { Extension, StateEffect } from '@codemirror/state'
 import { Compartment, EditorState } from '@codemirror/state'
 import { oneDark } from '@codemirror/theme-one-dark'
 import {

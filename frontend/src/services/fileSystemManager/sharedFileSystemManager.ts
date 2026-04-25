@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid'
 import * as Y from 'yjs'
 
-import type { Connection,ConnectionFactory } from '@/core/connectionFactory'
+import type { Connection, ConnectionFactory } from '@/core/connectionFactory'
 import type { NodeMeta, NodeType } from '@/core/fileSystemManager'
 import { FileSystemManager } from '@/core/fileSystemManager'
 import * as err from '@/errors/fileSystem'

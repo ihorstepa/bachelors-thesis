@@ -1,5 +1,5 @@
 import type { EditorView } from '@codemirror/view'
-import { createContext, type Dispatch, type RefObject, type SetStateAction,useContext } from 'react'
+import { createContext, type Dispatch, type RefObject, type SetStateAction, useContext } from 'react'
 import type * as Y from 'yjs'
 
 export type EditorState = {
@@ -23,4 +23,3 @@ export function useEditor(): EditorContextType {
     if (!ctx) throw new Error('useEditor must be used within EditorProvider')
     return ctx
 }
-

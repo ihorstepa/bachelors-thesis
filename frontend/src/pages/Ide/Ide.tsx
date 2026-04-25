@@ -22,7 +22,7 @@ import TabsProvider from '@/contextProviders/tabs/TabsProvider'
 import { useTerminal } from '@/contextProviders/terminal/TerminalContext'
 import TerminalProvider from '@/contextProviders/terminal/TerminalProvider'
 import { ProjectManager } from '@/core/projectManager'
-import type { HttpError} from '@/errors/http';
+import type { HttpError } from '@/errors/http'
 import { normalizeHttpError } from '@/errors/http'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 

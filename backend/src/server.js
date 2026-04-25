@@ -48,9 +48,9 @@ const createContentMapFromParams = (contentids, userid, customAttributions) => {
 const parseCustomAttributionsParam = (param) =>
     param
         ? param.split(',').map((entry) => {
-            const [k, ...rest] = entry.split(':')
-            return { k, v: rest.join(':') }
-        })
+              const [k, ...rest] = entry.split(':')
+              return { k, v: rest.join(':') }
+          })
         : []
 
 /**
@@ -72,9 +72,10 @@ const reqToRoom = (req) => {
  * @returns {Promise<{ ok: true } | { ok: false, status: string, error: string }>}
  */
 const runRoomCheck = async (serverConf, hookName, authInfo, room, logContext) => {
-    const roomCheck = /** @type {((authInfo: { userid: string }, room: t.Room) => Promise<{ ok: true } | { ok: false, status: string, error: string }>) | undefined} */ (
-        serverConf?.auth?.[hookName]
-    )
+    const roomCheck =
+        /** @type {((authInfo: { userid: string }, room: t.Room) => Promise<{ ok: true } | { ok: false, status: string, error: string }>) | undefined} */ (
+            serverConf?.auth?.[hookName]
+        )
 
     if (typeof roomCheck !== 'function') {
         return { ok: true }
@@ -289,12 +290,7 @@ export const createYHubServer = async (yhub, conf) => {
                         .check(decodedBody)
                 ) {
                     const { update, customAttributions = [] } = decodedBody
-                    const writeCheck = await runWriteCheck(
-                        conf.server,
-                        authResult.authInfo,
-                        room,
-                        'http-patch',
-                    )
+                    const writeCheck = await runWriteCheck(conf.server, authResult.authInfo, room, 'http-patch')
                     if (!writeCheck.ok) {
                         sendErrorResponse(res, writeCheck.status, { error: writeCheck.error })
                         return
@@ -777,7 +773,7 @@ const registerWebsocketServer = (yhub, app) => {
     const maxPayloadBytes = s.$number.cast(yhub.conf.server?.maxPayloadBytes)
     app.ws(
         '/ws/:org/:docid',
-        /** @type {uws.WebSocketBehavior<{ user: WSUser }>} */({
+        /** @type {uws.WebSocketBehavior<{ user: WSUser }>} */ ({
             compression: uws.DISABLED,
             maxPayloadLength: maxPayloadBytes,
             maxBackpressure: math.round(maxPayloadBytes * 1.2),

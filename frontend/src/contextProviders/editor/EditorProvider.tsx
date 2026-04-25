@@ -30,5 +30,3 @@ function EditorProvider({ children }: Props) {
 }
 
 export default EditorProvider
-
-

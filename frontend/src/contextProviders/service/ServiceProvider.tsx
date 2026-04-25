@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useRef,useState } from 'react'
+import React, { useContext, useMemo, useRef, useState } from 'react'
 
 import FullScreenLoader from '@/components/FullScreenLoader/FullScreenLoader'
 import { ServiceContext, type ServiceRegistry } from '@/contextProviders/service/ServiceContext'
@@ -156,5 +156,3 @@ export function IdeServiceProvider({
 
     return <ServiceContext value={registry}>{children}</ServiceContext>
 }
-
-

@@ -52,7 +52,7 @@ export const createProjectsModule = async ({ postgresUrl, verifyAccessToken }) =
     const runLockedCleanup = async (key, fn) => {
         const previous = orgCleanupLocks.get(key)
         const next = (previous ?? Promise.resolve())
-            .catch(() => { })
+            .catch(() => {})
             .then(fn)
             .finally(() => {
                 if (orgCleanupLocks.get(key) === next) {
@@ -230,7 +230,7 @@ export const createProjectsModule = async ({ postgresUrl, verifyAccessToken }) =
                     error: `Project file limit reached (${PROJECT_MAX_FILE_ROOMS} files max). Delete files to continue.`,
                 }
             }
-            if (exists && await repository.isRoomReadonly(room)) {
+            if (exists && (await repository.isRoomReadonly(room))) {
                 return {
                     ok: false,
                     status: '423 Locked',
@@ -267,8 +267,7 @@ export const createProjectsModule = async ({ postgresUrl, verifyAccessToken }) =
      * @param {import('../../types.js').Room} room
      * @returns {Promise<{ ok: true } | { ok: false, status: string, error: string }>}
      */
-    const canWriteToRoom = (authInfo, room) =>
-        checkWritableRoomAccess(authInfo, room)
+    const canWriteToRoom = (authInfo, room) => checkWritableRoomAccess(authInfo, room)
 
     /**
      * @param {import('../../types.js').Room} room

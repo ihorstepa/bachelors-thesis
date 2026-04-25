@@ -3,7 +3,7 @@ import * as Y from 'yjs'
 
 import { FileSyncManager, type SharedFile } from '@/core/fileSyncManager'
 import { FileSystemManager, type NodeMeta, type NodeType } from '@/core/fileSystemManager'
-import { type FileLocation,ProjectIndexService } from '@/core/projectIndexService'
+import { type FileLocation, ProjectIndexService } from '@/core/projectIndexService'
 import { TabManager } from '@/core/tabManager'
 import CppCodeRunner from '@/services/codeRunner/cppCodeRunner'
 import type { WorkerInMessage, WorkerOutMessage } from '@/workers/codeRunner/shared'

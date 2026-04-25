@@ -2,7 +2,7 @@ import type { WASIFS } from '@runno/wasi'
 
 import { mainWrapper, wrappedMainPath } from '@/workers/codeRunner/mainWrapper'
 import type { ProjectFile } from '@/workers/codeRunner/shared'
-import { isCppFile, isSourceFile, projectPath,toBinaryFile } from '@/workers/codeRunner/shared'
+import { isCppFile, isSourceFile, projectPath, toBinaryFile } from '@/workers/codeRunner/shared'
 
 export class ProjectFs {
     readonly initialFs: WASIFS

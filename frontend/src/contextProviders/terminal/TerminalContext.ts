@@ -12,4 +12,3 @@ export function useTerminal(): TerminalState {
     if (!ctx) throw new Error('useTerminal must be used within TerminalProvider')
     return ctx
 }
-

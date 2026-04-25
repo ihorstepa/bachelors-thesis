@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 
-import { type CodeRunner,type CodeRunnerStatus } from '@/core/codeRunner'
+import { type CodeRunner, type CodeRunnerStatus } from '@/core/codeRunner'
 
 export type CodeRunnerState = {
     status: CodeRunnerStatus
@@ -20,4 +20,3 @@ export function useCodeRunner(): CodeRunnerState {
     if (!ctx) throw new Error('useCodeRunner must be used within CodeRunnerProvider')
     return ctx
 }
-

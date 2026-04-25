@@ -1,4 +1,4 @@
-import type { WASIExecutionResult,WASIFS } from '@runno/wasi'
+import type { WASIExecutionResult, WASIFS } from '@runno/wasi'
 
 import { wrappedMainPath } from '@/workers/codeRunner/mainWrapper'
 import { CompilerInstance } from '@/workers/codeRunner/pipeline/compilerInstance'

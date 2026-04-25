@@ -147,9 +147,7 @@ export const testSampleAuthServer = async (tc) => {
         })
 
         await promise.until(5000, () =>
-            Array.from(rwProvider.awareness.getStates().values()).some(
-                (state) => state.user?.name === 'readonly-user',
-            ),
+            Array.from(rwProvider.awareness.getStates().values()).some((state) => state.user?.name === 'readonly-user'),
         )
     })
 }

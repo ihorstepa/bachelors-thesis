@@ -7,7 +7,7 @@ import { useNavigate, useParams } from 'react-router'
 import IdeAboutModal from '@/components/AboutIdeModal/IdeAboutModal'
 import ContextMenu, { type IdeContextMenuItem } from '@/components/ContextMenu/ContextMenu'
 import GhostButton from '@/components/GhostButton/GhostButton'
-import { type EditMenuAction,runEditMenuAction } from '@/components/IdeTopBar/editActions'
+import { type EditMenuAction, runEditMenuAction } from '@/components/IdeTopBar/editActions'
 import { useEditor } from '@/contextProviders/editor/EditorContext'
 import { useService } from '@/contextProviders/service/ServiceContext'
 import { ExportService } from '@/core/exportService'
@@ -176,4 +176,3 @@ function IdeTopBar({ projectName, canWrite }: Props) {
 }
 
 export default IdeTopBar
-

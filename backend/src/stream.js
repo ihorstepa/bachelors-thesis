@@ -197,7 +197,7 @@ export class Stream {
                 }),
             },
         })
-        this.redis.on('error', /** @param {Error} err */(err) => log.error({ err }, 'Redis client error'))
+        this.redis.on('error', /** @param {Error} err */ (err) => log.error({ err }, 'Redis client error'))
         /**
          * Second instance to fetch things concurrent to the other connection.
          *
@@ -270,7 +270,7 @@ export class Stream {
                 this.redisSubscriptions = redis.createClient(this.redisClientConf)
                 this.redisSubscriptions.on(
                     'error',
-                    /** @param {Error} err */(err) => log.error({ err }, 'Redis subscription client error'),
+                    /** @param {Error} err */ (err) => log.error({ err }, 'Redis subscription client error'),
                 )
                 await this.redisSubscriptions.connect()
             }
@@ -362,7 +362,7 @@ export class Stream {
                 messages: stream.messages
                     .filter((m) => m.message.m != null)
                     .map((message) => {
-                        const dm = buffer.decodeAny(/** @type {Uint8Array<ArrayBuffer>} */(message.message.m))
+                        const dm = buffer.decodeAny(/** @type {Uint8Array<ArrayBuffer>} */ (message.message.m))
                         dm.redisClock = message.id.toString()
                         return dm
                     }),

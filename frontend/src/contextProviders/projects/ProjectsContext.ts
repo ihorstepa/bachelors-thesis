@@ -26,4 +26,3 @@ export function useProjects(): ProjectsState {
     }
     return context
 }
-

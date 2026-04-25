@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { ProjectFile } from '@/workers/codeRunner/shared'
 
-import { addProjectFile, createHarness, decodeBytes, deferred,MockWorker } from '../mocks'
+import { addProjectFile, createHarness, decodeBytes, deferred, MockWorker } from '../mocks'
 
 beforeEach(() => {
     vi.useFakeTimers()

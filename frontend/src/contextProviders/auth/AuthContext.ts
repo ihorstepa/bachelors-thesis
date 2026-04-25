@@ -21,4 +21,3 @@ export function useAuth(): AuthState {
     }
     return context
 }
-

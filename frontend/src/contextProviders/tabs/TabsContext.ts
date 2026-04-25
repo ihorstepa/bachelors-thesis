@@ -15,4 +15,3 @@ export function useTabs(): TabsState {
     if (!context) throw new Error('useTabs must be used within TabsContext')
     return context
 }
-

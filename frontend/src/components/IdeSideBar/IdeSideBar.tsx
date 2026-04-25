@@ -2,7 +2,7 @@ import '@/components/IdeSideBar/IdeSideBar.css'
 
 import type { ComponentType, ReactNode } from 'react'
 import { useState } from 'react'
-import { VscAccount,VscFiles, VscRunAll, VscSearch, VscSettingsGear, VscSourceControl } from 'react-icons/vsc'
+import { VscAccount, VscFiles, VscRunAll, VscSearch, VscSettingsGear, VscSourceControl } from 'react-icons/vsc'
 import { useNavigate } from 'react-router'
 
 import type { IdeContextMenuItem } from '@/components/ContextMenu/ContextMenu'
@@ -145,4 +145,3 @@ function IdeSideBar({ canWrite }: Props) {
 }
 
 export default IdeSideBar
-

@@ -96,5 +96,3 @@ function DashboardProjectsTable({ projects, onOpenMembers, onRenameProject, onDe
 }
 
 export default DashboardProjectsTable
-
-

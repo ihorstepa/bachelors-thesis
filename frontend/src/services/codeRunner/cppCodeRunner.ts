@@ -7,7 +7,7 @@ import type { FileSystemManager } from '@/core/fileSystemManager'
 import type { ProjectIndexService } from '@/core/projectIndexService'
 import type { TabManager } from '@/core/tabManager'
 import { assertNever, normalizePath } from '@/utils/functions'
-import type { ProjectFile, WorkerInMessage,WorkerOutMessage } from '@/workers/codeRunner/shared'
+import type { ProjectFile, WorkerInMessage, WorkerOutMessage } from '@/workers/codeRunner/shared'
 
 type RunConfig = { targets?: Record<string, { entry?: string }> }
 

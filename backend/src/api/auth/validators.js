@@ -68,7 +68,7 @@ export const parseRegisterInput = (body) => {
             password: s.$string,
             username: s.$string,
         })
-        .expect(/** @type {any} */(body))
+        .expect(/** @type {any} */ (body))
 
     const email = normalizeEmail(input.email)
     const password = input.password
@@ -89,15 +89,15 @@ export const parseLoginInput = (body) => {
         .$object({
             password: s.$string,
         })
-        .expect(/** @type {any} */(body))
+        .expect(/** @type {any} */ (body))
 
     const payload = /** @type {{ identifier?: unknown, email?: unknown }} */ (body)
     const rawIdentifierInput =
         typeof payload.identifier === 'string'
             ? payload.identifier
             : typeof payload.email === 'string'
-                ? payload.email
-                : ''
+              ? payload.email
+              : ''
     const rawIdentifier = rawIdentifierInput.trim()
     const password = input.password
     const isEmailIdentifier = rawIdentifier.includes('@')

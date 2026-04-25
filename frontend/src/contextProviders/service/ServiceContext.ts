@@ -15,4 +15,3 @@ export function useService<T extends BaseService>(baseClass: AbstractClass<T>): 
     }
     return service as T
 }
-

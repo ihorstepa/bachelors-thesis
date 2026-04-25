@@ -20,5 +20,3 @@ function RedirectIfAuthenticated() {
 }
 
 export default RedirectIfAuthenticated
-
-

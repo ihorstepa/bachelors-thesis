@@ -3,7 +3,7 @@ import { useState } from 'react'
 
 import { ProjectsContext } from '@/contextProviders/projects/ProjectsContext'
 import { useService } from '@/contextProviders/service/ServiceContext'
-import { type AccessType,ProjectManager, type ProjectMember, type ProjectPreview } from '@/core/projectManager'
+import { type AccessType, ProjectManager, type ProjectMember, type ProjectPreview } from '@/core/projectManager'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 
 type Props = {
@@ -124,5 +124,3 @@ function ProjectsProvider({ children }: Props) {
 }
 
 export default ProjectsProvider
-
-

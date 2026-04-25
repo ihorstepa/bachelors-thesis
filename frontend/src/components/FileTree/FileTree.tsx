@@ -1,6 +1,6 @@
 import '@/components/FileTree/FileTree.css'
 
-import type { DragEndEvent,DragStartEvent } from '@dnd-kit/react'
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/react'
 import { DragDropProvider, DragOverlay } from '@dnd-kit/react'
 import type { CSSProperties, JSX } from 'react'
 import { useEffect, useState } from 'react'
@@ -343,4 +343,3 @@ function FileTree({ canWrite }: Props): JSX.Element {
 }
 
 export default FileTree
-

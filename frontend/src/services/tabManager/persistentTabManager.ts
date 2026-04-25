@@ -1,4 +1,4 @@
-import type { FileSystemManager} from '@/core/fileSystemManager';
+import type { FileSystemManager } from '@/core/fileSystemManager'
 import { type NodeMeta } from '@/core/fileSystemManager'
 import { TabManager } from '@/core/tabManager'
 import { LRUSet } from '@/utils/classes'

@@ -90,7 +90,9 @@ export class YHub {
                                 taskLog.info('task completed (trim only)')
                                 return null
                             }
-                            this.conf.worker?.events?.docUpdate?.(object.assign({ room: task.room }, d, { references: null }))
+                            this.conf.worker?.events?.docUpdate?.(
+                                object.assign({ room: task.room }, d, { references: null }),
+                            )
                             try {
                                 await this.persistence.store(task.room, d)
                             } catch (err) {
@@ -165,8 +167,8 @@ export class YHub {
         const awareness = /** @type {Include['awareness'] extends true ? Uint8Array<ArrayBuffer> : null} */ (
             includeContent.awareness
                 ? protocol.mergeAwarenessUpdates(
-                    cachedMessages.messages.filter((m) => m.type === 'awareness:v1').map((m) => m.update),
-                )
+                      cachedMessages.messages.filter((m) => m.type === 'awareness:v1').map((m) => m.update),
+                  )
                 : null
         )
         const lastClock = strm.maxRedisClock(persistedDoc.lastClock, cachedMessages.lastClock)
@@ -255,9 +257,9 @@ export class YHub {
             this.stream.listRoomsByOrg(org),
         ])
         const uniqueRooms = new Map()
-            ;[...persistedRooms, ...streamedRooms].forEach((room) => {
-                uniqueRooms.set(`${room.org}:${room.docid}:${room.branch}`, room)
-            })
+        ;[...persistedRooms, ...streamedRooms].forEach((room) => {
+            uniqueRooms.set(`${room.org}:${room.docid}:${room.branch}`, room)
+        })
         return Array.from(uniqueRooms.values())
     }
 

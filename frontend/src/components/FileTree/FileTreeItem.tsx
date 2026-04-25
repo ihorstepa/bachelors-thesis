@@ -1,7 +1,7 @@
 import { useDraggable, useDroppable } from '@dnd-kit/react'
 import type { JSX } from 'react'
 import { useSyncExternalStore } from 'react'
-import { FaChevronDown,FaChevronRight } from 'react-icons/fa'
+import { FaChevronDown, FaChevronRight } from 'react-icons/fa'
 
 import FileTreeInput from '@/components/FileTree/FileTreeInput'
 import FileIcon from '@/components/Icons/FileIcon'
@@ -183,5 +183,3 @@ export function FileTreeItem({
         </>
     )
 }
-
-
