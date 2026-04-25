@@ -15,8 +15,13 @@ function IdeAboutModal({ onClose }: Props) {
                 <h2 className='ide-about-modal-title' id='ide-about-modal-title'>
                     About
                 </h2>
-                <button type='button' className='ide-about-modal-close' onClick={onClose} aria-label='Close'>
-                    <VscClose size={18} />
+                <button
+                    type='button'
+                    className='ide-about-modal-close modal-close-btn'
+                    onClick={onClose}
+                    aria-label='Close'
+                >
+                    <VscClose />
                 </button>
             </div>
             <p>

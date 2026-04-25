@@ -52,8 +52,13 @@ function NewProjectModal({
                 <h2 className='new-project-title' id='new-project-title'>
                     {title}
                 </h2>
-                <button type='button' className='new-project-close' onClick={onClose} aria-label='Close'>
-                    <VscClose size={18} />
+                <button
+                    type='button'
+                    className='new-project-close modal-close-btn'
+                    onClick={onClose}
+                    aria-label='Close'
+                >
+                    <VscClose />
                 </button>
             </div>
 
@@ -65,7 +70,7 @@ function NewProjectModal({
                     <input
                         id='project-name'
                         autoFocus
-                        className='new-project-input'
+                        className='new-project-input modal-input'
                         type='text'
                         placeholder='my-project'
                         value={name}
@@ -73,16 +78,21 @@ function NewProjectModal({
                         maxLength={100}
                         disabled={submitting}
                     />
-                    {error != null && <p className='new-project-error'>{error}</p>}
+                    {error != null && <p className='new-project-error modal-error'>{error}</p>}
                 </div>
 
                 <div className='new-project-actions'>
-                    <button type='button' className='new-project-cancel' onClick={onClose} disabled={submitting}>
+                    <button
+                        type='button'
+                        className='new-project-cancel modal-btn'
+                        onClick={onClose}
+                        disabled={submitting}
+                    >
                         Cancel
                     </button>
                     <button
                         type='submit'
-                        className='new-project-submit'
+                        className='new-project-submit modal-btn modal-btn-primary'
                         disabled={submitting || name.trim().length === 0}
                     >
                         {submitting && <Spinner size={14} />}

@@ -149,14 +149,14 @@ function DashboardProjectRow({
             <td>
                 {project.accessType === 'r' && (
                     <span className='project-readonly-icon' title='Read-only access'>
-                        <VscEye size={13} />
+                        <VscEye />
                     </span>
                 )}
             </td>
             <td>
                 <div className='project-name-cell'>
                     <span className='project-name'>{project.name}</span>
-                    {project.favorited && <VscStarFull size={14} className='project-favorited-icon' />}
+                    {project.favorited && <VscStarFull className='project-favorited-icon' />}
                 </div>
             </td>
             <td>

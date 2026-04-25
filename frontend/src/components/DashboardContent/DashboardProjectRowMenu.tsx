@@ -62,7 +62,7 @@ function DashboardProjectRowMenu({
                     onToggleMenu()
                 }}
             >
-                <VscKebabVertical size={14} />
+                <VscKebabVertical />
             </button>
             <IdeContextMenu
                 sections={[menuItems]}

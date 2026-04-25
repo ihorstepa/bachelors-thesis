@@ -95,7 +95,7 @@ function NotificationPopup({ notifications, onDismiss }: Props): JSX.Element {
                             onClick={() => onDismiss(notification.id)}
                             aria-label='Dismiss notification'
                         >
-                            <VscClose size={15} />
+                            <VscClose />
                         </button>
                     )}
                 </div>

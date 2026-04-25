@@ -113,7 +113,7 @@ export function FileTreeItem({
                 <div className='tree-node-left'>
                     {node.type === 'dir' && (
                         <button className='expand-button' onClick={handleArrowClick}>
-                            {isExpanded ? <FaChevronDown size={10} /> : <FaChevronRight size={10} />}
+                            {isExpanded ? <FaChevronDown /> : <FaChevronRight />}
                         </button>
                     )}
                     {node.type === 'file' && !isRenameEditing && (

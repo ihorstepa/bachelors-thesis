@@ -58,6 +58,11 @@
     border-color: var(--text-muted);
 }
 
+.dashboard-retry-btn svg {
+    width: 13px;
+    height: 13px;
+}
+
 @media (max-width: 620px) {
     .dashboard-content {
         padding: 10px;

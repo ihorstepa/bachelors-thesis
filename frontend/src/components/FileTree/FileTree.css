@@ -104,6 +104,11 @@
     color: var(--text-primary);
 }
 
+.tree-node .expand-button > svg {
+    width: 10px;
+    height: 10px;
+}
+
 .tree-node .expand-button-placeholder {
     cursor: default;
     opacity: 0.85;

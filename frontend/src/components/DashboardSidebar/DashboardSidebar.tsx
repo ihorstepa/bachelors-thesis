@@ -6,10 +6,10 @@ import '@/components/DashboardSidebar/DashboardSidebar.css'
 export type DashboardNav = 'all' | 'mine' | 'shared' | 'favorite'
 
 const navItems: Array<{ id: DashboardNav; label: string; icon: ReactNode }> = [
-    { id: 'all', label: 'All Projects', icon: <VscFiles size={15} /> },
-    { id: 'mine', label: 'My projects', icon: <VscFile size={15} /> },
-    { id: 'shared', label: 'Shared with me', icon: <VscOrganization size={15} /> },
-    { id: 'favorite', label: 'Favorites', icon: <VscStarFull size={15} /> },
+    { id: 'all', label: 'All Projects', icon: <VscFiles /> },
+    { id: 'mine', label: 'My projects', icon: <VscFile /> },
+    { id: 'shared', label: 'Shared with me', icon: <VscOrganization /> },
+    { id: 'favorite', label: 'Favorites', icon: <VscStarFull /> },
 ]
 
 type Props = {
@@ -49,13 +49,13 @@ function DashboardSidebar({ userInitial, username, email, activeNav, onNavChange
             <div className='dashboard-sidebar-bottom'>
                 <button type='button' className='dashboard-nav-item' disabled title='Unavailable'>
                     <span className='dashboard-nav-icon'>
-                        <VscSettingsGear size={15} />
+                        <VscSettingsGear />
                     </span>
                     Settings
                 </button>
                 <button type='button' className='dashboard-nav-item' onClick={onLogout}>
                     <span className='dashboard-nav-icon'>
-                        <VscSignOut size={15} />
+                        <VscSignOut />
                     </span>
                     Logout
                 </button>

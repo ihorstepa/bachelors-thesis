@@ -38,24 +38,34 @@ function ConfirmModal({ title, message, confirmLabel, pendingLabel, onConfirm, o
                 </h2>
                 <button
                     type='button'
-                    className='confirm-modal-close'
+                    className='confirm-modal-close modal-close-btn'
                     onClick={onClose}
                     aria-label='Close'
                     disabled={submitting}
                 >
-                    <VscClose size={18} />
+                    <VscClose />
                 </button>
             </div>
 
             <p className='confirm-modal-message'>{message}</p>
 
-            {error != null && <p className='confirm-modal-error'>{error}</p>}
+            {error != null && <p className='confirm-modal-error modal-error'>{error}</p>}
 
             <div className='confirm-modal-actions'>
-                <button type='button' className='confirm-modal-cancel' onClick={onClose} disabled={submitting}>
+                <button
+                    type='button'
+                    className='confirm-modal-cancel modal-btn'
+                    onClick={onClose}
+                    disabled={submitting}
+                >
                     Cancel
                 </button>
-                <button type='button' className='confirm-modal-confirm' onClick={handleConfirm} disabled={submitting}>
+                <button
+                    type='button'
+                    className='confirm-modal-confirm modal-btn modal-btn-danger'
+                    onClick={handleConfirm}
+                    disabled={submitting}
+                >
                     {submitting ? (
                         <>
                             <Spinner size={13} />

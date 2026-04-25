@@ -146,8 +146,18 @@
     justify-content: center;
 }
 
+.project-readonly-icon svg {
+    width: 13px;
+    height: 13px;
+}
+
 .project-favorited-icon {
     color: var(--icon-color-json);
+}
+
+.project-favorited-icon svg {
+    width: 14px;
+    height: 14px;
 }
 
 .project-updated {
@@ -231,6 +241,11 @@
 
 .project-menu-trigger:hover {
     color: var(--text-primary);
+}
+
+.project-menu-trigger svg {
+    width: 14px;
+    height: 14px;
 }
 
 .dashboard-project-menu-panel {

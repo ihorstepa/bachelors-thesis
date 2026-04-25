@@ -27,6 +27,11 @@
     color: var(--text-primary);
 }
 
+.dashboard-menu-btn svg {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+}
+
 .dashboard-search {
     flex: 1;
     display: flex;
@@ -47,6 +52,8 @@
 .dashboard-search svg {
     color: var(--text-muted);
     flex-shrink: 0;
+    width: 14px;
+    height: 14px;
 }
 
 .dashboard-search input {
@@ -75,6 +82,12 @@
     flex-shrink: 0;
     cursor: pointer;
     transition: all 0.15s;
+}
+
+.dashboard-playground-btn svg,
+.dashboard-new-btn svg {
+    width: 13px;
+    height: 13px;
 }
 
 .dashboard-playground-btn {

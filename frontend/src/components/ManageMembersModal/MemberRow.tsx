@@ -32,6 +32,7 @@ function MemberRow({ member, canManage, isBusy, onUpdateAccess, onRemove }: Prop
                 {canManage && !member.isOwner ? (
                     <>
                         <select
+                            className='modal-select'
                             value={member.accessType}
                             onChange={(e) => onUpdateAccess(member.username, e.target.value as AccessType)}
                             disabled={isBusy}
@@ -46,7 +47,7 @@ function MemberRow({ member, canManage, isBusy, onUpdateAccess, onRemove }: Prop
                             disabled={isBusy}
                             onClick={() => onRemove(member.userId)}
                         >
-                            {isBusy ? <Spinner size={14} /> : <VscTrash size={14} />}
+                            {isBusy ? <Spinner size={14} /> : <VscTrash />}
                         </button>
                     </>
                 ) : (

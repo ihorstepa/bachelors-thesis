@@ -96,6 +96,11 @@
     opacity: 1;
 }
 
+.notification-dismiss svg {
+    width: 15px;
+    height: 15px;
+}
+
 .ide-editor {
     display: flex;
     height: 100%;

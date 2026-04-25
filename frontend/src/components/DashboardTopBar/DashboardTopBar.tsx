@@ -22,10 +22,10 @@ function DashboardTopBar({
     return (
         <div className='dashboard-topbar'>
             <button type='button' className='dashboard-menu-btn' onClick={onToggleSidebar} aria-label='Toggle menu'>
-                {isSidebarOpen ? <VscClose size={16} /> : <VscMenu size={16} />}
+                {isSidebarOpen ? <VscClose /> : <VscMenu />}
             </button>
             <div className='dashboard-search'>
-                <VscSearch size={14} />
+                <VscSearch />
                 <input
                     placeholder='Search projects...'
                     value={search}
@@ -39,7 +39,7 @@ function DashboardTopBar({
                 onClick={onOpenPlayground}
                 aria-label='Open playground'
             >
-                <VscBeaker size={13} />
+                <VscBeaker />
                 <span className='dashboard-btn-label'>playground</span>
             </button>
 
@@ -49,7 +49,7 @@ function DashboardTopBar({
                 onClick={onCreateProject}
                 aria-label='Create new project'
             >
-                <VscAdd size={13} />
+                <VscAdd />
                 <span className='dashboard-btn-label'>New project</span>
             </button>
         </div>

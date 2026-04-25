@@ -25,38 +25,6 @@
     margin: 0;
 }
 
-.ide-about-modal-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-muted);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--control-size-sm);
-    height: var(--control-size-sm);
-    padding: 4px;
-    border-radius: 4px;
-    transition:
-        color 0.15s,
-        background 0.15s;
-}
-
-.ide-about-modal-close:hover:not(:disabled) {
-    color: var(--text-primary);
-    background: var(--bg-hover);
-}
-
-.ide-about-modal-close:focus-visible {
-    outline: 1px solid var(--accent);
-    outline-offset: 1px;
-}
-
-.ide-about-modal-close:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 .ide-about-modal p {
     margin: 0;
     color: var(--text-secondary);

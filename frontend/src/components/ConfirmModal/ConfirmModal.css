@@ -34,38 +34,6 @@
     margin: 0;
 }
 
-.confirm-modal-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-muted);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--control-size-sm);
-    height: var(--control-size-sm);
-    padding: 4px;
-    border-radius: 4px;
-    transition:
-        color 0.15s,
-        background 0.15s;
-}
-
-.confirm-modal-close:hover:not(:disabled) {
-    color: var(--text-primary);
-    background: var(--bg-hover);
-}
-
-.confirm-modal-close:focus-visible {
-    outline: 1px solid var(--accent);
-    outline-offset: 1px;
-}
-
-.confirm-modal-close:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 .confirm-modal-message {
     font-size: 14px;
     color: var(--text-secondary);
@@ -74,13 +42,8 @@
 }
 
 .confirm-modal-error {
-    font-size: 13px;
     color: var(--danger);
     margin: 0 0 12px 0;
-    padding: 8px 10px;
-    border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
-    border-radius: var(--control-radius);
-    background: color-mix(in srgb, var(--danger) 12%, transparent);
 }
 
 .confirm-modal-actions {
@@ -89,60 +52,6 @@
     gap: var(--space-2);
 }
 
-.confirm-modal-cancel {
-    height: var(--control-size);
-    padding: 0 16px;
-    border-radius: var(--control-radius);
-    border: 1px solid var(--border-color);
-    background: transparent;
-    color: var(--text-muted);
-    font-size: 13px;
-    font-family: var(--font-sans);
-    font-weight: 500;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition:
-        background 0.15s,
-        color 0.15s;
-}
-
-.confirm-modal-cancel:hover:not(:disabled) {
-    background: var(--bg-hover);
-    border-color: var(--text-muted);
-    color: var(--text-primary);
-}
-
-.confirm-modal-cancel:focus-visible,
-.confirm-modal-confirm:focus-visible {
-    outline: 1px solid var(--accent);
-    outline-offset: 1px;
-}
-
 .confirm-modal-confirm {
-    height: var(--control-size);
-    padding: 0 16px;
-    border-radius: var(--control-radius);
-    border: none;
-    background: var(--danger);
-    color: var(--text-bright);
-    font-size: 13px;
-    font-family: var(--font-sans);
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
     gap: var(--space-2);
-    transition: opacity 0.15s;
-}
-
-.confirm-modal-confirm:hover:not(:disabled) {
-    opacity: 0.85;
-}
-
-.confirm-modal-confirm:disabled,
-.confirm-modal-cancel:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }

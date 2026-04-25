@@ -99,7 +99,7 @@ function FileTreeInput({
                     className='expand-button expand-button-placeholder file-tree-name-input-leading'
                     aria-hidden='true'
                 >
-                    <FaChevronRight size={10} />
+                    <FaChevronRight />
                 </span>
             )}
             {createType === 'file' && (

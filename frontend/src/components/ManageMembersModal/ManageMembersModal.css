@@ -29,42 +29,6 @@
     font-family: var(--font-mono);
 }
 
-.members-modal-close {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--control-size-sm);
-    height: var(--control-size-sm);
-    border-radius: 4px;
-    transition:
-        color 0.12s,
-        background-color 0.12s;
-}
-
-.members-modal-close:hover:not(:disabled) {
-    color: var(--text-primary);
-    background: var(--bg-hover);
-}
-
-.members-modal-close:focus-visible,
-.members-add-btn:focus-visible,
-.member-remove-btn:focus-visible,
-.members-field input:focus-visible,
-.members-field select:focus-visible,
-.member-actions select:focus-visible {
-    outline: 1px solid var(--accent);
-    outline-offset: 1px;
-}
-
-.members-modal-close:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 .members-add-form {
     display: grid;
     grid-template-columns: 1fr var(--panel-min-width) auto;
@@ -86,60 +50,14 @@
     font-family: var(--font-mono);
 }
 
-.members-field input,
-.members-field select,
-.member-actions select {
-    width: 100%;
-    background: var(--bg-input);
-    border: 1px solid var(--border-color);
-    border-radius: var(--control-radius);
-    padding: 9px 10px;
-    color: var(--text-primary);
-    font-size: 13px;
-}
-
-.members-field input:focus,
-.members-field select:focus,
-.member-actions select:focus {
-    border-color: var(--accent);
-}
-
 .members-add-btn {
     align-self: end;
-    height: var(--control-size);
     padding: 0 14px;
-    border: none;
-    border-radius: var(--control-radius);
-    background: var(--accent);
-    color: var(--text-bright);
-    cursor: pointer;
-    font-size: 13px;
-    font-family: var(--font-sans);
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     gap: 8px;
-    transition: opacity 0.15s;
-}
-
-.members-add-btn:hover:not(:disabled) {
-    opacity: 0.85;
-}
-
-.members-add-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 
 .members-error {
-    color: var(--red);
     margin: 0 0 10px;
-    font-size: 12px;
-    padding: 8px 10px;
-    border: 1px solid color-mix(in srgb, var(--red) 45%, transparent);
-    border-radius: var(--control-radius);
-    background: color-mix(in srgb, var(--red) 12%, transparent);
 }
 
 .members-list {
@@ -248,6 +166,11 @@
     cursor: pointer;
     display: grid;
     place-items: center;
+}
+
+.member-remove-btn svg {
+    width: 14px;
+    height: 14px;
 }
 
 .member-remove-btn:hover:not(:disabled) {

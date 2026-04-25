@@ -17,6 +17,7 @@ function MemberForm({ username, accessType, isSubmitting, onUsernameChange, onAc
             <div className='members-field'>
                 <label htmlFor='member-username'>Username</label>
                 <input
+                    className='modal-input'
                     id='member-username'
                     type='text'
                     value={username}
@@ -28,6 +29,7 @@ function MemberForm({ username, accessType, isSubmitting, onUsernameChange, onAc
             <div className='members-field'>
                 <label htmlFor='member-access'>Access</label>
                 <select
+                    className='modal-select'
                     id='member-access'
                     value={accessType}
                     onChange={(event) => onAccessTypeChange(event.target.value as AccessType)}
@@ -37,7 +39,11 @@ function MemberForm({ username, accessType, isSubmitting, onUsernameChange, onAc
                     <option value='rw'>Read / Write</option>
                 </select>
             </div>
-            <button className='members-add-btn' type='submit' disabled={isSubmitting || username.trim().length === 0}>
+            <button
+                className='members-add-btn modal-btn modal-btn-primary'
+                type='submit'
+                disabled={isSubmitting || username.trim().length === 0}
+            >
                 {isSubmitting && <Spinner size={14} />}
                 {isSubmitting ? 'Saving...' : 'Add / Update'}
             </button>

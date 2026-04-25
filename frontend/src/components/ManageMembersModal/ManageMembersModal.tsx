@@ -138,8 +138,13 @@ function ManageMembersModal({
                     </h2>
                     <p className='members-modal-subtitle'>{projectName}</p>
                 </div>
-                <button type='button' className='members-modal-close' onClick={onClose} aria-label='Close'>
-                    <VscClose size={18} />
+                <button
+                    type='button'
+                    className='members-modal-close modal-close-btn'
+                    onClick={onClose}
+                    aria-label='Close'
+                >
+                    <VscClose />
                 </button>
             </div>
 
@@ -154,7 +159,7 @@ function ManageMembersModal({
                 />
             )}
 
-            {error != null && <p className='members-error'>{error}</p>}
+            {error != null && <p className='members-error modal-error'>{error}</p>}
 
             <div className='members-list'>
                 {loading ? (

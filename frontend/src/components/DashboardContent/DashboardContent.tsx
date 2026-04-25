@@ -65,7 +65,7 @@ function DashboardContent({ activeNav, search, onOpenMembers, onRenameProject, o
                 <div className='dashboard-error'>
                     <span>{error}</span>
                     <button className='dashboard-retry-btn' onClick={reload}>
-                        <VscRefresh size={13} /> Retry
+                        <VscRefresh /> Retry
                     </button>
                 </div>
             </div>

@@ -7,3 +7,129 @@
     z-index: 100;
     padding: 24px;
 }
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--control-size-sm);
+    height: var(--control-size-sm);
+    padding: 4px;
+    border-radius: 4px;
+    transition:
+        color 0.12s,
+        background-color 0.12s;
+}
+
+.modal-close-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.modal-close-btn:hover:not(:disabled) {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+
+.modal-close-btn:focus-visible,
+.modal-btn:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.modal-close-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.modal-btn {
+    height: var(--control-size);
+    padding: 0 16px;
+    border-radius: var(--control-radius);
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    transition:
+        color 0.12s,
+        border-color 0.12s,
+        background-color 0.12s,
+        opacity 0.15s;
+}
+
+.modal-btn:hover:not(:disabled) {
+    background: var(--bg-hover);
+    border-color: var(--text-muted);
+    color: var(--text-primary);
+}
+
+.modal-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.modal-btn-primary {
+    border: none;
+    background: var(--accent);
+    color: var(--text-bright);
+    font-weight: 600;
+}
+
+.modal-btn-primary:hover:not(:disabled) {
+    background: var(--accent-dark);
+    border-color: transparent;
+    color: var(--text-bright);
+}
+
+.modal-btn-danger {
+    border: none;
+    background: var(--danger);
+    color: var(--text-bright);
+    font-weight: 600;
+}
+
+.modal-btn-danger:hover:not(:disabled) {
+    opacity: 0.85;
+    background: var(--danger);
+    border-color: transparent;
+    color: var(--text-bright);
+}
+
+.modal-input,
+.modal-select {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--control-radius);
+    padding: 9px 10px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    transition: border-color 0.15s;
+    outline: none;
+}
+
+.modal-input:focus,
+.modal-select:focus {
+    border-color: var(--accent);
+}
+
+.modal-error {
+    color: var(--red);
+    font-size: 12px;
+    padding: 8px 10px;
+    border: 1px solid color-mix(in srgb, var(--red) 45%, transparent);
+    border-radius: var(--control-radius);
+    background: color-mix(in srgb, var(--red) 12%, transparent);
+}
