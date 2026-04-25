@@ -29,6 +29,14 @@ const authPublicKey = await ecdsa.importKeyJwk({
 const authHubPort = 9009
 
 /**
+ * @typedef {{ room: import('../src/types.js').Room, accessType: import('../src/types.js').AccessType }} JwtRoomAccess
+ */
+
+/**
+ * @typedef {{ userid: string, rooms: JwtRoomAccess[] }} JwtAuthInfo
+ */
+
+/**
  * This is an example of how you could add auth support via jwt.
  *
  * This server reads the auth information from the auth url-parameter.
@@ -40,21 +48,23 @@ await utils.createTestHub({
     server: {
         port: authHubPort,
         auth: types.createAuthPlugin({
-            async readAuthInfo(req) {
+            readAuthInfo: async (req) => {
                 const authJwt = req.getQuery('auth')
                 if (authJwt == null || authJwt.length === 0) {
                     throw new Error('no auth token')
                 }
                 const auth = await jwt.verifyJwt(authPublicKey, authJwt)
-                const authInfo = s
-                    .$object({
-                        rooms: s.$array(s.$object({ room: types.$room, accessType: types.$accessType })),
-                        userid: s.$string,
-                    })
-                    .expect(auth.payload)
+                const authInfo = /** @type {JwtAuthInfo} */ (
+                    s
+                        .$object({
+                            rooms: s.$array(s.$object({ room: types.$room, accessType: types.$accessType })),
+                            userid: s.$string,
+                        })
+                        .expect(auth.payload)
+                )
                 return authInfo
             },
-            async getAccessType(authInfo, room) {
+            getAccessType: async (authInfo, room) => {
                 const roomAccess = authInfo.rooms.find((r) => f.equalityDeep(room, r.room))
                 return roomAccess?.accessType || null
             },
@@ -119,5 +129,27 @@ export const testSampleAuthServer = async (tc) => {
         t.assert(ydoc1.get().getAttr('a') != null)
         t.assert(ydoc1.get().getAttr('hidden') == null)
         t.assert(ydocReadonly.get().getAttr('hidden') != null)
+    })
+    await t.groupAsync('should publish awareness from readonly users', async () => {
+        const readonlyAuthToken = await createJwtAccessToken('r')
+        const { provider: rwProvider } = createWsClient({
+            wsUrl: utils.wsUrlFromPort(authHubPort),
+            wsParams: { auth: myAuthToken },
+        })
+        const { provider: readonlyProvider } = createWsClient({
+            wsUrl: utils.wsUrlFromPort(authHubPort),
+            wsParams: { auth: readonlyAuthToken },
+        })
+
+        readonlyProvider.awareness.setLocalStateField('user', {
+            name: 'readonly-user',
+            color: '#00aa88',
+        })
+
+        await promise.until(5000, () =>
+            Array.from(rwProvider.awareness.getStates().values()).some(
+                (state) => state.user?.name === 'readonly-user',
+            ),
+        )
     })
 }

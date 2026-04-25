@@ -18,6 +18,7 @@ type MenuConfig = {
 }
 
 type MenuConfigActions = {
+    canWrite: boolean
     exportProject: () => void
     exit: () => void
     runEditAction: (action: EditMenuAction) => void
@@ -38,13 +39,37 @@ const createMenuConfigs = (a: MenuConfigActions): MenuConfig[] => [
         label: 'Edit',
         sections: [
             [
-                { id: 'undo', label: 'Undo', shortcut: 'Ctrl+Z', onSelect: () => a.runEditAction('undo') },
-                { id: 'redo', label: 'Redo', shortcut: 'Ctrl+Y', onSelect: () => a.runEditAction('redo') },
+                {
+                    id: 'undo',
+                    label: 'Undo',
+                    shortcut: 'Ctrl+Z',
+                    onSelect: () => a.runEditAction('undo'),
+                    disabled: !a.canWrite,
+                },
+                {
+                    id: 'redo',
+                    label: 'Redo',
+                    shortcut: 'Ctrl+Y',
+                    onSelect: () => a.runEditAction('redo'),
+                    disabled: !a.canWrite,
+                },
             ],
             [
-                { id: 'cut', label: 'Cut', shortcut: 'Ctrl+X', onSelect: () => a.runEditAction('cut') },
+                {
+                    id: 'cut',
+                    label: 'Cut',
+                    shortcut: 'Ctrl+X',
+                    onSelect: () => a.runEditAction('cut'),
+                    disabled: !a.canWrite,
+                },
                 { id: 'copy', label: 'Copy', shortcut: 'Ctrl+C', onSelect: () => a.runEditAction('copy') },
-                { id: 'paste', label: 'Paste', shortcut: 'Ctrl+V', onSelect: () => a.runEditAction('paste') },
+                {
+                    id: 'paste',
+                    label: 'Paste',
+                    shortcut: 'Ctrl+V',
+                    onSelect: () => a.runEditAction('paste'),
+                    disabled: !a.canWrite,
+                },
             ],
             [{ id: 'find', label: 'Find', shortcut: 'Ctrl+F', onSelect: () => a.runEditAction('find') }],
         ],
@@ -58,9 +83,10 @@ const createMenuConfigs = (a: MenuConfigActions): MenuConfig[] => [
 
 type Props = {
     projectName?: string
+    canWrite: boolean
 }
 
-function IdeTopBar({ projectName }: Props) {
+function IdeTopBar({ projectName, canWrite }: Props) {
     const navigate = useNavigate()
     const { projectId } = useParams()
     const exportService = useService(ExportService)
@@ -75,6 +101,7 @@ function IdeTopBar({ projectName }: Props) {
     }
 
     const menuConfigs = createMenuConfigs({
+        canWrite,
         exportProject: () => {
             const fallbackName = projectId ?? 'playground'
             void exportService.exportProject(projectName ?? fallbackName)

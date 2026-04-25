@@ -122,6 +122,10 @@
     min-width: 0;
 }
 
+.ide-editor .cm-content {
+    padding-top: 10px;
+}
+
 .ide-editor .cm-panels.cm-panels-top {
     position: absolute;
     top: 0;
@@ -383,6 +387,6 @@
 }
 
 .cm-editor .cm-ySelectionInfo {
-    z-index: 3;
+    z-index: 230;
     font-size: 12px;
 }

@@ -34,7 +34,7 @@ function IdeLayout({ canWrite, projectName }: IdeLayoutProps) {
 
     return (
         <div className={`ide ${hasTabs ? 'has-tabs' : 'no-tabs'}`}>
-            <IdeTopBar projectName={projectName} />
+            <IdeTopBar projectName={projectName} canWrite={canWrite} />
             {hasTabs && <IdeTabs />}
             <IdeSideBar canWrite={canWrite} />
             <div className={`ide-workbench ${terminalOpen ? 'with-terminal' : 'without-terminal'}`}>

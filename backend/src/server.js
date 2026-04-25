@@ -887,8 +887,6 @@ const registerWebsocketServer = (yhub, app) => {
                     user.log.error({ err }, 'error processing client message')
                     user.destroy()
                 }
-                // don't read any messages from users without write access
-                if (!user.hasWriteAccess) return
                 try {
                     // It is important to copy the data here
                     const message = Buffer.from(messageBuffer.slice(0, messageBuffer.byteLength))
@@ -896,6 +894,10 @@ const registerWebsocketServer = (yhub, app) => {
                     switch (decoding.readVarUint(decoder)) {
                         case 0: {
                             // sync message
+                            if (!user.hasWriteAccess) {
+                                user.log.debug('ignoring sync message from readonly user')
+                                return
+                            }
                             const syncMessageType = decoding.readVarUint(decoder)
                             if (
                                 syncMessageType === protocol.messageSyncUpdate ||
