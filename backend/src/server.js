@@ -859,11 +859,18 @@ const registerWebsocketServer = (yhub, app) => {
                 const user = ws.getUserData().user
                 user.ws = ws
                 user.log.info({ ip: Buffer.from(ws.getRemoteAddressAsText()).toString() }, 'client connected')
-                const doctable = await yhub.getDoc(
-                    user.room,
-                    { gc: user.gc, nongc: !user.gc, awareness: true },
-                    { gcOnMerge: false },
-                )
+                let doctable
+                try {
+                    doctable = await yhub.getDoc(
+                        user.room,
+                        { gc: user.gc, nongc: !user.gc, awareness: true },
+                        { gcOnMerge: false },
+                    )
+                } catch (err) {
+                    user.log.error({ err }, 'error loading doc on ws open, closing connection')
+                    user.destroy()
+                    return
+                }
                 const ydoc = doctable.gcDoc || doctable.nongcDoc || Y.encodeStateAsUpdate(new Y.Doc())
                 if (user.isClosed) return
                 ws.cork(() => {
