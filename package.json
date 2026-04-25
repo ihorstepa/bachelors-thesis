@@ -4,10 +4,15 @@
     "description": "",
     "private": true,
     "scripts": {
+        "lint": "npm run lint:backend && npm run lint:frontend",
+        "lint:backend": "eslint backend && npm --prefix backend run types",
+        "lint:frontend": "eslint frontend",
         "format": "prettier --write .",
+        "format:backend": "npm --prefix backend run format",
+        "format:frontend": "npm --prefix frontend run format",
         "docker:all": "docker compose up -d --build",
         "docker:backend": "docker compose up -d --build server worker init postgres valkey minio",
-        "frontend:dev": "npm --prefix frontend run dev"
+        "dev:frontend": "npm --prefix frontend run dev"
     },
     "repository": {
         "type": "git",
@@ -22,6 +27,13 @@
     },
     "homepage": "https://github.com/ihorstepa/bachelors-thesis#readme",
     "devDependencies": {
-        "prettier": "^3.8.1"
+        "@eslint/js": "^9.39.4",
+        "eslint": "^9.39.4",
+        "eslint-plugin-react-hooks": "^7.0.1",
+        "eslint-plugin-react-refresh": "^0.5.2",
+        "eslint-plugin-simple-import-sort": "^13.0.0",
+        "globals": "^17.4.0",
+        "prettier": "^3.8.1",
+        "typescript-eslint": "^8.56.1"
     }
 }

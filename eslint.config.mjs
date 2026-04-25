@@ -7,9 +7,32 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-    globalIgnores(['dist']),
+    globalIgnores(['**/dist/**', '**/node_modules/**']),
     {
-        files: ['**/*.{ts,tsx}'],
+        files: ['backend/**/*.js'],
+        extends: [js.configs.recommended],
+        languageOptions: {
+            ecmaVersion: 'latest',
+            sourceType: 'module',
+            globals: {
+                ...globals.node,
+            },
+        },
+        rules: {
+            'no-control-regex': 'off',
+            'no-empty': ['error', { allowEmptyCatch: true }],
+            'no-unused-vars': [
+                'error',
+                {
+                    argsIgnorePattern: '^_',
+                    caughtErrorsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                },
+            ],
+        },
+    },
+    {
+        files: ['frontend/**/*.{ts,tsx}'],
         extends: [
             js.configs.recommended,
             tseslint.configs.recommended,

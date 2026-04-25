@@ -2,7 +2,7 @@ import * as Y from '@y/y'
 import * as env from 'lib0/environment'
 import { WebSocket } from 'ws'
 import { WebsocketProvider } from '@y/websocket'
-import * as t from 'lib0/testing' // eslint-disable-line
+import * as t from 'lib0/testing'
 import * as promise from 'lib0/promise'
 import { createYHub } from '@y/hub'
 import * as number from 'lib0/number'
@@ -47,7 +47,7 @@ export const yhub = await createYHub({
         port: yhubPort,
         auth: types.createAuthPlugin({
             // pick a "unique" userid
-            async readAuthInfo(req) {
+            async readAuthInfo(_req) {
                 return { userid: 'user1' }
             },
             // always grant rw access

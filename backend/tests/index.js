@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 import * as api from './api.tests.js'
 import * as auth from './auth.tests.js'
 import * as ws from './ws.tests.js'

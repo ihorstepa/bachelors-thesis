@@ -20,11 +20,6 @@
             "@y/hub/plugins/s3": ["./src/plugins/s3.js"]
         }
     },
-    "include": [
-        // "./demos/history/**/*.js",
-        "tests/**/*.js",
-        "src/**/*.js",
-        "bin/**/*.js"
-    ],
+    "include": ["tests/**/*.js", "src/**/*.js", "bin/**/*.js"],
     "exclude": ["**/dist"]
 }

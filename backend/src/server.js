@@ -250,7 +250,7 @@ export const createYHubServer = async (yhub, conf) => {
                 res.writeHeader('Content-Type', 'application/octet-stream')
                 res.end(response)
             })
-        } catch (err) {
+        } catch (_err) {
             if (aborted) return
             sendErrorResponse(res, '500 Internal Server Error', {
                 error: 'Failed to retrieve document',
