@@ -84,7 +84,7 @@ const createJwtAccessToken = async (accessType = 'rw') => {
         rooms: [
             {
                 room: {
-                    org: 'testOrg',
+                    org: utils.defaultOrg,
                     docid: 'testSampleAuthServer-index',
                     branch: 'main',
                 },

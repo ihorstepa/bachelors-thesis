@@ -11,6 +11,7 @@ import * as math from 'lib0/math'
 import * as fs from 'node:fs'
 import * as prng from 'lib0/prng'
 import * as buffer from 'lib0/buffer'
+import { HISTORY_FEATURE_ENABLED } from '../src/config.js'
 
 /**
  * @param {string} path
@@ -64,6 +65,7 @@ const patchYhubRequest = async (path, body) => {
  * @param {t.TestCase} tc
  */
 export const testChangesetRestApi = async (tc) => {
+    t.skip(!HISTORY_FEATURE_ENABLED)
     const { org, createWsClient } = await utils.createTestCase(tc)
     const { ydoc } = createWsClient()
     console.log('creating documents')
@@ -206,6 +208,7 @@ export const testYdocRestApi = async (tc) => {
  * @param {t.TestCase} tc
  */
 export const testCustomAttributionsRollback = async (tc) => {
+    t.skip(!HISTORY_FEATURE_ENABLED)
     const { org, createWsClient } = await utils.createTestCase(tc)
     // Create initial document via websocket
     const { ydoc: initialDoc, provider } = await createWsClient({
@@ -365,6 +368,7 @@ export const testManyDistinctConnectionsMemoryDebug = async (tc) => {
  * @param {t.TestCase} tc
  */
 export const testLargeDoc = async (tc) => {
+    t.skip(!HISTORY_FEATURE_ENABLED)
     const { createWsClient, yhub, org } = await utils.createTestCase(tc)
     const prevMinMessageLifletime = yhub.conf.redis.minMessageLifetime
     yhub.conf.redis.minMessageLifetime = 1000_000
@@ -440,6 +444,7 @@ export const testLargeDoc = async (tc) => {
  * @param {t.TestCase} tc
  */
 export const testActivityContentIdsFilter = async (tc) => {
+    t.skip(!HISTORY_FEATURE_ENABLED)
     const { org, createWsClient } = await utils.createTestCase(tc)
     const { ydoc } = createWsClient()
     const ytype = ydoc.get('map')
