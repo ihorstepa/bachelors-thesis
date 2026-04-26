@@ -22,7 +22,7 @@ export function getAuthErrorMessage(error: unknown): string {
     const httpError = normalizeHttpError(error)
 
     if (httpError.type === 'VALIDATION_FAILED') {
-        return httpError.message ?? 'Validation failed.'
+        return httpError.message || 'Validation failed.'
     }
 
     if (isMappedErrorType(httpError.type)) {

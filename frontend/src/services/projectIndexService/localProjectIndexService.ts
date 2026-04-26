@@ -5,22 +5,24 @@ import { ProjectIndexService } from '@/core/projectIndexService'
 class LocalProjectIndexService extends ProjectIndexService {
     private fileSystemManager: FileSystemManager
     private fileRefsAll: FileLocation[] = []
+    private readonly handleFsChange: () => void
 
     public constructor(fileSystemManager: FileSystemManager) {
         super()
         this.fileSystemManager = fileSystemManager
 
         this.recompute = this.recompute.bind(this)
-        this.recompute()
-
-        this.fileSystemManager.on('change', () => {
+        this.handleFsChange = () => {
             this.recompute()
             this.emit('change')
-        })
+        }
+        this.recompute()
+
+        this.fileSystemManager.on('change', this.handleFsChange)
     }
 
     public destroy(): void {
-        this.fileSystemManager.off('change', this.recompute)
+        this.fileSystemManager.off('change', this.handleFsChange)
     }
 
     public getAllFilePaths(): FileLocation[] {
