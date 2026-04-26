@@ -211,4 +211,20 @@ describe('CppCodeRunner', () => {
         expect(harness.runner.getError()).toBe('Compiler crashed')
         expect(terminateSpy).toHaveBeenCalledOnce()
     })
+
+    it('enters error state when collecting files fails before worker start', async () => {
+        const harness = createHarness()
+        harness.fileSystemManager.addRootFile(
+            'run.config.json',
+            JSON.stringify({ targets: { app: { entry: 'main.cpp' } } }),
+        )
+        harness.projectIndexService.addFile({ id: 'missing-id', path: 'main.cpp' })
+
+        await vi.advanceTimersByTimeAsync(500)
+        await harness.runner.run('app')
+
+        expect(harness.runner.getStatus()).toBe('error')
+        expect(harness.runner.getError()).toContain('Unknown file: missing-id')
+        expect(MockWorker.instances).toHaveLength(0)
+    })
 })

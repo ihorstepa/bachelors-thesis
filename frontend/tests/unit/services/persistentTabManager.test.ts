@@ -114,4 +114,19 @@ describe('PersistentTabManager', () => {
         expect(manager.getTabs()).toEqual([])
         expect(manager.getActiveId()).toBeNull()
     })
+
+    it('ignores malformed persisted state and remains usable', () => {
+        const fs = new MockFileSystemManager(new MockFileSyncManager())
+        const fileA = fs.create('a.ts', 'file', null)
+
+        localStorage.setItem('ide_tabs_state', '{bad-json')
+        const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+
+        const manager = new PersistentTabManager(fs)
+        manager.open(fileA)
+
+        expect(consoleError).toHaveBeenCalledOnce()
+        expect(manager.getTabs()).toEqual([fileA])
+        expect(manager.getActiveId()).toBe(fileA)
+    })
 })

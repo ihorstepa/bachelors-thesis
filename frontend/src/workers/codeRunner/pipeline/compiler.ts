@@ -69,8 +69,11 @@ export class Compiler {
             }
         }
 
-        await Promise.all(this.workerPool.map((instance) => runInstance(instance)))
-        this.killWorkers()
+        try {
+            await Promise.all(this.workerPool.map((instance) => runInstance(instance)))
+        } finally {
+            this.killWorkers()
+        }
 
         if (exitCode !== 0) {
             return { exitCode, fs: {}, objectFilePaths: [] }

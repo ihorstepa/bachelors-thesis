@@ -72,4 +72,18 @@ describe('BrowserProjectExportService', () => {
         expect(anchor.download).toBe('project.zip')
         expect(sync.getCloseCount('f1')).toBe(1)
     })
+
+    it('closes already-opened files when export fails mid-read', async () => {
+        const index = new MockProjectIndexService()
+        const sync = new MockFileSyncManager()
+
+        index.addFile({ id: 'f1', path: 'src/main.cpp' })
+        index.addFile({ id: 'f2', path: 'README.md' })
+        sync.registerFile('f1', 'int main() {}')
+
+        const service = new BrowserProjectExportService(index, sync)
+
+        await expect(service.exportProject('broken')).rejects.toThrow('Unknown file: f2')
+        expect(sync.getCloseCount('f1')).toBe(1)
+    })
 })

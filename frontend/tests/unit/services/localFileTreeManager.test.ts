@@ -77,4 +77,21 @@ describe('LocalFileTreeManager', () => {
         expect(manager.getSelectedId()).toBeNull()
         expect(onSelect).toHaveBeenLastCalledWith(null)
     })
+
+    it('ignores selection requests for missing nodes', () => {
+        const fs = new MockFileSystemManager(new MockFileSyncManager())
+        const fileId = fs.create('main.ts', 'file', null)
+
+        const manager = new LocalFileTreeManager(fs)
+        const onSelect = vi.fn()
+        manager.on('select', onSelect)
+
+        manager.selectItem(fileId)
+        onSelect.mockClear()
+
+        manager.selectItem('missing')
+
+        expect(manager.getSelectedId()).toBe(fileId)
+        expect(onSelect).not.toHaveBeenCalled()
+    })
 })

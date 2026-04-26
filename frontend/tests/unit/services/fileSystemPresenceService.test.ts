@@ -168,4 +168,18 @@ describe('FileSystemPresenceService', () => {
         service.destroy()
         expect(fs.getLocalUser()).toBeNull()
     })
+
+    it('keeps remote user online but skips branch indexing for missing active files', () => {
+        const fs = new MockFileSystemManager()
+        const service = new FileSystemPresenceService(fs, 'alice')
+
+        fs.setRemotePresence(2, {
+            name: 'bob',
+            color: '#112233',
+            activeFileId: 'missing-node',
+        })
+
+        expect(service.getOnlineUsers().map((u) => u.clientId)).toEqual([2])
+        expect(service.getUsersInBranch('missing-node')).toEqual([])
+    })
 })

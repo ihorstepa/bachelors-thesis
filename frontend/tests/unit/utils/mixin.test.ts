@@ -91,4 +91,10 @@ describe('utils/mixin', () => {
         expect(inst.inc()).toBe(11)
         expect(inst.log()).toBe('log')
     })
+
+    it('throws when called without a base class', () => {
+        const callWithoutClasses = mixin as unknown as (...classes: unknown[]) => unknown
+
+        expect(() => callWithoutClasses()).toThrow()
+    })
 })

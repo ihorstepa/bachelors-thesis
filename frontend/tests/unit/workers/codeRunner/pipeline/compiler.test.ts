@@ -124,4 +124,22 @@ describe('workers/codeRunner/pipeline/Compiler', () => {
         expect(result.fs).toEqual({})
         expect(compilerState.instances.every((i) => i.kill.mock.calls.length === 1)).toBe(true)
     })
+
+    it('propagates unexpected compiler failures and still kills all worker instances', async () => {
+        compilerState.runImpl = async () => {
+            throw new Error('clang crashed')
+        }
+
+        const io = {
+            onStdout: vi.fn(),
+            onStderr: vi.fn(),
+            onStdinReady: vi.fn(),
+        }
+        const compiler = new Compiler(new Uint8Array([9]), {}, io)
+
+        await expect(compiler.run(['src/main.c', 'src/extra.c'], 'src/main.c', '/project/build/obj')).rejects.toThrow(
+            'clang crashed',
+        )
+        expect(compilerState.instances.every((i) => i.kill.mock.calls.length === 1)).toBe(true)
+    })
 })

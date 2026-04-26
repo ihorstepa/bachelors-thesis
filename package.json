@@ -10,6 +10,8 @@
         "format": "prettier --write .",
         "format:backend": "npm --prefix backend run format",
         "format:frontend": "npm --prefix frontend run format",
+        "test:backend": "npm --prefix backend run test",
+        "test:frontend": "npm --prefix frontend run test",
         "docker:all": "docker compose up -d --build",
         "docker:backend": "docker compose up -d --build server worker init postgres valkey minio",
         "dev:frontend": "npm --prefix frontend run dev"

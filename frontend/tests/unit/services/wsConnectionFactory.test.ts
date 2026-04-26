@@ -149,4 +149,19 @@ describe('WSConnectionFactory', () => {
         expect(wsState.instances[0].destroy).toHaveBeenCalledOnce()
         expect(idbState.instances[0].destroy).toHaveBeenCalledOnce()
     })
+
+    it('does not resolve synced when websocket emits sync=false', async () => {
+        const factory = new WSConnectionFactory('project-6', 'token-false-sync')
+        const connection = await factory.connect('room-false-sync')
+
+        let resolved = false
+        void connection.synced.then(() => {
+            resolved = true
+        })
+
+        wsState.instances[0].__emitSync(false)
+        await Promise.resolve()
+
+        expect(resolved).toBe(false)
+    })
 })

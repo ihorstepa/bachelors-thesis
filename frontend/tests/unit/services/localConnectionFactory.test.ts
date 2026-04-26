@@ -3,6 +3,7 @@ import { Doc } from 'yjs'
 
 const indexedDbState = vi.hoisted(() => ({
     instances: [] as Array<{ key: string; doc: Doc; whenSynced: Promise<void>; destroy: ReturnType<typeof vi.fn> }>,
+    nextWhenSynced: null as Promise<void> | null,
 }))
 
 vi.mock('y-indexeddb', () => {
@@ -14,7 +15,8 @@ vi.mock('y-indexeddb', () => {
             public readonly key: string,
             public readonly doc: Doc,
         ) {
-            this.whenSynced = Promise.resolve()
+            this.whenSynced = indexedDbState.nextWhenSynced ?? Promise.resolve()
+            indexedDbState.nextWhenSynced = null
             indexedDbState.instances.push(this)
         }
     }
@@ -27,6 +29,7 @@ import LocalConnectionFactory from '@/services/connectionFactory/localConnection
 describe('LocalConnectionFactory', () => {
     beforeEach(() => {
         indexedDbState.instances.splice(0)
+        indexedDbState.nextWhenSynced = null
     })
 
     it('autoconnects by default and uses namespace/room as persistence key', async () => {
@@ -88,5 +91,12 @@ describe('LocalConnectionFactory', () => {
         expect(connection.awareness.getLocalState()).toBeNull()
         expect(indexedDbState.instances[0].destroy).toHaveBeenCalledOnce()
         expect(awarenessDestroy).toHaveBeenCalledOnce()
+    })
+
+    it('rejects connect when IndexedDB initial sync fails', async () => {
+        indexedDbState.nextWhenSynced = Promise.reject(new Error('sync failed'))
+        const factory = new LocalConnectionFactory('workspace')
+
+        await expect(factory.connect('room-fail')).rejects.toThrow('sync failed')
     })
 })

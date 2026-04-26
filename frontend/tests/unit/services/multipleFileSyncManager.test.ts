@@ -112,4 +112,14 @@ describe('MultipleFileSyncManager', () => {
         expect(a.destroy).toHaveBeenCalledOnce()
         expect(b.destroy).toHaveBeenCalledOnce()
     })
+
+    it('propagates connection-factory failures when opening a file', async () => {
+        const fs = new MockFileSystemManager(new MockFileSyncManager())
+        const factory = new MockConnectionFactory()
+        const manager = new MultipleFileSyncManager(factory, fs)
+
+        factory.connectMock.mockRejectedValueOnce(new Error('connect failed'))
+
+        await expect(manager.openFile('file-err')).rejects.toThrow('connect failed')
+    })
 })
