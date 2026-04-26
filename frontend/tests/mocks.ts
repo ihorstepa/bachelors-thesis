@@ -192,7 +192,7 @@ export class MockTabManager extends TabManager {
     public readonly opened: string[] = []
 
     public getTabs(): readonly string[] {
-        return [...this.opened]
+        return this.opened
     }
 
     public getActiveId(): string | null {

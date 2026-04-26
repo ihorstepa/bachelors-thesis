@@ -11,6 +11,7 @@ export default defineConfig({
         },
     },
     optimizeDeps: {
+        include: ['react-router'],
         exclude: ['@wasmer/sdk'],
     },
     // COOP + COEP are required for SharedArrayBuffer, which Wasmer SDK needs.
@@ -34,5 +35,11 @@ export default defineConfig({
         // Toolchain download + multi-file compilation can take several minutes.
         testTimeout: 10 * 60 * 1000,
         hookTimeout: 60_000,
+        coverage: {
+            provider: 'istanbul',
+            include: ['src/**'],
+            exclude: ['src/**/*.d.ts', 'src/vite-env.d.ts', 'src/index.tsx'],
+            reporter: ['text', 'html'],
+        },
     },
 })
