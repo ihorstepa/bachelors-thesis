@@ -4,9 +4,7 @@ import { ApiClient } from '@/core/apiClient'
 import UserProjectManager from '@/services/projectManager/userProjectManager'
 
 class MockApiClient extends ApiClient {
-    public readonly requestMock = vi.fn<
-        (path: string, init: RequestInit) => Promise<unknown>
-    >()
+    public readonly requestMock = vi.fn<(path: string, init: RequestInit) => Promise<unknown>>()
 
     public async request(path: string, init: RequestInit): Promise<unknown> {
         return this.requestMock(path, init)
@@ -61,11 +59,7 @@ describe('UserProjectManager', () => {
         await manager.createProject('Project 1')
         await manager.updateProject('p 1', 'Project 1 renamed')
 
-        expect(api.requestMock).toHaveBeenNthCalledWith(
-            1,
-            '/projects',
-            expect.objectContaining({ method: 'POST' }),
-        )
+        expect(api.requestMock).toHaveBeenNthCalledWith(1, '/projects', expect.objectContaining({ method: 'POST' }))
         expect(api.requestMock).toHaveBeenNthCalledWith(
             2,
             '/projects/p%201',
@@ -95,6 +89,36 @@ describe('UserProjectManager', () => {
 
         expect(project.members).toHaveLength(1)
         expect(api.requestMock).toHaveBeenCalledWith('/projects/p1', { method: 'GET' })
+    })
+
+    it('adds/removes members and favorites/unfavorites/deletes projects', async () => {
+        const api = new MockApiClient()
+        api.requestMock
+            .mockResolvedValueOnce({
+                member: { userId: 'u2', username: 'bob', email: 'b@x.com', accessType: 'r', isOwner: false },
+            })
+            .mockResolvedValue(undefined)
+
+        const manager = new UserProjectManager(api)
+        const member = await manager.addMember('p1', 'bob', 'r')
+        await manager.removeMember('p1', 'u2')
+        await manager.favoriteProject('p1')
+        await manager.unfavoriteProject('p1')
+        await manager.deleteProject('p1')
+
+        expect(member).toEqual({ userId: 'u2', username: 'bob', email: 'b@x.com', accessType: 'r', isOwner: false })
+        expect(api.requestMock).toHaveBeenNthCalledWith(
+            1,
+            '/projects/p1/members',
+            expect.objectContaining({
+                method: 'POST',
+                body: JSON.stringify({ username: 'bob', accessType: 'r' }),
+            }),
+        )
+        expect(api.requestMock).toHaveBeenNthCalledWith(2, '/projects/p1/members/u2', { method: 'DELETE' })
+        expect(api.requestMock).toHaveBeenNthCalledWith(3, '/projects/p1/favorite', { method: 'PUT' })
+        expect(api.requestMock).toHaveBeenNthCalledWith(4, '/projects/p1/favorite', { method: 'DELETE' })
+        expect(api.requestMock).toHaveBeenNthCalledWith(5, '/projects/p1', { method: 'DELETE' })
     })
 
     it('throws INVALID_RESPONSE on malformed payloads', async () => {

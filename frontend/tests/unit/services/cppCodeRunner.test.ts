@@ -189,6 +189,52 @@ describe('CppCodeRunner', () => {
         expect(MockWorker.instances).toHaveLength(0)
     })
 
+    it('stops an active worker and resets runner state to idle', async () => {
+        const harness = createHarness()
+        harness.fileSystemManager.addRootFile(
+            'run.config.json',
+            JSON.stringify({ targets: { app: { entry: 'main.cpp' } } }),
+        )
+        addProjectFile(harness, 'main.cpp', 'int main() { return 0; }')
+
+        await vi.advanceTimersByTimeAsync(500)
+        await harness.runner.run('app')
+
+        const worker = MockWorker.instances[0]
+        worker.dispatchMessage({ type: 'phase', phase: 'running' })
+
+        harness.runner.stop()
+
+        expect(worker.terminate).toHaveBeenCalledOnce()
+        expect(harness.runner.getStatus()).toBe('idle')
+        expect(harness.runner.getCanSendInput()).toBe(false)
+        expect(harness.runner.getError()).toBeNull()
+    })
+
+    it('can run again immediately after stop without reusing the terminated worker', async () => {
+        const harness = createHarness()
+        harness.fileSystemManager.addRootFile(
+            'run.config.json',
+            JSON.stringify({ targets: { app: { entry: 'main.cpp' } } }),
+        )
+        addProjectFile(harness, 'main.cpp', 'int main() { return 0; }')
+
+        await vi.advanceTimersByTimeAsync(500)
+        await harness.runner.run('app')
+
+        const firstWorker = MockWorker.instances[0]
+        harness.runner.stop()
+        expect(firstWorker.terminate).toHaveBeenCalledOnce()
+
+        await harness.runner.run('app')
+
+        expect(MockWorker.instances).toHaveLength(2)
+        const secondWorker = MockWorker.instances[1]
+        expect(secondWorker).not.toBe(firstWorker)
+        expect(secondWorker.messages).toHaveLength(1)
+        expect(secondWorker.messages[0]).toMatchObject({ type: 'start', entrypoint: 'main.cpp' })
+    })
+
     it('surfaces worker errors through the public error state', async () => {
         const harness = createHarness()
         harness.fileSystemManager.addRootFile(

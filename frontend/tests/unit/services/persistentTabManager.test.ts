@@ -64,6 +64,19 @@ describe('PersistentTabManager', () => {
         expect(manager.getActiveId()).toBeNull()
     })
 
+    it('evicts least recently used tab when opening more than the max limit', () => {
+        const fs = new MockFileSystemManager(new MockFileSyncManager())
+        const fileIds = Array.from({ length: 21 }, (_, index) => fs.create(`file-${index}.ts`, 'file', null))
+
+        const manager = new PersistentTabManager(fs)
+        fileIds.forEach((id) => manager.open(id))
+
+        expect(manager.getTabs()).toHaveLength(20)
+        expect(manager.getTabs()).not.toContain(fileIds[0])
+        expect(manager.getTabs()).toContain(fileIds[20])
+        expect(manager.getActiveId()).toBe(fileIds[20])
+    })
+
     it('loads valid state from localStorage and filters missing files', () => {
         const fs = new MockFileSystemManager(new MockFileSyncManager())
         const existing = fs.create('a.ts', 'file', null)

@@ -106,10 +106,35 @@ describe('SharedFileSystemManager', () => {
         manager.delete(fileId)
 
         expect(onCreate).toHaveBeenCalledTimes(2)
+        expect(onCreate).toHaveBeenNthCalledWith(1, { id: dirId, name: 'src', type: 'dir', parentId: null })
+        expect(onCreate).toHaveBeenNthCalledWith(2, { id: fileId, name: 'main.cpp', type: 'file', parentId: dirId })
         expect(onRename).toHaveBeenCalledWith(fileId, 'main.cpp', 'app.cpp')
         expect(onMove).toHaveBeenCalledWith(fileId, dirId, null)
-        expect(onDelete).toHaveBeenCalled()
+        expect(onDelete).toHaveBeenCalledWith({ id: fileId, name: 'app.cpp', type: 'file', parentId: null })
         expect(onChange).toHaveBeenCalled()
+    })
+
+    it('does not emit rename or move events when values are unchanged', async () => {
+        const manager = new SharedFileSystemManager(new MockConnectionFactory())
+        await manager.init()
+
+        const dirId = manager.create('src', 'dir', null)
+        const fileId = manager.create('main.cpp', 'file', dirId)
+        const onRename = vi.fn()
+        const onMove = vi.fn()
+        const onChange = vi.fn()
+
+        manager.on('rename', onRename)
+        manager.on('move', onMove)
+        manager.on('change', onChange)
+
+        manager.rename(fileId, 'main.cpp')
+        manager.move(fileId, dirId)
+
+        expect(onRename).not.toHaveBeenCalled()
+        expect(onMove).not.toHaveBeenCalled()
+        expect(onChange).not.toHaveBeenCalled()
+        expect(manager.getMeta(fileId)).toEqual({ id: fileId, name: 'main.cpp', type: 'file', parentId: dirId })
     })
 
     it('destroys underlying connection on destroy', async () => {

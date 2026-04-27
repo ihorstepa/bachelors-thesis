@@ -78,7 +78,13 @@ describe('workers/codeRunner/ToolchainLoader', () => {
         const toolchain = await ToolchainLoader.load()
 
         expect(fetch).toHaveBeenCalledTimes(3)
+        expect(fetch).toHaveBeenCalledWith('/binaries/clang.wasm.gz')
+        expect(fetch).toHaveBeenCalledWith('/binaries/wasm-ld.wasm.gz')
+        expect(fetch).toHaveBeenCalledWith('/binaries/sysroot.tar.gz')
         expect(cache.put).toHaveBeenCalledTimes(3)
+        expect(cache.put).toHaveBeenCalledWith('/binaries/clang.wasm.gz?decompressed', expect.any(Response))
+        expect(cache.put).toHaveBeenCalledWith('/binaries/wasm-ld.wasm.gz?decompressed', expect.any(Response))
+        expect(cache.put).toHaveBeenCalledWith('/binaries/sysroot.tar.gz?decompressed', expect.any(Response))
         expect(toolchain.clangBinary).toEqual(new Uint8Array([10]))
         expect(toolchain.wasmLdBinary).toEqual(new Uint8Array([20]))
         expect(toolchain.sysrootFs['/sysroot/lib/a.h']).toBeDefined()
@@ -104,6 +110,9 @@ describe('workers/codeRunner/ToolchainLoader', () => {
         const toolchain = await ToolchainLoader.load()
 
         expect(fetch).toHaveBeenCalledTimes(3)
+        expect(fetch).toHaveBeenCalledWith('/binaries/clang.wasm.gz')
+        expect(fetch).toHaveBeenCalledWith('/binaries/wasm-ld.wasm.gz')
+        expect(fetch).toHaveBeenCalledWith('/binaries/sysroot.tar.gz')
         expect(toolchain.clangBinary).toEqual(new Uint8Array([1]))
         expect(toolchain.wasmLdBinary).toEqual(new Uint8Array([2]))
         expect(Object.keys(toolchain.sysrootFs)).toEqual([])

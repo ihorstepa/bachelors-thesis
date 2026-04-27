@@ -38,7 +38,7 @@ describe('LocalFileTreeManager', () => {
         expect(manager.getExpanded().has(srcId)).toBe(true)
         expect(manager.getExpanded().has(nestedId)).toBe(true)
         expect(onSelect).toHaveBeenCalledWith(fileId)
-        expect(onExpand).toHaveBeenCalled()
+        expect(onExpand).toHaveBeenCalledWith(new Set([srcId, nestedId]))
     })
 
     it('toggleExpand toggles id and getTargetParentId resolves selected context', () => {

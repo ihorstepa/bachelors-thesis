@@ -122,4 +122,18 @@ describe('MultipleFileSyncManager', () => {
 
         await expect(manager.openFile('file-err')).rejects.toThrow('connect failed')
     })
+
+    it('ignores closeFile for ids that were never opened', async () => {
+        const fs = new MockFileSystemManager(new MockFileSyncManager())
+        const factory = new MockConnectionFactory()
+        const manager = new MultipleFileSyncManager(factory, fs)
+
+        const openConnection = (await manager.openFile('file-1')) as Connection
+
+        expect(() => manager.closeFile('missing-id')).not.toThrow()
+        expect(openConnection.destroy).not.toHaveBeenCalled()
+
+        manager.closeFile('file-1')
+        expect(openConnection.destroy).toHaveBeenCalledOnce()
+    })
 })
