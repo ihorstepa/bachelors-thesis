@@ -50,7 +50,10 @@ describe('utils/validators', () => {
             const short = validateLoginInput({ identifier: 'x', password: 'secret123' })
             expect(short.errors.identifier).toContain(`${AUTH_USERNAME_MIN_LENGTH}`)
 
-            const long = validateLoginInput({ identifier: 'a'.repeat(AUTH_USERNAME_MAX_LENGTH + 1), password: 'secret123' })
+            const long = validateLoginInput({
+                identifier: 'a'.repeat(AUTH_USERNAME_MAX_LENGTH + 1),
+                password: 'secret123',
+            })
             expect(long.errors.identifier).toContain(`${AUTH_USERNAME_MAX_LENGTH}`)
 
             const invalidChars = validateLoginInput({ identifier: 'bad name', password: 'secret123' })

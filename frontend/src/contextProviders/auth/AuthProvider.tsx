@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 
-import { AuthContext, type AuthState } from '@/contextProviders/auth/AuthContext'
+import type { AuthState } from '@/contextProviders/auth/AuthContext'
+import { AuthContext } from '@/contextProviders/auth/AuthContext'
 import { useService } from '@/contextProviders/service/ServiceContext'
-import { AuthManager as AuthHttpClientBase, type AuthUser } from '@/core/authManager'
+import type { AuthUser } from '@/core/authManager'
+import { AuthManager } from '@/core/authManager'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 
 type AuthStatus = 'unknown' | 'authenticated' | 'anonymous'
@@ -13,7 +15,7 @@ type Props = {
 }
 
 function AuthProvider({ children }: Props) {
-    const authClient = useService(AuthHttpClientBase)
+    const authClient = useService(AuthManager)
     const [status, setStatus] = useState<AuthStatus>('unknown')
     const [user, setUser] = useState<AuthUser | null>(null)
 

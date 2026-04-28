@@ -6,8 +6,8 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc -b && vite build",
-        "lint": "npm --prefix .. exec eslint .",
-        "format": "npm --prefix .. exec prettier --write .",
+        "lint": "npm --prefix .. exec -- eslint .",
+        "format": "npm --prefix .. exec -- prettier --write .",
         "preview": "vite preview",
         "test": "vitest run",
         "postinstall": "patch-package"

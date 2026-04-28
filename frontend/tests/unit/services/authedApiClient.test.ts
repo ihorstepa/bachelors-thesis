@@ -50,9 +50,9 @@ describe('AuthedApiClient', () => {
         const auth = new MockAuthManager()
         auth.setToken('tok')
 
-        const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-            new Response(JSON.stringify({ ok: true }), { status: 200 }),
-        )
+        const fetchMock = vi
+            .spyOn(globalThis, 'fetch')
+            .mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }))
 
         const client = new AuthedApiClient(auth)
         await expect(client.request('/projects', { method: 'GET' })).resolves.toEqual({ ok: true })
