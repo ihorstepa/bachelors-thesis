@@ -6,7 +6,7 @@ import { VscFile, VscFiles, VscOrganization, VscSettingsGear, VscSignOut, VscSta
 export type DashboardNav = 'all' | 'mine' | 'shared' | 'favorite'
 
 const navItems: Array<{ id: DashboardNav; label: string; icon: ReactNode }> = [
-    { id: 'all', label: 'All Projects', icon: <VscFiles /> },
+    { id: 'all', label: 'All projects', icon: <VscFiles /> },
     { id: 'mine', label: 'My projects', icon: <VscFile /> },
     { id: 'shared', label: 'Shared with me', icon: <VscOrganization /> },
     { id: 'favorite', label: 'Favorites', icon: <VscStarFull /> },

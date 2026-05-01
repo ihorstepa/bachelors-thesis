@@ -40,7 +40,7 @@ function DashboardTopBar({
                 aria-label='Open playground'
             >
                 <VscBeaker />
-                <span className='dashboard-btn-label'>playground</span>
+                <span className='dashboard-btn-label'>Playground</span>
             </button>
 
             <button
