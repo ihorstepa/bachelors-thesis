@@ -2,4 +2,4 @@ This project includes code based on y-hub by Kevin Jahns.
 Original repository: https://github.com/yjs/y-hub
 License: AGPL-3.0-or-later
 
-Modifications: TODO
+Modifications: Added a self-contained user account system, a REST API for authentication and project management, project-based access control, and storage quota enforcement.
