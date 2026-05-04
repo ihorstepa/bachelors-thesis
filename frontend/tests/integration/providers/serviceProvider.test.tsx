@@ -26,6 +26,7 @@ const serviceState = vi.hoisted(() => {
         projectIndexInstances: [] as Array<{ destroy: ReturnType<typeof vi.fn> }>,
         exportServiceInstances: [] as Array<{ destroy: ReturnType<typeof vi.fn> }>,
         codeRunnerInstances: [] as Array<{ destroy: ReturnType<typeof vi.fn> }>,
+        languageServerInstances: [] as Array<{ destroy: ReturnType<typeof vi.fn> }>,
         reset() {
             this.fsInit = this.createDeferred()
             this.userAuthInstances = []
@@ -41,6 +42,7 @@ const serviceState = vi.hoisted(() => {
             this.projectIndexInstances = []
             this.exportServiceInstances = []
             this.codeRunnerInstances = []
+            this.languageServerInstances = []
         },
     }
 
@@ -205,6 +207,26 @@ vi.mock('@/services/codeRunner/cppCodeRunner', () => {
         }
     }
     return { default: MockCppCodeRunner }
+})
+
+vi.mock('@/services/languageServer/cppLanguageServerManager', () => {
+    class MockCppLanguageServerManager {
+        public readonly destroy = vi.fn()
+
+        public constructor(
+            fileSyncManager: unknown,
+            projectIndex: unknown,
+            presenceService: unknown,
+            tabManager: unknown,
+        ) {
+            void fileSyncManager
+            void projectIndex
+            void presenceService
+            void tabManager
+            serviceState.languageServerInstances.push(this)
+        }
+    }
+    return { default: MockCppLanguageServerManager }
 })
 
 import { ServiceContext, type ServiceRegistry, useService } from '@/contextProviders/service/ServiceContext'

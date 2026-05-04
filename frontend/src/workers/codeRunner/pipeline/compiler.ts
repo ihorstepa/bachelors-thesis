@@ -21,7 +21,7 @@ const clangCommonArgs = [
     '-fwasm-exceptions',
     '-Wno-deprecated',
     '-Wall',
-    '-pedantic',
+    '-Wextra',
 ]
 
 export class Compiler {

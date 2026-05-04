@@ -2,6 +2,7 @@ import type { WASIFS } from '@runno/wasi'
 import { parseTar } from 'nanotar'
 
 import { toBinaryFile } from '@/workers/codeRunner/shared'
+import { loadCachedBinary } from '@/workers/utils/cachedBinaryLoader'
 
 export type Toolchain = {
     clangBinary: Uint8Array
@@ -14,9 +15,9 @@ export class ToolchainLoader {
 
     public static async load(): Promise<Toolchain> {
         const [clangBinary, wasmLdBinary, sysrootBytes] = await Promise.all([
-            this.fetchCached('/binaries/clang.wasm.gz'),
-            this.fetchCached('/binaries/wasm-ld.wasm.gz'),
-            this.fetchCached('/binaries/sysroot.tar.gz'),
+            loadCachedBinary(this.cacheName, '/binaries/clang.wasm.gz'),
+            loadCachedBinary(this.cacheName, '/binaries/wasm-ld.wasm.gz'),
+            loadCachedBinary(this.cacheName, '/binaries/sysroot.tar.gz'),
         ])
 
         const files = parseTar(sysrootBytes)
@@ -32,50 +33,5 @@ export class ToolchainLoader {
         }
 
         return { clangBinary, wasmLdBinary, sysrootFs }
-    }
-
-    private static async fetchCached(path: string): Promise<Uint8Array> {
-        const cacheKey = `${path}?decompressed`
-
-        try {
-            const cache = await caches.open(this.cacheName)
-            const cached = await cache.match(cacheKey)
-            if (cached) {
-                return new Uint8Array(await cached.arrayBuffer())
-            }
-        } catch {
-            // Cache API may be unavailable (e.g. non-secure context). Fall through.
-        }
-
-        const bytes = await this.fetchAndDecompress(path)
-
-        try {
-            const cache = await caches.open(this.cacheName)
-            await cache.put(
-                cacheKey,
-                new Response(bytes.buffer as ArrayBuffer, {
-                    headers: { 'Content-Type': 'application/octet-stream' },
-                }),
-            )
-        } catch {
-            // Cache write failure is non-fatal.
-        }
-
-        return bytes
-    }
-
-    private static async fetchAndDecompress(path: string): Promise<Uint8Array> {
-        const response = await fetch(path)
-        if (!response.ok) {
-            throw new Error(`Failed to fetch ${path}: ${response.status} ${response.statusText}`)
-        }
-
-        const raw = new Uint8Array(await response.arrayBuffer())
-        const isGzip = raw[0] === 0x1f && raw[1] === 0x8b
-        if (!isGzip) return raw
-
-        const ds = new DecompressionStream('gzip')
-        const stream = new Blob([raw]).stream().pipeThrough(ds)
-        return new Uint8Array(await new Response(stream).arrayBuffer())
     }
 }

@@ -1,3 +1,4 @@
+import type { Extension } from '@codemirror/state'
 import type { EditorView, ViewUpdate } from '@codemirror/view'
 import ReactCodeMirror from '@uiw/react-codemirror'
 import type { JSX } from 'react'
@@ -14,6 +15,7 @@ import type { SharedFile } from '@/core/fileSyncManager'
 import { FileSyncManager } from '@/core/fileSyncManager'
 import type { NodeMeta } from '@/core/fileSystemManager'
 import { FileSystemManager } from '@/core/fileSystemManager'
+import { LanguageServerManager } from '@/core/languageServerManager'
 import { PresenceService } from '@/core/presenceService'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 
@@ -28,6 +30,7 @@ function CodeMirror({ fileId, isActive, canWrite, onNotify }: Props): JSX.Elemen
     const fileSystemManager = useService(FileSystemManager)
     const fileSyncManager = useService(FileSyncManager)
     const presenceService = useService(PresenceService)
+    const languageServerManager = useService(LanguageServerManager)
 
     const [file, setFile] = useState<SharedFile | null>(null)
     const [meta, setMeta] = useState<NodeMeta | null>(null)
@@ -35,9 +38,23 @@ function CodeMirror({ fileId, isActive, canWrite, onNotify }: Props): JSX.Elemen
     const [undoManager, setUndoManager] = useState<Y.UndoManager | null>(null)
     const editorViewRef = useRef<EditorView | null>(null)
     const undoManagerRef = useRef<Y.UndoManager | null>(null)
+    const onUpdateRef = useRef<(update: ViewUpdate) => void>(() => {})
     const { setEditorState, editorViewRef: sharedEditorViewRef, activeUndoManagerRef } = useEditor()
 
-    const [extensionProvider] = useState(() => new ExtensionProvider())
+    const [extensionProvider] = useState(() => new ExtensionProvider(languageServerManager))
+
+    const extensions: Extension[] =
+        file && meta && undoManager
+            ? extensionProvider.getExtensions(
+                  file,
+                  fileId,
+                  meta,
+                  (message) => {
+                      onNotify('char-limit', 'warning', message)
+                  },
+                  undoManager,
+              )
+            : []
 
     const clearSharedEditorBindings = useCallback(() => {
         const currentView = editorViewRef.current
@@ -57,17 +74,30 @@ function CodeMirror({ fileId, isActive, canWrite, onNotify }: Props): JSX.Elemen
         activeUndoManagerRef.current = undoManagerRef.current
     }, [sharedEditorViewRef, activeUndoManagerRef])
 
-    const extensions =
-        file && meta && undoManager
-            ? extensionProvider.getExtensions(
-                  file,
-                  meta,
-                  (message) => {
-                      onNotify('char-limit', 'warning', message)
-                  },
-                  undoManager,
-              )
-            : []
+    const [onUpdate] = useState(() => (update: ViewUpdate) => onUpdateRef.current(update))
+
+    useEffect(() => {
+        onUpdateRef.current = (update: ViewUpdate) => {
+            if (!isActive) return
+            const state = update.state
+            const head = state.selection.main.head
+            const line = state.doc.lineAt(head)
+            const selected = state.selection.ranges.reduce((acc, r) => acc + r.to - r.from, 0)
+            const nextLine = line.number
+            const nextColumn = head - line.from + 1
+            setEditorState((prev) => {
+                if (prev.line === nextLine && prev.column === nextColumn && prev.selected === selected) {
+                    return prev
+                }
+                return {
+                    ...prev,
+                    line: nextLine,
+                    column: nextColumn,
+                    selected,
+                }
+            })
+        }
+    }, [isActive, setEditorState])
 
     useEffect(() => {
         return fileSystemManager.on('rename', (id) => {
@@ -82,12 +112,6 @@ function CodeMirror({ fileId, isActive, canWrite, onNotify }: Props): JSX.Elemen
         const language = getLanguageName(meta.name)
         setEditorState((prev) => (prev.language === language ? prev : { ...prev, language }))
     }, [isActive, meta, setEditorState])
-
-    useEffect(() => {
-        const view = editorViewRef.current
-        if (!view || !meta || !isSynced) return
-        view.dispatch({ effects: extensionProvider.reconfigure(meta) })
-    }, [meta, isSynced, extensionProvider])
 
     useAsyncEffect(
         async (isAborted) => {
@@ -151,27 +175,6 @@ function CodeMirror({ fileId, isActive, canWrite, onNotify }: Props): JSX.Elemen
                 <Spinner />
             </div>
         )
-    }
-
-    const onUpdate = (update: ViewUpdate) => {
-        if (!isActive) return
-        const state = update.state
-        const head = state.selection.main.head
-        const line = state.doc.lineAt(head)
-        const selected = state.selection.ranges.reduce((acc, r) => acc + r.to - r.from, 0)
-        const nextLine = line.number
-        const nextColumn = head - line.from + 1
-        setEditorState((prev) => {
-            if (prev.line === nextLine && prev.column === nextColumn && prev.selected === selected) {
-                return prev
-            }
-            return {
-                ...prev,
-                line: nextLine,
-                column: nextColumn,
-                selected,
-            }
-        })
     }
 
     return (

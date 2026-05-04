@@ -186,6 +186,10 @@ export class MockProjectIndexService extends ProjectIndexService {
     public getAllFilePaths(): FileLocation[] {
         return [...this.files]
     }
+
+    public getPathById(id: string): string | null {
+        return this.files.find((file) => file.id === id)?.path ?? null
+    }
 }
 
 export class MockTabManager extends TabManager {

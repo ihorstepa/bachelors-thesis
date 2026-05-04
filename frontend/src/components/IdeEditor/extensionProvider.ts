@@ -1,16 +1,10 @@
-import {
-    autocompletion,
-    closeBrackets,
-    closeBracketsKeymap,
-    completeAnyWord,
-    completionKeymap,
-} from '@codemirror/autocomplete'
+import { closeBrackets, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete'
 import { defaultKeymap } from '@codemirror/commands'
 import { bracketMatching, foldGutter, foldKeymap, indentOnInput, indentUnit } from '@codemirror/language'
 import { lintKeymap } from '@codemirror/lint'
 import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search'
-import type { Extension, StateEffect } from '@codemirror/state'
-import { Compartment, EditorState } from '@codemirror/state'
+import type { Extension } from '@codemirror/state'
+import { EditorState } from '@codemirror/state'
 import { oneDark } from '@codemirror/theme-one-dark'
 import {
     crosshairCursor,
@@ -30,32 +24,35 @@ import type * as Y from 'yjs'
 
 import { charLimit } from '@/components/IdeEditor/extensions/charLimit'
 import { createFoldMarker } from '@/components/IdeEditor/extensions/foldMarker'
-import { language } from '@/components/IdeEditor/extensions/language'
+import { languageSupport } from '@/components/IdeEditor/extensions/language'
 import { overlayScrollbar } from '@/components/IdeEditor/extensions/scrollbar'
 import { createCustomSearchPanel } from '@/components/IdeEditor/extensions/searchPanel'
 import type { SharedFile } from '@/core/fileSyncManager'
 import type { NodeMeta } from '@/core/fileSystemManager'
+import type { LanguageServerManager } from '@/core/languageServerManager'
 
 class ExtensionProvider {
-    private compartments = {
-        language: new Compartment(),
+    private languageServerManager: LanguageServerManager
+
+    public constructor(languageServerManager: LanguageServerManager) {
+        this.languageServerManager = languageServerManager
     }
 
     public getExtensions(
         file: SharedFile,
+        fileId: string,
         meta: NodeMeta,
         onLimitReached: (message: string) => void,
         undoManager: Y.UndoManager,
     ): Extension[] {
         return [
-            autocompletion({ override: [completeAnyWord] }),
             bracketMatching(),
+            charLimit(onLimitReached),
             closeBrackets(),
             crosshairCursor(),
             drawSelection(),
             dropCursor(),
             EditorState.allowMultipleSelections.of(true),
-            lineNumbers(),
             foldGutter({
                 markerDOM: createFoldMarker,
             }),
@@ -69,11 +66,6 @@ class ExtensionProvider {
             }),
             indentOnInput(),
             indentUnit.of('    '),
-            scrollPastEnd(),
-            search({
-                top: true,
-                createPanel: createCustomSearchPanel,
-            }),
             keymap.of([
                 ...closeBracketsKeymap,
                 ...completionKeymap,
@@ -83,17 +75,18 @@ class ExtensionProvider {
                 ...searchKeymap,
                 ...yUndoManagerKeymap,
             ]),
+            languageSupport(this.languageServerManager, fileId, meta.name),
+            lineNumbers(),
             oneDark,
-            rectangularSelection(),
-            this.compartments.language.of(language(meta.name)),
-            charLimit(onLimitReached),
             overlayScrollbar,
+            rectangularSelection(),
+            scrollPastEnd(),
+            search({
+                top: true,
+                createPanel: createCustomSearchPanel,
+            }),
             yCollab(file.doc.getText(), file.awareness, { undoManager }),
         ]
-    }
-
-    public reconfigure(meta: NodeMeta): StateEffect<unknown>[] {
-        return [this.compartments.language.reconfigure(language(meta.name))]
     }
 }
 

@@ -5,6 +5,7 @@ import { ProjectIndexService } from '@/core/projectIndexService'
 class LocalProjectIndexService extends ProjectIndexService {
     private fileSystemManager: FileSystemManager
     private fileRefsAll: FileLocation[] = []
+    private pathById: Map<string, string> = new Map()
     private readonly handleFsChange: () => void
 
     public constructor(fileSystemManager: FileSystemManager) {
@@ -30,6 +31,10 @@ class LocalProjectIndexService extends ProjectIndexService {
         return this.fileRefsAll
     }
 
+    public getPathById(id: string): string | null {
+        return this.pathById.get(id) ?? null
+    }
+
     private recompute(): void {
         const allRefs: FileLocation[] = []
 
@@ -48,6 +53,7 @@ class LocalProjectIndexService extends ProjectIndexService {
         allRefs.sort((a, b) => a.path.localeCompare(b.path))
 
         this.fileRefsAll = allRefs
+        this.pathById = new Map(allRefs.map((ref) => [ref.id, ref.path]))
     }
 }
 

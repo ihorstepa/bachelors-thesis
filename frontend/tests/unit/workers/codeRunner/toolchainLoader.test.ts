@@ -1,141 +1,86 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const tarState = vi.hoisted(() => ({
-    parseTar: vi.fn(),
-}))
+const tarState = vi.hoisted(() => ({ parseTar: vi.fn() }))
+vi.mock('nanotar', () => ({ parseTar: tarState.parseTar }))
 
-vi.mock('nanotar', () => ({
-    parseTar: tarState.parseTar,
-}))
+const loaderState = vi.hoisted(() => ({ loadCachedBinary: vi.fn() }))
+vi.mock('@/workers/utils/cachedBinaryLoader', () => ({ loadCachedBinary: loaderState.loadCachedBinary }))
 
 import { ToolchainLoader } from '@/workers/codeRunner/toolchainLoader'
-
-type CacheLike = {
-    match: ReturnType<typeof vi.fn>
-    put: ReturnType<typeof vi.fn>
-}
-
-function makeCache(): CacheLike {
-    return {
-        match: vi.fn(),
-        put: vi.fn(),
-    }
-}
-
-function responseFromBytes(bytes: number[]): Response {
-    return new Response(new Uint8Array(bytes), { status: 200 })
-}
 
 describe('workers/codeRunner/ToolchainLoader', () => {
     beforeEach(() => {
         tarState.parseTar.mockReset()
-        vi.unstubAllGlobals()
+        loaderState.loadCachedBinary.mockReset()
     })
 
-    it('uses cached decompressed binaries when available', async () => {
-        const cache = makeCache()
-        cache.match.mockImplementation(async (key: string) => {
-            if (key.includes('clang.wasm.gz')) return responseFromBytes([1, 2, 3])
-            if (key.includes('wasm-ld.wasm.gz')) return responseFromBytes([4, 5, 6])
-            if (key.includes('sysroot.tar.gz')) return responseFromBytes([7, 8, 9])
-            return undefined
+    it('loads the three binaries from the correct paths', async () => {
+        loaderState.loadCachedBinary.mockResolvedValue(new Uint8Array([0]))
+        tarState.parseTar.mockReturnValue([])
+
+        await ToolchainLoader.load()
+
+        expect(loaderState.loadCachedBinary).toHaveBeenCalledWith(expect.any(String), '/binaries/clang.wasm.gz')
+        expect(loaderState.loadCachedBinary).toHaveBeenCalledWith(expect.any(String), '/binaries/wasm-ld.wasm.gz')
+        expect(loaderState.loadCachedBinary).toHaveBeenCalledWith(expect.any(String), '/binaries/sysroot.tar.gz')
+    })
+
+    it('returns clang and wasm-ld binaries as loaded', async () => {
+        const clang = new Uint8Array([1, 2, 3])
+        const wasmLd = new Uint8Array([4, 5, 6])
+        const sysroot = new Uint8Array([7])
+
+        loaderState.loadCachedBinary.mockImplementation((_cache: string, path: string) => {
+            if (path.includes('clang')) return Promise.resolve(clang)
+            if (path.includes('wasm-ld')) return Promise.resolve(wasmLd)
+            return Promise.resolve(sysroot)
         })
-
-        const open = vi.fn(async () => cache)
-        const fetch = vi.fn()
-
-        tarState.parseTar.mockReturnValue([{ type: 'file', name: './include/stdio.h', data: new Uint8Array([11, 12]) }])
-
-        vi.stubGlobal('caches', { open })
-        vi.stubGlobal('fetch', fetch)
+        tarState.parseTar.mockReturnValue([])
 
         const toolchain = await ToolchainLoader.load()
 
-        expect(fetch).not.toHaveBeenCalled()
-        expect(cache.put).not.toHaveBeenCalled()
-        expect(toolchain.clangBinary).toEqual(new Uint8Array([1, 2, 3]))
-        expect(toolchain.wasmLdBinary).toEqual(new Uint8Array([4, 5, 6]))
+        expect(toolchain.clangBinary).toBe(clang)
+        expect(toolchain.wasmLdBinary).toBe(wasmLd)
+    })
+
+    it('builds sysrootFs from parsed tar entries', async () => {
+        loaderState.loadCachedBinary.mockResolvedValue(new Uint8Array([0]))
+        tarState.parseTar.mockReturnValue([
+            { type: 'file', name: './include/stdio.h', data: new Uint8Array([10, 11]) },
+            { type: 'file', name: 'lib/libc.a', data: new Uint8Array([20]) },
+        ])
+
+        const toolchain = await ToolchainLoader.load()
+
         expect(toolchain.sysrootFs['/sysroot/include/stdio.h']).toBeDefined()
+        expect(toolchain.sysrootFs['/sysroot/lib/libc.a']).toBeDefined()
     })
 
-    it('fetches binaries and stores decompressed bytes in cache on cache miss', async () => {
-        const cache = makeCache()
-        cache.match.mockResolvedValue(undefined)
-
-        const open = vi.fn(async () => cache)
-        const fetch = vi.fn(async (path: string) => {
-            if (path === '/binaries/clang.wasm.gz') return responseFromBytes([10])
-            if (path === '/binaries/wasm-ld.wasm.gz') return responseFromBytes([20])
-            if (path === '/binaries/sysroot.tar.gz') return responseFromBytes([30])
-            return new Response(null, { status: 404 })
-        })
-
-        tarState.parseTar.mockReturnValue([{ type: 'file', name: './lib/a.h', data: new Uint8Array([99]) }])
-
-        vi.stubGlobal('caches', { open })
-        vi.stubGlobal('fetch', fetch)
+    it('strips leading ./ from tar entry names', async () => {
+        loaderState.loadCachedBinary.mockResolvedValue(new Uint8Array([0]))
+        tarState.parseTar.mockReturnValue([{ type: 'file', name: './foo/bar.h', data: new Uint8Array([1]) }])
 
         const toolchain = await ToolchainLoader.load()
 
-        expect(fetch).toHaveBeenCalledTimes(3)
-        expect(fetch).toHaveBeenCalledWith('/binaries/clang.wasm.gz')
-        expect(fetch).toHaveBeenCalledWith('/binaries/wasm-ld.wasm.gz')
-        expect(fetch).toHaveBeenCalledWith('/binaries/sysroot.tar.gz')
-        expect(cache.put).toHaveBeenCalledTimes(3)
-        expect(cache.put).toHaveBeenCalledWith('/binaries/clang.wasm.gz?decompressed', expect.any(Response))
-        expect(cache.put).toHaveBeenCalledWith('/binaries/wasm-ld.wasm.gz?decompressed', expect.any(Response))
-        expect(cache.put).toHaveBeenCalledWith('/binaries/sysroot.tar.gz?decompressed', expect.any(Response))
-        expect(toolchain.clangBinary).toEqual(new Uint8Array([10]))
-        expect(toolchain.wasmLdBinary).toEqual(new Uint8Array([20]))
-        expect(toolchain.sysrootFs['/sysroot/lib/a.h']).toBeDefined()
+        expect(toolchain.sysrootFs['/sysroot/foo/bar.h']).toBeDefined()
+        expect(toolchain.sysrootFs['/sysroot/./foo/bar.h']).toBeUndefined()
     })
 
-    it('falls back to fetch when Cache API is unavailable', async () => {
-        const fetch = vi.fn(async (path: string) => {
-            if (path === '/binaries/clang.wasm.gz') return responseFromBytes([1])
-            if (path === '/binaries/wasm-ld.wasm.gz') return responseFromBytes([2])
-            if (path === '/binaries/sysroot.tar.gz') return responseFromBytes([3])
-            return new Response(null, { status: 404 })
-        })
-
-        tarState.parseTar.mockReturnValue([])
-
-        vi.stubGlobal('caches', {
-            open: vi.fn(async () => {
-                throw new Error('no cache')
-            }),
-        })
-        vi.stubGlobal('fetch', fetch)
+    it('skips tar entries that are not files or have no data', async () => {
+        loaderState.loadCachedBinary.mockResolvedValue(new Uint8Array([0]))
+        tarState.parseTar.mockReturnValue([
+            { type: 'dir', name: 'include/', data: undefined },
+            { type: 'file', name: '', data: undefined },
+        ])
 
         const toolchain = await ToolchainLoader.load()
 
-        expect(fetch).toHaveBeenCalledTimes(3)
-        expect(fetch).toHaveBeenCalledWith('/binaries/clang.wasm.gz')
-        expect(fetch).toHaveBeenCalledWith('/binaries/wasm-ld.wasm.gz')
-        expect(fetch).toHaveBeenCalledWith('/binaries/sysroot.tar.gz')
-        expect(toolchain.clangBinary).toEqual(new Uint8Array([1]))
-        expect(toolchain.wasmLdBinary).toEqual(new Uint8Array([2]))
-        expect(Object.keys(toolchain.sysrootFs)).toEqual([])
+        expect(Object.keys(toolchain.sysrootFs)).toHaveLength(0)
     })
 
-    it('throws when an underlying fetch response is not ok', async () => {
-        const cache = makeCache()
-        cache.match.mockResolvedValue(undefined)
+    it('propagates errors from loadCachedBinary', async () => {
+        loaderState.loadCachedBinary.mockRejectedValue(new Error('network error'))
 
-        vi.stubGlobal('caches', { open: vi.fn(async () => cache) })
-        vi.stubGlobal(
-            'fetch',
-            vi.fn(async (path: string) => {
-                if (path === '/binaries/clang.wasm.gz') {
-                    return new Response(null, { status: 500, statusText: 'Server Error' })
-                }
-                return responseFromBytes([1])
-            }),
-        )
-        tarState.parseTar.mockReturnValue([])
-
-        await expect(ToolchainLoader.load()).rejects.toThrow(
-            'Failed to fetch /binaries/clang.wasm.gz: 500 Server Error',
-        )
+        await expect(ToolchainLoader.load()).rejects.toThrow('network error')
     })
 })

@@ -14,4 +14,5 @@ const ClassBase = mixin(BaseService, Observable<ProjectIndexServiceEvents>)
 
 export abstract class ProjectIndexService extends ClassBase {
     public abstract getAllFilePaths(): FileLocation[]
+    public abstract getPathById(id: string): string | null
 }

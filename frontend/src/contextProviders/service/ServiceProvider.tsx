@@ -11,6 +11,7 @@ import { FileSyncManager } from '@/core/fileSyncManager'
 import { FileSystemManager } from '@/core/fileSystemManager'
 import { FileTreeManager } from '@/core/fileTreeManager'
 import type { BaseService } from '@/core/general'
+import { LanguageServerManager } from '@/core/languageServerManager'
 import { PresenceService } from '@/core/presenceService'
 import { ProjectIndexService } from '@/core/projectIndexService'
 import { ProjectManager } from '@/core/projectManager'
@@ -25,6 +26,7 @@ import BrowserProjectExportService from '@/services/exportService/browserProject
 import MultipleFileSyncManager from '@/services/fileSyncManager/multipleFileSyncManager'
 import SharedFileSystemManager from '@/services/fileSystemManager/sharedFileSystemManager'
 import LocalFileTreeManager from '@/services/fileTreeManager/localFileTreeManager'
+import CppLanguageServerManager from '@/services/languageServer/cppLanguageServerManager'
 import FileSystemPresenceService from '@/services/presenceService/fileSystemPresenceService'
 import LocalProjectIndexService from '@/services/projectIndexService/localProjectIndexService'
 import UserProjectManager from '@/services/projectManager/userProjectManager'
@@ -81,6 +83,14 @@ async function initIdeServices(
 
     const compilationService = new CppCodeRunner(fileSystemManager, fileSyncManager, projectFileIndex, tabManager)
     services.set(CodeRunner, compilationService)
+
+    const languageServerManager = new CppLanguageServerManager(
+        fileSyncManager,
+        projectFileIndex,
+        presenceService,
+        tabManager,
+    )
+    services.set(LanguageServerManager, languageServerManager)
 
     return services
 }
