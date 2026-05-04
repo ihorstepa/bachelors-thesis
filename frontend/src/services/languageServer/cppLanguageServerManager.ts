@@ -45,7 +45,7 @@ class CppLanguageServerManager extends LanguageServerManager {
     private preloadPromise: Promise<void> | null = null
 
     private static readonly supportedExtensions = new Set(['c', 'h', 'cpp', 'hpp', 'hxx', 'cxx'])
-    private static readonly collaboratorSyncDebounceMs = 1000
+    private static readonly collaboratorSyncDebounceMs = 3000
 
     public constructor(
         fileSyncManager: FileSyncManager,
