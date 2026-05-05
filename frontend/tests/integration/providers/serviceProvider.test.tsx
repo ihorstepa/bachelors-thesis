@@ -68,10 +68,23 @@ vi.mock('@/services/apiClient/authedApiClient', () => {
     return { default: MockAuthedApiClient }
 })
 
+vi.mock('@/services/projectCache/localProjectCache', () => {
+    class MockLocalProjectCache {
+        public forScope() {
+            return {
+                persist: vi.fn(),
+                clearRoom: vi.fn(),
+            }
+        }
+    }
+    return { default: MockLocalProjectCache }
+})
+
 vi.mock('@/services/projectManager/userProjectManager', () => {
     class MockUserProjectManager {
-        public constructor(apiClient: unknown) {
+        public constructor(apiClient: unknown, projectCache: unknown) {
             void apiClient
+            void projectCache
             serviceState.userProjectManagerInstances.push(this)
         }
     }
@@ -80,7 +93,8 @@ vi.mock('@/services/projectManager/userProjectManager', () => {
 
 vi.mock('@/services/connectionFactory/localConnectionFactory', () => {
     class MockLocalConnectionFactory {
-        public constructor() {
+        public constructor(roomCache: unknown) {
+            void roomCache
             serviceState.localConnectionInstances.push(this)
         }
     }
@@ -89,9 +103,10 @@ vi.mock('@/services/connectionFactory/localConnectionFactory', () => {
 
 vi.mock('@/services/connectionFactory/wsConnectionFactory', () => {
     class MockWSConnectionFactory {
-        public constructor(projectId: string, authToken: string) {
+        public constructor(projectId: string, authToken: string, roomCache: unknown) {
             void projectId
             void authToken
+            void roomCache
             serviceState.wsConnectionInstances.push(this)
         }
     }
@@ -236,7 +251,9 @@ import { AuthManager } from '@/core/authManager'
 import { CodeRunner } from '@/core/codeRunner'
 import { ConnectionFactory } from '@/core/connectionFactory'
 import { FileSystemManager } from '@/core/fileSystemManager'
+import { ProjectCache } from '@/core/projectCache'
 import { ProjectManager } from '@/core/projectManager'
+import LocalProjectCache from '@/services/projectCache/localProjectCache'
 
 import { mountWithServices, unmountMounted, waitForCondition } from './testHarness'
 
@@ -314,7 +331,9 @@ describe('ServiceProvider integration', () => {
 
     it('IdeServiceProvider waits for init and merges parent services', async () => {
         const parentAuth = { destroy: vi.fn() } as unknown as AuthManager
-        const parentRegistry: ServiceRegistry = new Map([[AuthManager, parentAuth]])
+        const parentRegistry: ServiceRegistry = new Map()
+        parentRegistry.set(AuthManager, parentAuth)
+        parentRegistry.set(ProjectCache, new LocalProjectCache())
         const latest = { current: null as IdeSnapshot | null }
 
         const rendered = await mountWithServices(
@@ -342,7 +361,9 @@ describe('ServiceProvider integration', () => {
 
     it('IdeServiceProvider tears down old ide services on dependency change and unmount', async () => {
         const parentAuth = { destroy: vi.fn() } as unknown as AuthManager
-        const parentRegistry: ServiceRegistry = new Map([[AuthManager, parentAuth]])
+        const parentRegistry: ServiceRegistry = new Map()
+        parentRegistry.set(AuthManager, parentAuth)
+        parentRegistry.set(ProjectCache, new LocalProjectCache())
         const latest = { current: null as IdeSnapshot | null }
 
         const rendered = await mountWithServices(
@@ -396,7 +417,9 @@ describe('ServiceProvider integration', () => {
 
     it('cleans up created ide services when init resolves after unmount', async () => {
         const parentAuth = { destroy: vi.fn() } as unknown as AuthManager
-        const parentRegistry: ServiceRegistry = new Map([[AuthManager, parentAuth]])
+        const parentRegistry: ServiceRegistry = new Map()
+        parentRegistry.set(AuthManager, parentAuth)
+        parentRegistry.set(ProjectCache, new LocalProjectCache())
 
         const rendered = await mountWithServices(
             <IdeServiceProvider authToken='token-1' username='alice'>

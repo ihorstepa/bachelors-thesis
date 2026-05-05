@@ -24,40 +24,48 @@ vi.mock('y-indexeddb', () => {
     return { IndexeddbPersistence }
 })
 
+import { IndexeddbPersistence } from 'y-indexeddb'
+
 import LocalConnectionFactory from '@/services/connectionFactory/localConnectionFactory'
+
+const mockRoomCache = {
+    persist: (room: string, doc: Doc) => new IndexeddbPersistence(room, doc),
+    clearRoom: vi.fn(async (): Promise<void> => undefined),
+}
 
 describe('LocalConnectionFactory', () => {
     beforeEach(() => {
         indexedDbState.instances.splice(0)
         indexedDbState.nextWhenSynced = null
+        mockRoomCache.clearRoom.mockClear()
     })
 
-    it('autoconnects by default and uses namespace/room as persistence key', async () => {
+    it('autoconnects by default and opens persistence for the room', async () => {
         const doc = new Doc()
-        const factory = new LocalConnectionFactory('workspace')
+        const factory = new LocalConnectionFactory(mockRoomCache)
 
         const connection = await factory.connect('room-a', { doc })
 
         expect(connection.doc).toBe(doc)
         expect(indexedDbState.instances).toHaveLength(1)
-        expect(indexedDbState.instances[0].key).toBe('workspace/room-a')
+        expect(indexedDbState.instances[0].key).toBe('room-a')
 
         await expect(connection.synced).resolves.toBeUndefined()
     })
 
     it('does not create persistence at connect-time when autoconnect is false', async () => {
-        const factory = new LocalConnectionFactory('workspace')
+        const factory = new LocalConnectionFactory(mockRoomCache)
         const connection = await factory.connect('room-b', { autoconnect: false })
 
         expect(indexedDbState.instances).toHaveLength(0)
 
         connection.connect()
         expect(indexedDbState.instances).toHaveLength(1)
-        expect(indexedDbState.instances[0].key).toBe('workspace/room-b')
+        expect(indexedDbState.instances[0].key).toBe('room-b')
     })
 
     it('reuses existing persistence on connect() and refreshes synced promise', async () => {
-        const factory = new LocalConnectionFactory('workspace')
+        const factory = new LocalConnectionFactory(mockRoomCache)
         const connection = await factory.connect('room-c')
         const first = indexedDbState.instances[0]
 
@@ -69,7 +77,7 @@ describe('LocalConnectionFactory', () => {
     })
 
     it('disconnect destroys persistence and a later connect creates a new instance', async () => {
-        const factory = new LocalConnectionFactory('workspace')
+        const factory = new LocalConnectionFactory(mockRoomCache)
         const connection = await factory.connect('room-d')
 
         const first = indexedDbState.instances[0]
@@ -82,7 +90,7 @@ describe('LocalConnectionFactory', () => {
     })
 
     it('destroy clears local awareness and destroys both awareness and persistence', async () => {
-        const factory = new LocalConnectionFactory('workspace')
+        const factory = new LocalConnectionFactory(mockRoomCache)
         const connection = await factory.connect('room-e')
         const awarenessDestroy = vi.spyOn(connection.awareness, 'destroy')
 
@@ -95,8 +103,16 @@ describe('LocalConnectionFactory', () => {
 
     it('rejects connect when IndexedDB initial sync fails', async () => {
         indexedDbState.nextWhenSynced = Promise.reject(new Error('sync failed'))
-        const factory = new LocalConnectionFactory('workspace')
+        const factory = new LocalConnectionFactory(mockRoomCache)
 
         await expect(factory.connect('room-fail')).rejects.toThrow('sync failed')
+    })
+
+    it('clearRoom delegates to roomCache.clearRoom', async () => {
+        const factory = new LocalConnectionFactory(mockRoomCache)
+
+        await factory.clearRoom('some-file-id')
+
+        expect(mockRoomCache.clearRoom).toHaveBeenCalledWith('some-file-id')
     })
 })

@@ -8,6 +8,7 @@ import SharedFileSystemManager from '@/services/fileSystemManager/sharedFileSyst
 
 class MockConnectionFactory extends ConnectionFactory {
     public readonly connection: Connection
+    public readonly clearRoomMock = vi.fn(async (): Promise<void> => undefined)
 
     public constructor(doc: Y.Doc = new Y.Doc()) {
         super()
@@ -32,6 +33,10 @@ class MockConnectionFactory extends ConnectionFactory {
         void room
         void config
         return this.connection
+    }
+
+    public async clearRoom(room: string): Promise<void> {
+        await this.clearRoomMock(room)
     }
 }
 
@@ -145,5 +150,21 @@ describe('SharedFileSystemManager', () => {
         manager.destroy()
 
         expect(factory.connection.destroy).toHaveBeenCalledOnce()
+    })
+
+    it('clears room persistence for deleted files', async () => {
+        const factory = new MockConnectionFactory()
+        const manager = new SharedFileSystemManager(factory)
+        await manager.init()
+
+        const srcId = manager.create('src', 'dir', null)
+        const fileA = manager.create('a.cpp', 'file', srcId)
+        const fileB = manager.create('b.cpp', 'file', srcId)
+
+        manager.delete(srcId)
+
+        expect(factory.clearRoomMock).toHaveBeenCalledTimes(2)
+        expect(factory.clearRoomMock).toHaveBeenCalledWith(fileA)
+        expect(factory.clearRoomMock).toHaveBeenCalledWith(fileB)
     })
 })

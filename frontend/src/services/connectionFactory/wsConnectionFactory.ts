@@ -1,26 +1,31 @@
-import { IndexeddbPersistence } from 'y-indexeddb'
 import { WebsocketProvider } from 'y-websocket'
 import { Doc } from 'yjs'
 
 import { WS_URL } from '@/config'
-import type { Connection, ConnectionConfig } from '@/core/connectionFactory'
-import { ConnectionFactory } from '@/core/connectionFactory'
+import { type Connection, type ConnectionConfig, ConnectionFactory } from '@/core/connectionFactory'
+import type { Persistence, RoomCache } from '@/core/projectCache'
 
 class WSConnectionFactory extends ConnectionFactory {
-    public projectId: string
+    private projectId: string
     private authToken: string
+    private roomCache: RoomCache
 
-    public constructor(projectId: string, authToken: string) {
+    public constructor(projectId: string, authToken: string, roomCache: RoomCache) {
         super()
         this.projectId = projectId
         this.authToken = authToken
+        this.roomCache = roomCache
+    }
+
+    public clearRoom(room: string): Promise<void> {
+        return this.roomCache.clearRoom(room)
     }
 
     public async connect(
         room: string,
         { doc = new Doc(), autoconnect = true }: ConnectionConfig = {},
     ): Promise<Connection> {
-        const idb = new IndexeddbPersistence(`${this.projectId}/${room}`, doc)
+        const idb: Persistence = this.roomCache.persist(room, doc)
         await idb.whenSynced
 
         const ws = new WebsocketProvider(`${WS_URL}/${this.projectId}`, room, doc, {

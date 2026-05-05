@@ -1,4 +1,5 @@
 import type { ApiClient } from '@/core/apiClient'
+import type { ProjectCache } from '@/core/projectCache'
 import {
     type AccessType,
     type Project,
@@ -17,10 +18,12 @@ type GetProjectResponse = {
 
 class UserProjectManager extends ProjectManager {
     private apiClient: ApiClient
+    private projectCache: ProjectCache
 
-    public constructor(apiClient: ApiClient) {
+    public constructor(apiClient: ApiClient, projectCache: ProjectCache) {
         super()
         this.apiClient = apiClient
+        this.projectCache = projectCache
     }
 
     public async getProject(projectId: string): Promise<Project> {
@@ -59,6 +62,7 @@ class UserProjectManager extends ProjectManager {
 
     public async deleteProject(projectId: string): Promise<void> {
         await this.apiClient.request(`/projects/${encodeURIComponent(projectId)}`, { method: 'DELETE' })
+        await this.projectCache.clearProject(projectId)
     }
 
     public async addMember(projectId: string, username: string, accessType: AccessType): Promise<ProjectMember> {

@@ -20,4 +20,5 @@ export type ConnectionConfig = {
 
 export abstract class ConnectionFactory extends BaseService {
     public abstract connect(room: string, config?: ConnectionConfig): Promise<Connection>
+    public abstract clearRoom(room: string): Promise<void>
 }

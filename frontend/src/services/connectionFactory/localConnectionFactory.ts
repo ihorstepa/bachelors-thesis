@@ -1,16 +1,19 @@
-import { IndexeddbPersistence } from 'y-indexeddb'
 import { Awareness } from 'y-protocols/awareness'
 import { Doc } from 'yjs'
 
-import type { Connection, ConnectionConfig } from '@/core/connectionFactory'
-import { ConnectionFactory } from '@/core/connectionFactory'
+import { type Connection, type ConnectionConfig, ConnectionFactory } from '@/core/connectionFactory'
+import type { Persistence, RoomCache } from '@/core/projectCache'
 
 class LocalConnectionFactory extends ConnectionFactory {
-    private namespace: string
+    private roomCache: RoomCache
 
-    public constructor(namespace = 'playground') {
+    public constructor(roomCache: RoomCache) {
         super()
-        this.namespace = namespace
+        this.roomCache = roomCache
+    }
+
+    public clearRoom(room: string): Promise<void> {
+        return this.roomCache.clearRoom(room)
     }
 
     public async connect(
@@ -18,24 +21,19 @@ class LocalConnectionFactory extends ConnectionFactory {
         { doc = new Doc(), autoconnect = true }: ConnectionConfig = {},
     ): Promise<Connection> {
         const awareness = new Awareness(doc)
+        let idb: Persistence | null = null
+        let synced: Promise<void> = Promise.resolve()
 
-        let idb: IndexeddbPersistence | null = null
-        let synced = Promise.resolve()
-
-        if (autoconnect) {
-            idb = new IndexeddbPersistence(`${this.namespace}/${room}`, doc)
+        const openIdb = () => {
+            if (idb == null) {
+                idb = this.roomCache.persist(room, doc)
+            }
             synced = idb.whenSynced.then(() => undefined)
-            await synced
         }
 
-        const connect = () => {
-            if (idb != null) {
-                synced = idb.whenSynced.then(() => undefined)
-                return
-            }
-
-            idb = new IndexeddbPersistence(`${this.namespace}/${room}`, doc)
-            synced = idb.whenSynced.then(() => undefined)
+        if (autoconnect) {
+            openIdb()
+            await synced
         }
 
         const disconnect = () => {
@@ -56,7 +54,7 @@ class LocalConnectionFactory extends ConnectionFactory {
             get synced() {
                 return synced
             },
-            connect,
+            connect: openIdb,
             disconnect,
             destroy,
         }

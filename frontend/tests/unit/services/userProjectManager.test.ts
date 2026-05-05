@@ -3,6 +3,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { ApiClient } from '@/core/apiClient'
 import UserProjectManager from '@/services/projectManager/userProjectManager'
 
+const mockProjectCache = {
+    forScope: vi.fn(),
+    clearProject: vi.fn(async (): Promise<void> => undefined),
+}
+
 class MockApiClient extends ApiClient {
     public readonly requestMock = vi.fn<(path: string, init: RequestInit) => Promise<unknown>>()
 
@@ -12,6 +17,16 @@ class MockApiClient extends ApiClient {
 }
 
 describe('UserProjectManager', () => {
+    it('cleans up project persistence after deleting a project', async () => {
+        const api = new MockApiClient()
+        api.requestMock.mockResolvedValue(undefined)
+
+        const manager = new UserProjectManager(api, mockProjectCache)
+        await manager.deleteProject('p1')
+
+        expect(mockProjectCache.clearProject).toHaveBeenCalledWith('p1')
+    })
+
     it('lists projects from decoded payload', async () => {
         const api = new MockApiClient()
         api.requestMock.mockResolvedValue({
@@ -31,7 +46,7 @@ describe('UserProjectManager', () => {
             ],
         })
 
-        const manager = new UserProjectManager(api)
+        const manager = new UserProjectManager(api, mockProjectCache)
         const projects = await manager.listProjects()
 
         expect(projects).toHaveLength(1)
@@ -55,7 +70,7 @@ describe('UserProjectManager', () => {
             },
         })
 
-        const manager = new UserProjectManager(api)
+        const manager = new UserProjectManager(api, mockProjectCache)
         await manager.createProject('Project 1')
         await manager.updateProject('p 1', 'Project 1 renamed')
 
@@ -84,7 +99,7 @@ describe('UserProjectManager', () => {
             members: [{ userId: 'u1', username: 'alice', email: 'a@x.com', accessType: 'rw', isOwner: true }],
         })
 
-        const manager = new UserProjectManager(api)
+        const manager = new UserProjectManager(api, mockProjectCache)
         const project = await manager.getProject('p1')
 
         expect(project.members).toHaveLength(1)
@@ -99,7 +114,7 @@ describe('UserProjectManager', () => {
             })
             .mockResolvedValue(undefined)
 
-        const manager = new UserProjectManager(api)
+        const manager = new UserProjectManager(api, mockProjectCache)
         const member = await manager.addMember('p1', 'bob', 'r')
         await manager.removeMember('p1', 'u2')
         await manager.favoriteProject('p1')
@@ -123,7 +138,7 @@ describe('UserProjectManager', () => {
 
     it('throws INVALID_RESPONSE on malformed payloads', async () => {
         const api = new MockApiClient()
-        const manager = new UserProjectManager(api)
+        const manager = new UserProjectManager(api, mockProjectCache)
 
         api.requestMock.mockResolvedValueOnce({ invalid: true })
         await expect(manager.listProjects()).rejects.toMatchObject({ type: 'INVALID_RESPONSE' })

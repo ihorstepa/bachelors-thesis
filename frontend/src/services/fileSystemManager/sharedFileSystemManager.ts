@@ -55,6 +55,8 @@ class SharedFileSystemManager extends FileSystemManager {
     }
 
     public delete(id: string): void {
+        const filesToClear: string[] = []
+
         const traverse = (id: string) => {
             const meta = this.metaMap.get(id)
             if (!meta) return
@@ -62,13 +64,17 @@ class SharedFileSystemManager extends FileSystemManager {
             if (meta.type === 'dir') {
                 const entry = this.index.get(id)
                 if (entry) {
-                    ;[...entry.ids].forEach((childId) => traverse(childId))
+                    entry.ids.forEach((childId) => traverse(childId))
                 }
+            } else {
+                filesToClear.push(meta.id)
             }
             this.metaMap.delete(id)
         }
 
         this.rootDoc.transact(() => traverse(id))
+
+        void Promise.all(filesToClear.map((fileId) => this.connectionFactory.clearRoom(fileId)))
     }
 
     public rename(id: string, name: string): void {

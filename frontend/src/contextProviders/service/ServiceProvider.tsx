@@ -13,6 +13,7 @@ import { FileTreeManager } from '@/core/fileTreeManager'
 import type { BaseService } from '@/core/general'
 import { LanguageServerManager } from '@/core/languageServerManager'
 import { PresenceService } from '@/core/presenceService'
+import { ProjectCache } from '@/core/projectCache'
 import { ProjectIndexService } from '@/core/projectIndexService'
 import { ProjectManager } from '@/core/projectManager'
 import { TabManager } from '@/core/tabManager'
@@ -28,6 +29,7 @@ import SharedFileSystemManager from '@/services/fileSystemManager/sharedFileSyst
 import LocalFileTreeManager from '@/services/fileTreeManager/localFileTreeManager'
 import CppLanguageServerManager from '@/services/languageServer/cppLanguageServerManager'
 import FileSystemPresenceService from '@/services/presenceService/fileSystemPresenceService'
+import LocalProjectCache from '@/services/projectCache/localProjectCache'
 import LocalProjectIndexService from '@/services/projectIndexService/localProjectIndexService'
 import UserProjectManager from '@/services/projectManager/userProjectManager'
 import PersistentTabManager from '@/services/tabManager/persistentTabManager'
@@ -42,7 +44,10 @@ function initGlobalServices(): ServiceRegistry {
     const apiClient = new AuthedApiClient(authManager)
     services.set(ApiClient, apiClient)
 
-    const projectManager = new UserProjectManager(apiClient)
+    const projectCache = new LocalProjectCache()
+    services.set(ProjectCache, projectCache)
+
+    const projectManager = new UserProjectManager(apiClient, projectCache)
     services.set(ProjectManager, projectManager)
 
     return services
@@ -51,12 +56,15 @@ function initGlobalServices(): ServiceRegistry {
 async function initIdeServices(
     projectId: string | undefined,
     authToken: string,
+    projectCache: ProjectCache,
     username?: string,
 ): Promise<ServiceRegistry> {
     const services: ServiceRegistry = new Map()
 
     const connectionFactory =
-        projectId == null ? new LocalConnectionFactory() : new WSConnectionFactory(projectId, authToken)
+        projectId == null
+            ? new LocalConnectionFactory(projectCache.forScope('playground'))
+            : new WSConnectionFactory(projectId, authToken, projectCache.forScope(projectId))
     services.set(ConnectionFactory, connectionFactory)
 
     const fileSystemManager = new SharedFileSystemManager(connectionFactory)
@@ -132,7 +140,12 @@ export function IdeServiceProvider({
 
     useAsyncEffect(
         async (isAborted) => {
-            const ideServices = await initIdeServices(projectId, authToken, username)
+            const ideServices = await initIdeServices(
+                projectId,
+                authToken,
+                parentRegistry.get(ProjectCache) as ProjectCache,
+                username,
+            )
             if (isAborted()) {
                 destroyServices(ideServices)
                 return
