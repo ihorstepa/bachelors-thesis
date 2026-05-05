@@ -25,6 +25,10 @@ class MockConnectionFactory extends ConnectionFactory {
         void config
         return this.connectMock(room)
     }
+
+    public async clearRoom(room: string): Promise<void> {
+        void room
+    }
 }
 
 describe('MultipleFileSyncManager', () => {

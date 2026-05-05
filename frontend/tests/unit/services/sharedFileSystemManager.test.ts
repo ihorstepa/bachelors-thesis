@@ -8,7 +8,9 @@ import SharedFileSystemManager from '@/services/fileSystemManager/sharedFileSyst
 
 class MockConnectionFactory extends ConnectionFactory {
     public readonly connection: Connection
-    public readonly clearRoomMock = vi.fn(async (): Promise<void> => undefined)
+    public readonly clearRoomMock = vi.fn(async (room: string): Promise<void> => {
+        void room
+    })
 
     public constructor(doc: Y.Doc = new Y.Doc()) {
         super()
