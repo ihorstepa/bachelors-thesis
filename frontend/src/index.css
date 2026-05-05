@@ -74,7 +74,7 @@
 
     /* ========== TEXT COLORS ========== */
     --text-primary: #abb2bf;
-    --text-secondary: #abb2bf;
+    --text-secondary: #8b95a8;
     --text-muted: #636d83;
     --text-bright: #ffffff;
 
@@ -87,8 +87,8 @@
     --red: #e06c75;
     --danger: #e05252;
     --danger-light: #df767f;
-    --error: #d11;
-    --warning: orange;
+    --error: #dd1111;
+    --warning: #e5a040;
     --success: #98c379;
 
     /* ========== BACKGROUND HIGHLIGHT COLORS ========== */

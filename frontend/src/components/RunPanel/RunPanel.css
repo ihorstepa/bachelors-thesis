@@ -98,7 +98,7 @@
 }
 
 .run-panel-icon-btn.danger {
-    color: var(--red);
+    color: var(--danger);
 }
 
 .run-panel-icon-btn:hover:enabled {

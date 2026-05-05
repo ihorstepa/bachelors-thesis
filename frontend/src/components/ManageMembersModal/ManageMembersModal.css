@@ -174,8 +174,8 @@
 }
 
 .member-remove-btn:hover:not(:disabled) {
-    color: var(--red);
-    border-color: var(--red);
+    color: var(--danger);
+    border-color: var(--danger);
 }
 
 .member-remove-btn:disabled {

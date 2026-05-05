@@ -63,7 +63,7 @@ function IdeTerminal() {
                 foreground: computed.getPropertyValue('--text-primary'),
                 cursor: computed.getPropertyValue('--text-primary'),
                 selectionBackground: computed.getPropertyValue('--bg-selection'),
-                red: computed.getPropertyValue('--color-red'),
+                red: computed.getPropertyValue('--red'),
             },
         })
         const fitAddon = new FitAddon()

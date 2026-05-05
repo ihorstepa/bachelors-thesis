@@ -51,6 +51,6 @@
 }
 
 .ide-topbar .ide-topbar-close:hover {
-    background-color: var(--red);
+    background-color: var(--danger);
     color: var(--text-bright);
 }

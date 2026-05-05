@@ -285,12 +285,12 @@
 }
 
 .dashboard-menu-item-danger {
-    color: var(--red);
+    color: var(--danger);
 }
 
 .dashboard-project-menu-panel .ide-context-menu-item.dashboard-menu-item-danger:hover:not(:disabled),
 .dashboard-project-menu-panel .ide-context-menu-item.dashboard-menu-item-danger:not(:disabled) {
-    color: var(--red);
+    color: var(--danger);
 }
 
 @media (max-width: 620px) {
