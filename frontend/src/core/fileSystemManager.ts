@@ -27,7 +27,6 @@ export abstract class FileSystemManager extends ClassBase {
     public abstract delete(id: string): void
     public abstract rename(id: string, name: string): void
     public abstract move(nodeId: string, parentId: NullableString): void
-    public abstract copy(nodeId: string, targetParentId: NullableString): string
 
     public abstract exists(id: string): boolean
     public abstract getMeta(id: string): NodeMeta

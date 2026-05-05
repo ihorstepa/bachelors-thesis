@@ -73,6 +73,15 @@ const createMenuConfigs = (a: MenuConfigActions): MenuConfig[] => [
                 },
             ],
             [{ id: 'find', label: 'Find', shortcut: 'Ctrl+F', onSelect: () => a.runEditAction('find') }],
+            [
+                {
+                    id: 'format-document',
+                    label: 'Format Document',
+                    shortcut: 'Shift+Alt+F',
+                    onSelect: () => a.runEditAction('formatDocument'),
+                    disabled: !a.canWrite,
+                },
+            ],
         ],
     },
     {

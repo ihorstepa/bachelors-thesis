@@ -1,3 +1,4 @@
+import { formatDocument } from '@codemirror/lsp-client'
 import { openSearchPanel } from '@codemirror/search'
 import { EditorView } from '@codemirror/view'
 import type { RefObject } from 'react'
@@ -5,7 +6,7 @@ import type * as Y from 'yjs'
 
 import { assertNever } from '@/utils/functions'
 
-export const editMenuActions = ['undo', 'redo', 'cut', 'copy', 'paste', 'find'] as const
+export const editMenuActions = ['undo', 'redo', 'cut', 'copy', 'paste', 'find', 'formatDocument'] as const
 export type EditMenuAction = (typeof editMenuActions)[number]
 
 type EditActionContext = {
@@ -88,6 +89,9 @@ export const runEditMenuAction = async (action: EditMenuAction, context: EditAct
             break
         case 'find':
             openSearchPanel(view)
+            break
+        case 'formatDocument':
+            formatDocument(view)
             break
         default:
             assertNever(action)

@@ -359,8 +359,20 @@
 }
 
 .cm-editor .cm-tooltip.cm-tooltip-autocomplete {
+    background: var(--bg-panel);
     outline: 1px solid var(--text-muted);
     border-radius: 6px;
+    max-width: min(30em, calc(100vw - 16px));
+}
+
+.cm-editor .cm-tooltip.cm-completionInfo {
+    /* display: none; */
+    background-color: var(--bg-panel);
+    /* background-color: var(--bg-selection); */
+    color: var(--text-primary);
+    /* outline: 1px solid var(--text-muted); */
+    /* border-radius: 0 6px 6px 0; */
+    line-height: 1;
 }
 
 .cm-editor .cm-tooltip.cm-tooltip-autocomplete > ul > li {
@@ -373,12 +385,231 @@
 
 .cm-editor .cm-completionIcon,
 .cm-editor .cm-completionLabel {
-    color: var(--text-bright);
+    color: var(--text-primary);
+}
+
+.cm-editor .cm-completionDetail {
+    color: var(--text-muted);
+}
+
+/* section divider when hover tooltip and lint tooltip share one container */
+.cm-tooltip .cm-lsp-documentation + .cm-tooltip-lint,
+.cm-tooltip .cm-tooltip-lint + .cm-tooltip-section {
+    border-top: 1px solid var(--text-muted);
+}
+
+.cm-tooltip:has(> .cm-tooltip-lint) {
+    background: var(--bg-panel);
+    outline: 1px solid var(--text-muted);
+    border-radius: 6px;
+    padding: 0;
+    overflow: hidden;
+    max-width: min(30em, calc(100vw - 16px));
+}
+
+.cm-tooltip .cm-tooltip-lint {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    width: 100%;
+    border-radius: inherit;
+    overflow: hidden;
+}
+
+.cm-tooltip .cm-tooltip-lint .cm-diagnostic {
+    display: block;
+    margin: 0;
+    margin-left: 0;
+    padding: 5px 6px;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    line-height: 1.3;
+    font-size: 90%;
+    background: var(--bg-panel);
+    border-left: none;
+    box-shadow: inset 3px 0 0 transparent;
+}
+
+.cm-tooltip .cm-tooltip-lint .cm-diagnostic + .cm-diagnostic {
+    border-top: 1px solid var(--text-muted);
+}
+
+.cm-tooltip .cm-tooltip-lint .cm-diagnostic-error {
+    box-shadow: inset 2px 0 0 var(--error);
+}
+
+.cm-tooltip .cm-tooltip-lint .cm-diagnostic-warning {
+    box-shadow: inset 2px 0 0 var(--warning);
+}
+
+.cm-tooltip .cm-tooltip-lint .cm-diagnostic-info,
+.cm-tooltip .cm-tooltip-lint .cm-diagnostic-hint {
+    box-shadow: inset 2px 0 0 var(--text-muted);
+}
+
+.cm-tooltip .cm-tooltip-lint .cm-diagnosticText {
+    color: var(--text-primary);
+}
+
+.cm-tooltip .cm-tooltip-lint .cm-diagnosticSource {
+    display: inline-block;
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 70%;
+}
+
+.cm-tooltip .cm-tooltip-lint .cm-diagnosticAction {
+    font: inherit;
+    margin-left: 8px;
+    padding: 1px 6px;
+    border: 1px solid var(--text-muted);
+    border-radius: 4px;
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.cm-tooltip .cm-tooltip-lint .cm-diagnosticAction:hover {
+    background: var(--bg-selection);
+}
+
+.cm-editor .cm-tooltip.cm-lsp-signature-tooltip {
+    background: var(--bg-panel);
+    outline: 1px solid var(--text-muted);
+    border-radius: 6px;
+    padding: 0;
+    color: var(--text-primary);
+    max-width: min(30em, calc(100vw - 16px));
+    overflow-y: hidden;
+}
+
+.cm-editor .cm-tooltip.cm-lsp-signature-tooltip .cm-lsp-signature {
+    color: var(--text-primary);
+    font-family: monospace;
+    padding: 6px;
+}
+
+.cm-editor .cm-tooltip.cm-lsp-signature-tooltip .cm-lsp-active-parameter {
+    color: var(--accent);
+    font-weight: bold;
+}
+
+.cm-editor .cm-tooltip.cm-lsp-signature-tooltip .cm-lsp-documentation {
+    color: var(--text-primary);
+    padding: 2px 6px;
+    border-top: 1px solid var(--text-muted);
+    font-size: 90%;
+    line-height: 1.3;
+}
+
+.cm-editor .cm-tooltip.cm-lsp-signature-tooltip .cm-lsp-signature-num {
+    color: var(--text-muted);
+    font-size: 70%;
+}
+
+.cm-editor .cm-tooltip-autocomplete > ul {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.cm-editor .cm-tooltip-autocomplete > ul::-webkit-scrollbar {
+    width: 0;
+    height: 0;
 }
 
 .cm-editor .cm-completionMatchedText {
     color: var(--accent);
     text-decoration: none;
+}
+
+.cm-editor .cm-tooltip:has(.cm-lsp-hover-tooltip) {
+    background: var(--bg-panel);
+    outline: 1px solid var(--text-muted);
+    border-radius: 6px;
+    padding: 0;
+    max-width: min(30em, calc(75vw - 16px));
+}
+
+.cm-editor .cm-tooltip .cm-lsp-hover-tooltip {
+    color: var(--text-primary);
+    width: 100%;
+    box-sizing: border-box;
+    max-width: min(30em, calc(75vw - 16px));
+    max-height: 16em;
+    overflow-y: auto;
+    padding: 4px 6px;
+}
+
+.cm-editor .cm-tooltip .cm-lsp-hover-tooltip h3 {
+    font-size: 85%;
+    font-weight: normal;
+    /* margin: 0 0 2px; */
+    /* color: var(--text-muted); */
+}
+
+.cm-editor .cm-tooltip .cm-lsp-hover-tooltip h3 code {
+    color: var(--text-primary);
+    font-family: monospace;
+}
+
+.cm-editor .cm-tooltip .cm-lsp-hover-tooltip p {
+    margin: 0;
+    font-size: 90%;
+    line-height: 1.3;
+    color: var(--text-primary);
+}
+
+.cm-editor .cm-tooltip .cm-lsp-hover-tooltip p + p {
+    margin-top: 4px;
+}
+
+.cm-editor .cm-tooltip .cm-lsp-hover-tooltip h3 + p {
+    color: var(--text-muted);
+    font-size: 80%;
+    margin: 0 0 1px;
+}
+
+.cm-editor .cm-tooltip .cm-lsp-hover-tooltip p:has(+ ul),
+.cm-editor .cm-tooltip .cm-lsp-hover-tooltip hr + p:has(+ hr) {
+    font-size: 85%;
+    color: var(--text-primary);
+    /* opacity: 0.75; */
+}
+
+.cm-editor .cm-tooltip .cm-lsp-hover-tooltip ul {
+    margin: 1px 0 5px;
+    padding-left: 1.2em;
+}
+
+.cm-editor .cm-tooltip .cm-lsp-hover-tooltip ul li {
+    font-size: 85%;
+    color: var(--text-primary);
+    font-family: monospace;
+}
+
+.cm-editor .cm-tooltip .cm-lsp-hover-tooltip hr {
+    border: none;
+    border-top: 1px solid var(--text-muted);
+    margin: 5px -6px;
+}
+
+.cm-editor .cm-tooltip .cm-lsp-hover-tooltip pre {
+    margin: 0;
+    font-family: monospace;
+    font-size: 95%;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.cm-editor .cm-tooltip .cm-lsp-hover-tooltip pre code {
+    font-family: inherit;
+    background: none;
+    padding: 0;
+}
+
+.cm-editor .cm-tooltip .cm-lsp-hover-tooltip pre code:not([class]) {
+    color: var(--text-muted);
+    font-size: 90%;
 }
 
 .cm-editor .cm-cursor {

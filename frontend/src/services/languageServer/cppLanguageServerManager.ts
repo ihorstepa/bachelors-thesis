@@ -118,6 +118,10 @@ class CppLanguageServerManager extends LanguageServerManager {
         return path ? toProjectUri(path) : null
     }
 
+    public isReady(): boolean {
+        return this.workerReady
+    }
+
     private handleActiveTabChange(fileId: string | null): void {
         if (this.activeFileId === fileId) return
         this.activeFileId = fileId
@@ -130,6 +134,7 @@ class CppLanguageServerManager extends LanguageServerManager {
         switch (msg.type) {
             case 'ready':
                 this.workerReady = true
+                this.emit('ready')
                 for (const pending of this.pendingWorkerMessages.splice(0)) {
                     this.worker.postMessage(pending)
                 }
