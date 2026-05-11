@@ -328,14 +328,15 @@ export const testManyDistinctConnectionsMemoryDebug = async (tc) => {
                     }),
                 )
                 await t.measureTimeAsync('time to pull last doc', async () => {
-                    const docBase = createWsClient({
+                    const docBase = await createWsClient({
+                        waitForSync: true,
                         syncAwareness: false,
                         docid: 'doc-' + (NDocs - 1),
                     })
                     await promise.untilAsync(async () => {
                         // console.log('inserted elems', docBase.ydoc.get().length, docBase.ydoc.get().toJSON())
                         return docBase.ydoc.get().length === currIteration + 1
-                    })
+                    }, 120_000)
                 })
             })
             const afterMemory = logMemoryUsed('after updates memory')

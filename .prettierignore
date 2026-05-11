@@ -1,12 +1,9 @@
-# Artifacts
 dist/
 build/
 node_modules/
 
-# Yjs/Binary data
 *.upd
 *.bin
 
-# Lock files
 package-lock.json
 yarn.lock

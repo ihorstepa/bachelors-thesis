@@ -14,6 +14,8 @@ import { encodeRoomName } from '../src/stream.js'
 import { createAuthModule } from '../src/api/auth/index.js'
 import { createProjectsModule } from '../src/api/projects/index.js'
 
+process.setMaxListeners(0)
+
 export const defaultOrg = '11111111-1111-1111-1111-111111111111'
 
 // Clean up test data - only delete if table exists
@@ -92,7 +94,7 @@ export const yhub = await createYHub({
                 MKSTREAM: true,
             })
             .exec()
-    } catch (_) {}
+    } catch (_) { }
 }
 
 /**
