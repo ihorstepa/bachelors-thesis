@@ -46,6 +46,8 @@ function AuthForm() {
     const { login, register } = useAuth()
     const [busy, setBusy] = useState(false)
     const [mode, setMode] = useState<Mode>('login')
+
+    // Keep field values/errors separate per mode so toggling tabs preserves user input
     const [formsByMode, setFormsByMode] = useState<Record<Mode, ModeFormState>>({
         login: createEmptyModeState(),
         register: createEmptyModeState(),

@@ -24,19 +24,20 @@ import { FileSystemManager } from '@/core/fileSystemManager'
 import type { TreeNode } from '@/core/fileTreeManager'
 import * as err from '@/errors/fileSystem'
 import type { NullableString } from '@/utils/types'
-import { validateNodeName } from '@/utils/validators'
 
-function countFiles(nodes: TreeNode[]): number {
-    return nodes.reduce((acc, node) => acc + (node.type === 'file' ? 1 : 0) + countFiles(node.children), 0)
-}
-
-type Props = {
-    canWrite: boolean
+type DeleteTarget = {
+    id: string
+    name: string
+    type: NodeType
 }
 
 type PointerLikeEvent = {
     clientX: number
     clientY: number
+}
+
+function countFiles(nodes: TreeNode[]): number {
+    return nodes.reduce((acc, node) => acc + (node.type === 'file' ? 1 : 0) + countFiles(node.children), 0)
 }
 
 function isPointerLikeEvent(event: Event): event is Event & PointerLikeEvent {
@@ -46,10 +47,8 @@ function isPointerLikeEvent(event: Event): event is Event & PointerLikeEvent {
     )
 }
 
-type DeleteTarget = {
-    id: string
-    name: string
-    type: NodeType
+type Props = {
+    canWrite: boolean
 }
 
 function FileTree({ canWrite }: Props): JSX.Element {
@@ -164,7 +163,7 @@ function FileTree({ canWrite }: Props): JSX.Element {
 
     const mapEditError = (error: unknown): string => {
         if (error instanceof err.InvalidNodeNameError) {
-            return 'Invalid name'
+            return error.message
         }
         if (error instanceof err.NodeNameConflictError) {
             return 'Name already exists in this directory'
@@ -185,10 +184,6 @@ function FileTree({ canWrite }: Props): JSX.Element {
         }
 
         const trimmedValue = value.trim()
-        const validation = validateNodeName(trimmedValue)
-        if (!validation.valid) {
-            return validation.msg ?? 'Invalid name'
-        }
 
         try {
             if (editState.mode === 'create') {

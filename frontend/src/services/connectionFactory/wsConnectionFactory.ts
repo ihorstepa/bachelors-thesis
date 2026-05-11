@@ -42,6 +42,7 @@ class WSConnectionFactory extends ConnectionFactory {
                 syncedResolve = resolve
             })
 
+        // Represents the current connection cycle, reconnect creates a fresh promise
         let synced = createSyncedPromise()
         ws.on('sync', (isSynced) => {
             if (isSynced) {

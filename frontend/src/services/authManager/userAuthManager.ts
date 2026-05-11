@@ -1,8 +1,9 @@
 import { API_BASE_URL } from '@/config'
 import type { AuthUser } from '@/core/authManager'
 import { AuthManager } from '@/core/authManager'
-import { HttpError, httpErrorFromResponse } from '@/errors/http'
-import { isObject, withTimeout } from '@/utils/functions'
+import { httpErrorFromResponse } from '@/errors/http'
+import { parseAuthPayload, parseMePayload } from '@/parsers/authPayloads'
+import { withTimeout } from '@/utils/functions'
 
 class UserAuthManager extends AuthManager {
     private static readonly requestTimeout = 12000
@@ -50,8 +51,7 @@ class UserAuthManager extends AuthManager {
                 }
                 throw error
             }
-            const payload = this.decodeMeResponsePayload((await response.json()) as unknown, response.status)
-            return payload
+            return parseMePayload((await response.json()) as unknown)
         })
     }
 
@@ -80,35 +80,8 @@ class UserAuthManager extends AuthManager {
             if (!response.ok) {
                 throw await httpErrorFromResponse(response)
             }
-            const payload = (await response.json()) as unknown
-            return this.decodeAuthResponsePayload(payload, response.status)
+            return parseAuthPayload((await response.json()) as unknown)
         })
-    }
-
-    private decodeAuthResponsePayload(payload: unknown, status: number): { token: string; user: AuthUser } {
-        if (!isObject(payload)) {
-            throw new HttpError(status, 'INVALID_RESPONSE', 'Authentication response must be a JSON object')
-        }
-        const token = payload.token
-        const user = payload.user
-        if (typeof token !== 'string' || token.length === 0 || !this.isAuthUser(user)) {
-            throw new HttpError(status, 'INVALID_RESPONSE', 'Authentication response is missing token or user fields')
-        }
-        return { token, user }
-    }
-
-    private decodeMeResponsePayload(payload: unknown, status: number): AuthUser {
-        if (!isObject(payload) || !this.isAuthUser(payload.user)) {
-            throw new HttpError(status, 'INVALID_RESPONSE', 'Profile response is missing user fields')
-        }
-        return payload.user
-    }
-
-    private isAuthUser(value: unknown): value is AuthUser {
-        if (!isObject(value)) {
-            return false
-        }
-        return typeof value.id === 'string' && typeof value.email === 'string' && typeof value.username === 'string'
     }
 }
 

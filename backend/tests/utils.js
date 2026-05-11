@@ -94,7 +94,7 @@ export const yhub = await createYHub({
                 MKSTREAM: true,
             })
             .exec()
-    } catch (_) { }
+    } catch (_) {}
 }
 
 /**

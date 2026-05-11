@@ -31,6 +31,7 @@ class SharedFileSystemManager extends FileSystemManager {
         this.connection = await this.connectionFactory.connect(SharedFileSystemManager.rootId)
         await this.connection.synced
 
+        // Root metadata lives in its own shared room, separate from per-file content rooms
         this.rootDoc = this.connection.doc
         this.metaMap = this.rootDoc.getMap('meta') as Y.Map<NodeMeta>
 

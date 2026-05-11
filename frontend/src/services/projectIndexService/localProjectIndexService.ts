@@ -50,6 +50,7 @@ class LocalProjectIndexService extends ProjectIndexService {
         }
 
         traverse(null, '')
+        // Keep order stable so consumers get deterministic lists
         allRefs.sort((a, b) => a.path.localeCompare(b.path))
 
         this.fileRefsAll = allRefs

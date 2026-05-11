@@ -1,5 +1,3 @@
-import '@/components/DashboardContent/DashboardProjectsTable.css'
-
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 

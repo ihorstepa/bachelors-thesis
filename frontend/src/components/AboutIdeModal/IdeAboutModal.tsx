@@ -25,8 +25,8 @@ function IdeAboutModal({ onClose }: Props) {
                 </button>
             </div>
             <p>
-                This is a lightweight IDE for C/C++ that runs directly in your browser and allows real-time
-                collaboration in a shared workspace.
+                This is a lightweight IDE for C/C++ that runs directly in the browser and allows real-time collaboration
+                in a shared workspace.
             </p>
             <p>
                 It supports code compilation and execution with performance comparable to native environments. It uses a
@@ -35,7 +35,8 @@ function IdeAboutModal({ onClose }: Props) {
             </p>
             <p>
                 The IDE still has some limitations compared to a full desktop environment. For example, not all language
-                features may be available, debugging is not supported, and IDE language services are not yet supported.
+                features may be available, debugging is not supported, and not all IDE language service features are
+                supported.
             </p>
         </ModalShell>
     )

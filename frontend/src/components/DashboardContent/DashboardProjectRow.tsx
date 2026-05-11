@@ -3,25 +3,10 @@ import { VscEye, VscStarFull } from 'react-icons/vsc'
 
 import DashboardProjectRowMenu from '@/components/DashboardContent/DashboardProjectRowMenu'
 import type { ProjectPreview } from '@/core/projectManager'
-
-function formatRelativeTime(isoString: string): string {
-    const diff = Date.now() - new Date(isoString).getTime()
-    const minutes = Math.floor(diff / 60_000)
-    if (minutes < 1) return 'just now'
-    if (minutes < 60) return `${minutes}m ago`
-    const hours = Math.floor(minutes / 60)
-    if (hours < 24) return `${hours}h ago`
-    const days = Math.floor(hours / 24)
-    if (days < 7) return `${days}d ago`
-    const weeks = Math.floor(days / 7)
-    if (weeks < 5) return `${weeks}w ago`
-    const months = Math.floor(days / 30)
-    return `${months}mo ago`
-}
+import { formatRelativeTime } from '@/utils/functions'
 
 function getMemberDisplay(project: ProjectPreview, currentUserId: string, currentUsername: string): string[] {
-    const previewUsernames = Array.isArray(project.memberPreviewUsernames) ? project.memberPreviewUsernames : []
-    const previewInitials = previewUsernames
+    const previewInitials = project.memberPreviewUsernames
         .map((name) => name.trim())
         .filter((name) => name.length > 0)
         .map((name) => name[0].toUpperCase())
@@ -29,7 +14,7 @@ function getMemberDisplay(project: ProjectPreview, currentUserId: string, curren
     if (previewInitials.length === 0) {
         if (project.ownerId === currentUserId && currentUsername.trim().length > 0) {
             previewInitials.push(currentUsername.trim()[0].toUpperCase())
-        } else if (typeof project.ownerUsername === 'string' && project.ownerUsername.trim().length > 0) {
+        } else if (project.ownerUsername.trim().length > 0) {
             previewInitials.push(project.ownerUsername.trim()[0].toUpperCase())
         }
     }
@@ -85,6 +70,7 @@ function DashboardProjectRow({
         onOpenProject(projectId)
     }
 
+    // Mobile double-tap behavior
     const handleTouchEnd = () => {
         const now = Date.now()
         const timeSinceLastTap = now - lastTouchRef.current

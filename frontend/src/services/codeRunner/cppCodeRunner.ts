@@ -272,6 +272,8 @@ class CppCodeRunner extends CodeRunner {
 
     private async collectFiles(targetName: string): Promise<ProjectFile[]> {
         const selectedEntrypoint = this.targets.get(targetName)
+
+        // Exclude entrypoints of other targets to avoid linking multiple mains together
         const excludedEntrypointPaths = new Set(
             Array.from(this.targets.values()).filter((entry) => entry !== selectedEntrypoint),
         )
@@ -299,6 +301,7 @@ class CppCodeRunner extends CodeRunner {
     }
 
     private async refreshTargets(): Promise<void> {
+        // Version guards against out-of-order async refreshes
         const currentVersion = ++this.targetsRefreshVersion
         const configFileId = this.findConfigId()
 

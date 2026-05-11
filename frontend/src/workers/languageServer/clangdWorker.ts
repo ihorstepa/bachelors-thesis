@@ -148,6 +148,7 @@ const clangd = await Clangd({
     stdin: () => {
         if (currentStdinChunk.length === 0) {
             if (stdinChunks.length === 0) return null
+            // Feed stdin one byte at a time and terminate each chunk with null sentinel
             currentStdinChunk.push(...encoder.encode(stdinChunks.shift() ?? ''), null)
         }
         return currentStdinChunk.shift() ?? null

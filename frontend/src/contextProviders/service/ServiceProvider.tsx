@@ -152,6 +152,7 @@ export function IdeServiceProvider({
             }
             ideServiceKeysRef.current = new Set(ideServices.keys())
 
+            // Reuse parent registry
             parentRegistry.forEach((service, key) => {
                 if (!ideServices.has(key)) {
                     ideServices.set(key, service)
@@ -162,6 +163,7 @@ export function IdeServiceProvider({
             setReady(true)
         },
         () => {
+            // Destroy only owned services and keep parent registry alive
             ideServiceKeysRef.current.forEach((key) => {
                 const service = registryRef.current.get(key)
                 service?.destroy?.()

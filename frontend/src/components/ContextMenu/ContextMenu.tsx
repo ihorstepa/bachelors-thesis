@@ -60,6 +60,7 @@ function ContextMenu({
 
         const rect = panel.getBoundingClientRect()
 
+        // Clamp the menu into the viewport so right-click near edges still stays visible
         if (left + rect.width > window.innerWidth - viewportPadding) {
             left = Math.max(viewportPadding, window.innerWidth - rect.width - viewportPadding)
         }

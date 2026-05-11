@@ -13,7 +13,7 @@ export type FileTreeContextMenuState = {
     target: FileTreeContextTarget
 }
 
-type BuildSectionsOptions = {
+type Props = {
     menu: FileTreeContextMenuState | null
     fileLimitReached: boolean
     onCreateFile: (parentId: NullableString) => void
@@ -29,7 +29,7 @@ export function buildFileTreeContextMenuSections({
     onCreateDir,
     onRename,
     onDelete,
-}: BuildSectionsOptions): IdeContextMenuItem[][] {
+}: Props): IdeContextMenuItem[][] {
     if (!menu) return []
 
     const { nodeId, nodeType } = menu.target

@@ -47,6 +47,7 @@ class MultipleFileSyncManager extends FileSyncManager {
 
         const connection = await pending
         if (!this.pendingConnections.has(id)) {
+            // Another path closed or destroyed this id while connect() was inflight
             return connection
         }
         this.pendingConnections.delete(id)
@@ -79,6 +80,7 @@ class MultipleFileSyncManager extends FileSyncManager {
                 this.connections.delete(id)
             }
             if (this.pendingConnections.has(id)) {
+                // Keep a zero marker so a late pending resolve can self-clean safely
                 this.refCounts.set(id, 0)
             } else {
                 this.refCounts.delete(id)

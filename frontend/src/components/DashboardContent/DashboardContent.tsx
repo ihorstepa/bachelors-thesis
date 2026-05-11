@@ -13,15 +13,12 @@ function filterByNav(projects: ProjectPreview[], activeNav: DashboardNav, curren
     if (activeNav === 'favorite') {
         return projects.filter((project) => project.favorited)
     }
-
     if (activeNav === 'mine') {
         return projects.filter((project) => project.ownerId === currentUserId)
     }
-
     if (activeNav === 'shared') {
         return projects.filter((project) => project.ownerId !== currentUserId)
     }
-
     return projects
 }
 
@@ -30,7 +27,6 @@ function filterBySearch(projects: ProjectPreview[], search: string): ProjectPrev
     if (normalizedSearch.length === 0) {
         return projects
     }
-
     return projects.filter((project) => project.name.toLowerCase().includes(normalizedSearch))
 }
 
@@ -45,7 +41,7 @@ type Props = {
 function DashboardContent({ activeNav, search, onOpenMembers, onRenameProject, onDeleteProject }: Props) {
     const auth = useAuth()
     const { projects, loading, error, reload } = useProjects()
-    const currentUserId = String(auth.user?.id ?? '')
+    const currentUserId = auth.user?.id ?? ''
 
     const filteredProjects = filterBySearch(filterByNav(projects, activeNav, currentUserId), search)
 
