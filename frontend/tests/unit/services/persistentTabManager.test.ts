@@ -46,18 +46,22 @@ describe('PersistentTabManager', () => {
         expect(saved.tabs).toEqual([fileC, fileA, fileB])
     })
 
-    it('closes active tab and chooses the next available tab', () => {
+    it('closes active tab and activates the most recently active remaining tab', () => {
         const fs = new MockFileSystemManager(new MockFileSyncManager())
         const fileA = fs.create('a.ts', 'file', null)
         const fileB = fs.create('b.ts', 'file', null)
+        const fileC = fs.create('c.ts', 'file', null)
 
         const manager = new PersistentTabManager(fs)
         manager.open(fileA)
         manager.open(fileB)
+        manager.open(fileC)
 
-        manager.close(fileB)
-        expect(manager.getTabs()).toEqual([fileA])
-        expect(manager.getActiveId()).toBe(fileA)
+        manager.open(fileA)
+
+        manager.close(fileA)
+        expect(manager.getTabs()).toEqual([fileB, fileC])
+        expect(manager.getActiveId()).toBe(fileC)
 
         manager.closeAll()
         expect(manager.getTabs()).toEqual([])

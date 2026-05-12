@@ -82,14 +82,13 @@ class PersistentTabManager extends TabManager {
     }
 
     public close(id: string): void {
-        const index = this.tabs.indexOf(id)
-        if (index === -1) return
+        if (!this.tabs.includes(id)) return
 
         this.tabs = this.tabs.filter((tabId) => tabId !== id)
         this.lru.remove(id)
 
         if (this.activeId === id) {
-            const nextActive = this.tabs[index] || this.tabs[index - 1] || null
+            const nextActive = this.lru.mostRecent()
             this.updateActive(nextActive)
         } else {
             this.saveState()
@@ -134,7 +133,10 @@ class PersistentTabManager extends TabManager {
             const parsed = JSON.parse(raw) as TabState
 
             this.tabs = (parsed.tabs || []).filter((id) => this.fileSystemManager.exists(id))
-            this.lru = new LRUSet(PersistentTabManager.maxTabs, parsed.lruOrder || [])
+            const tabSet = new Set(this.tabs)
+            const restoredLruOrder = (parsed.lruOrder || []).filter((id) => tabSet.has(id))
+            const missingInLru = this.tabs.filter((id) => !restoredLruOrder.includes(id))
+            this.lru = new LRUSet(PersistentTabManager.maxTabs, [...restoredLruOrder, ...missingInLru])
             const savedActive = parsed.activeId
 
             if (savedActive && this.tabs.includes(savedActive)) {

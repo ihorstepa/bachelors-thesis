@@ -29,6 +29,11 @@ export class LRUSet<T> {
         }
     }
 
+    public mostRecent(): T | null {
+        if (this.items.length === 0) return null
+        return this.items[this.items.length - 1] ?? null
+    }
+
     public toArray(): T[] {
         return [...this.items]
     }

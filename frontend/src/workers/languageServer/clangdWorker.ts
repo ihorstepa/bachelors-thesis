@@ -39,13 +39,13 @@ const clangdConfig = [
     '  DeducedTypes: Yes',
     '  Designators: Yes',
     'CompileFlags:',
-    `  Add: [${sharedFlags.map((f) => `'${f}'`).join(', ')}, '-std=c17']`,
+    `  Add: [${sharedFlags.map((f) => `'${f}'`).join(', ')}, '-std=c17', '-x', 'c']`,
     '---',
     'If:',
     "  PathMatch: '.*\\.(cpp|hpp|hxx|cxx)'",
     'CompileFlags:',
-    "  Add: ['-std=c++2b']",
-    "  Remove: ['-std=c17']",
+    "  Add: ['-std=c++2b', '-x', 'c++']",
+    "  Remove: ['-std=c17', '-x', 'c']",
 ].join('\n')
 
 const clangFormat = ['BasedOnStyle: LLVM', 'IndentWidth: 4', 'TabWidth: 4', 'UseTab: Never'].join('\n')

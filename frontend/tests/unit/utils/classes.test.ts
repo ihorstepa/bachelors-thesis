@@ -76,6 +76,23 @@ describe('utils/classes LRUSet', () => {
         })
     })
 
+    describe('mostRecent', () => {
+        it('returns the latest touched item', () => {
+            const s = new LRUSet<string>(5)
+            s.touch('a')
+            s.touch('b')
+            s.touch('c')
+            s.touch('b')
+
+            expect(s.mostRecent()).toBe('b')
+        })
+
+        it('returns null when set is empty', () => {
+            const s = new LRUSet<number>(3)
+            expect(s.mostRecent()).toBeNull()
+        })
+    })
+
     describe('clear', () => {
         it('empties the set', () => {
             const s = new LRUSet<number>(5)
