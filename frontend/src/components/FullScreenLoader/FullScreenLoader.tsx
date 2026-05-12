@@ -8,7 +8,7 @@ type Props = {
 
 function FullScreenLoader({ label }: Props) {
     return (
-        <div className='fullscreen-loader' role='status' aria-live='polite'>
+        <div className='fullscreen-loader' role='status'>
             <Spinner size={30} />
             {label != null && label.trim().length > 0 && <span className='fullscreen-loader-label'>{label}</span>}
         </div>

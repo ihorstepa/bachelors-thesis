@@ -131,7 +131,7 @@ function ManageMembersModal({
     }
 
     return (
-        <ModalShell className='members-modal' onClose={onClose} ariaLabelledBy='members-modal-title'>
+        <ModalShell className='members-modal' onClose={onClose}>
             <div className='members-modal-header'>
                 <div>
                     <h2 className='members-modal-title' id='members-modal-title'>
@@ -139,12 +139,7 @@ function ManageMembersModal({
                     </h2>
                     <p className='members-modal-subtitle'>{projectName}</p>
                 </div>
-                <button
-                    type='button'
-                    className='members-modal-close modal-close-btn'
-                    onClick={onClose}
-                    aria-label='Close'
-                >
+                <button type='button' className='members-modal-close modal-close-btn' onClick={onClose} title='Close'>
                     <VscClose />
                 </button>
             </div>
@@ -164,7 +159,7 @@ function ManageMembersModal({
 
             <div className='members-list'>
                 {loading ? (
-                    <div className='members-empty members-loading' aria-label='Fetching members'>
+                    <div className='members-empty members-loading' title='Fetching members'>
                         <Spinner size={16} />
                     </div>
                 ) : members.length === 0 ? (

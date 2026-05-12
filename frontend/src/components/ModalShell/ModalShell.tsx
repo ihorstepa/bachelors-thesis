@@ -6,11 +6,10 @@ import { useEffect } from 'react'
 type Props = {
     className?: string
     onClose(): void
-    ariaLabelledBy: string
     children: ReactNode
 }
 
-function ModalShell({ className, onClose, ariaLabelledBy, children }: Props) {
+function ModalShell({ className, onClose, children }: Props) {
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
@@ -31,7 +30,7 @@ function ModalShell({ className, onClose, ariaLabelledBy, children }: Props) {
 
     return (
         <div className='modal-shell-overlay' onClick={handleOverlayClick}>
-            <div className={className ?? ''} role='dialog' aria-modal='true' aria-labelledby={ariaLabelledBy}>
+            <div className={className ?? ''} role='dialog'>
                 {children}
             </div>
         </div>

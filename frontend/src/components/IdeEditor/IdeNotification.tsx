@@ -52,14 +52,13 @@ function NotificationPopup({ notifications, onDismiss }: Props): JSX.Element {
                     key={notification.id}
                     className={`notification-popup notification-${notification.type}`}
                     role='status'
-                    aria-live={notification.type === 'error' ? 'assertive' : 'polite'}
                 >
                     <div className='notification-content'>{notification.message}</div>
                     {!notification.persistent && (
                         <button
                             className='notification-dismiss'
                             onClick={() => onDismiss(notification.id)}
-                            aria-label='Dismiss notification'
+                            title='Dismiss notification'
                         >
                             <VscClose />
                         </button>

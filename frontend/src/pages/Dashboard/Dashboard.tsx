@@ -78,8 +78,8 @@ function Dashboard() {
             <button
                 type='button'
                 className='dashboard-sidebar-overlay'
-                aria-label='Close sidebar'
                 onClick={() => setIsSidebarOpen(false)}
+                title='Close sidebar'
             />
 
             <div className='dashboard-main'>

@@ -133,11 +133,12 @@ function DashboardProjectRow({
             onContextMenu={handleContextMenu}
         >
             <td>
-                {project.accessType === 'r' && (
-                    <span className='project-readonly-icon' title='Read-only access'>
-                        <VscEye />
-                    </span>
-                )}
+                <span
+                    className={`project-readonly-icon ${project.accessType === 'r' ? '' : 'project-readonly-icon-placeholder'}`}
+                    title={project.accessType === 'r' ? 'Read-only access' : undefined}
+                >
+                    {project.accessType === 'r' ? <VscEye /> : null}
+                </span>
             </td>
             <td>
                 <div className='project-name-cell'>

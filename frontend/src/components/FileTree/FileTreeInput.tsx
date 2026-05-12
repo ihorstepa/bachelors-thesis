@@ -95,10 +95,7 @@ function FileTreeInput({
     return (
         <div className='file-tree-name-input-wrapper'>
             {createType === 'dir' && (
-                <span
-                    className='expand-button expand-button-placeholder file-tree-name-input-leading'
-                    aria-hidden='true'
-                >
+                <span className='expand-button expand-button-placeholder file-tree-name-input-leading'>
                     <FaChevronRight />
                 </span>
             )}
@@ -117,7 +114,7 @@ function FileTreeInput({
                     onKeyDown={handleKeyDown}
                 />
                 {error && (
-                    <div className='file-tree-name-input-error' role='alert' aria-live='assertive'>
+                    <div className='file-tree-name-input-error' role='alert'>
                         {error}
                     </div>
                 )}

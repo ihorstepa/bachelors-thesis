@@ -86,6 +86,7 @@
 .dashboard-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 .dashboard-table-head {
@@ -209,7 +210,12 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transform: translateX(8px);
+    width: 16px;
+    height: 16px;
+}
+
+.project-readonly-icon-placeholder {
+    visibility: hidden;
 }
 
 .project-readonly-icon svg {

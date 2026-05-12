@@ -180,7 +180,7 @@ function AuthForm() {
                     )}
 
                     {currentForm.errors.submit != null && (
-                        <p className='auth-error' role='alert' aria-live='assertive'>
+                        <p className='auth-error' role='alert'>
                             {currentForm.errors.submit}
                         </p>
                     )}

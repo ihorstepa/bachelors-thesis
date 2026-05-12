@@ -10,17 +10,12 @@ type Props = {
 
 function IdeAboutModal({ onClose }: Props) {
     return (
-        <ModalShell className='ide-about-modal' onClose={onClose} ariaLabelledBy='ide-about-modal-title'>
+        <ModalShell className='ide-about-modal' onClose={onClose}>
             <div className='ide-about-modal-header'>
                 <h2 className='ide-about-modal-title' id='ide-about-modal-title'>
                     About
                 </h2>
-                <button
-                    type='button'
-                    className='ide-about-modal-close modal-close-btn'
-                    onClick={onClose}
-                    aria-label='Close'
-                >
+                <button type='button' className='ide-about-modal-close modal-close-btn' onClick={onClose} title='Close'>
                     <VscClose />
                 </button>
             </div>

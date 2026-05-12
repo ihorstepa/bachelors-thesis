@@ -32,7 +32,7 @@ function ConfirmModal({ title, message, confirmLabel, pendingLabel, onConfirm, o
     }
 
     return (
-        <ModalShell className='confirm-modal' onClose={onClose} ariaLabelledBy='confirm-modal-title'>
+        <ModalShell className='confirm-modal' onClose={onClose}>
             <div className='confirm-modal-header'>
                 <h2 className='confirm-modal-title' id='confirm-modal-title'>
                     {title}
@@ -41,8 +41,8 @@ function ConfirmModal({ title, message, confirmLabel, pendingLabel, onConfirm, o
                     type='button'
                     className='confirm-modal-close modal-close-btn'
                     onClick={onClose}
-                    aria-label='Close'
                     disabled={submitting}
+                    title='Close'
                 >
                     <VscClose />
                 </button>

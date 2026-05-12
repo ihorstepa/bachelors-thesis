@@ -21,7 +21,7 @@ function DashboardTopBar({
 }: Props) {
     return (
         <div className='dashboard-topbar'>
-            <button type='button' className='dashboard-menu-btn' onClick={onToggleSidebar} aria-label='Toggle menu'>
+            <button type='button' className='dashboard-menu-btn' onClick={onToggleSidebar} title='Toggle menu'>
                 {isSidebarOpen ? <VscClose /> : <VscMenu />}
             </button>
             <div className='dashboard-search'>
@@ -37,18 +37,13 @@ function DashboardTopBar({
                 type='button'
                 className='dashboard-playground-btn'
                 onClick={onOpenPlayground}
-                aria-label='Open playground'
+                title='Open playground'
             >
                 <VscBeaker />
                 <span className='dashboard-btn-label'>Playground</span>
             </button>
 
-            <button
-                type='button'
-                className='dashboard-new-btn'
-                onClick={onCreateProject}
-                aria-label='Create new project'
-            >
+            <button type='button' className='dashboard-new-btn' onClick={onCreateProject} title='Create new project'>
                 <VscAdd />
                 <span className='dashboard-btn-label'>New project</span>
             </button>

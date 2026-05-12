@@ -49,17 +49,12 @@ function NewProjectModal({
     }
 
     return (
-        <ModalShell className='new-project-modal' onClose={onClose} ariaLabelledBy='new-project-title'>
+        <ModalShell className='new-project-modal' onClose={onClose}>
             <div className='new-project-header'>
                 <h2 className='new-project-title' id='new-project-title'>
                     {title}
                 </h2>
-                <button
-                    type='button'
-                    className='new-project-close modal-close-btn'
-                    onClick={onClose}
-                    aria-label='Close'
-                >
+                <button type='button' className='new-project-close modal-close-btn' onClick={onClose} title='Close'>
                     <VscClose />
                 </button>
             </div>

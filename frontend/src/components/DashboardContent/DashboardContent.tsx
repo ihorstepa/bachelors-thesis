@@ -48,7 +48,7 @@ function DashboardContent({ activeNav, search, onOpenMembers, onRenameProject, o
     if (loading) {
         return (
             <div className='dashboard-content'>
-                <div className='dashboard-empty' aria-label='Fetching projects'>
+                <div className='dashboard-empty' title='Fetching projects'>
                     <Spinner size={24} />
                 </div>
             </div>
