@@ -8,6 +8,19 @@ import {
 import { PROJECT_MAX_PER_OWNER } from '../../config.js'
 import { normalizeProjectName, validateProjectAccessType, validateProjectName } from './validators.js'
 
+/**
+ * @typedef {object} ProjectResponse
+ * @property {string} id
+ * @property {string} name
+ * @property {string} ownerId
+ * @property {string} createdAt
+ * @property {string} updatedAt
+ * @property {'r'|'rw'} accessType
+ * @property {string} ownerUsername
+ * @property {boolean} favorited
+ * @property {number} memberCount
+ */
+
 /** @param {import('./repository.js').Project} p */
 const serializeProject = (p) => ({
     id: p.id,
@@ -52,6 +65,23 @@ const serializeProjectListEntry = (entry, memberPreviewUsernames) => ({
 const serializeProjectDetails = (project, accessType) => ({
     ...serializeProject(project),
     accessType,
+})
+
+/**
+ * @param {{
+ *   project: import('./repository.js').Project,
+ *   accessType: 'r'|'rw',
+ *   ownerUsername: string,
+ *   favorited: boolean,
+ *   memberCount: number,
+ * }} params
+ * @returns {ProjectResponse}
+ */
+const serializeProjectInfo = ({ project, accessType, ownerUsername, favorited, memberCount }) => ({
+    ...serializeProjectDetails(project, accessType),
+    ownerUsername,
+    favorited,
+    memberCount,
 })
 
 /**
@@ -162,10 +192,22 @@ export class ProjectService {
      */
     async getProject(userId, projectId) {
         const { project, accessType } = await this._requireProjectAccess(userId, projectId)
-        const members = await this.repository.listMembers(projectId)
-        const ownerUser = await this.repository.getProjectOwnerUser(projectId)
+        const [members, ownerUser, favorited] = await Promise.all([
+            this.repository.listMembers(projectId),
+            this.repository.getProjectOwnerUser(projectId),
+            this.repository.isProjectFavorited(projectId, userId),
+        ])
+        if (ownerUser == null) {
+            throw new ProjectError(PROJECT_ERROR_TYPE.INTERNAL_ERROR, 'Project owner not found')
+        }
         return {
-            project: serializeProjectDetails(project, accessType),
+            project: serializeProjectInfo({
+                project,
+                accessType,
+                ownerUsername: ownerUser.username,
+                favorited,
+                memberCount: members.length,
+            }),
             members: serializeProjectMembers(ownerUser, members),
         }
     }
@@ -177,14 +219,38 @@ export class ProjectService {
      */
     async updateProject(userId, projectId, body) {
         const project = await this._requireProjectOwner(userId, projectId)
-
         const name = parseValidatedProjectName(body)
+        const [ownerUser, favorited, memberCount] = await Promise.all([
+            this.repository.getProjectOwnerUser(projectId),
+            this.repository.isProjectFavorited(projectId, userId),
+            this.repository.countMembers(projectId),
+        ])
+        if (ownerUser == null) {
+            throw new ProjectError(PROJECT_ERROR_TYPE.INTERNAL_ERROR, 'Project owner not found')
+        }
+
         if (name === project.name) {
-            return { project: serializeProject(project) }
+            return {
+                project: serializeProjectInfo({
+                    project,
+                    accessType: 'rw',
+                    ownerUsername: ownerUser.username,
+                    favorited,
+                    memberCount,
+                }),
+            }
         }
 
         const updated = await this.repository.updateProject(projectId, { name })
-        return { project: serializeProject(updated ?? project) }
+        return {
+            project: serializeProjectInfo({
+                project: updated ?? project,
+                accessType: 'rw',
+                ownerUsername: ownerUser.username,
+                favorited,
+                memberCount,
+            }),
+        }
     }
 
     /**

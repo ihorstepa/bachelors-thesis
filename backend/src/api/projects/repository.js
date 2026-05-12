@@ -319,6 +319,19 @@ export class ProjectRepository {
 
     /**
      * @param {string} projectId
+     * @returns {Promise<number>}
+     */
+    async countMembers(projectId) {
+        const rows = await this.sql`
+            SELECT COUNT(*) AS count
+            FROM project_members
+            WHERE project_id = ${projectId}
+        `
+        return Number(rows[0].count)
+    }
+
+    /**
+     * @param {string} projectId
      * @param {number} userId
      * @returns {Promise<ProjectMember|null>}
      */
@@ -393,6 +406,21 @@ export class ProjectRepository {
             DELETE FROM project_favorites
             WHERE project_id = ${projectId} AND user_id = ${userId}
         `
+    }
+
+    /**
+     * @param {string} projectId
+     * @param {number} userId
+     * @returns {Promise<boolean>}
+     */
+    async isProjectFavorited(projectId, userId) {
+        const rows = await this.sql`
+            SELECT 1
+            FROM project_favorites
+            WHERE project_id = ${projectId} AND user_id = ${userId}
+            LIMIT 1
+        `
+        return rows.length > 0
     }
 
     /**

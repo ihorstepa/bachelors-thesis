@@ -22,6 +22,9 @@ export const testProjectsCrudAndFavorite = async (tc) => {
     t.assert(createRes.status === 201)
     const projectId = createRes.data?.project?.id
     t.assert(typeof projectId === 'string' && projectId.length > 0)
+    t.assert(createRes.data?.project?.ownerUsername === owner.username)
+    t.assert(createRes.data?.project?.favorited === false)
+    t.assert(createRes.data?.project?.memberCount === 0)
 
     const listRes = await request('/api/projects', { token: owner.token })
     /** @type {Array<{ id: string, favorited?: boolean }>} */
@@ -37,6 +40,8 @@ export const testProjectsCrudAndFavorite = async (tc) => {
     })
     t.assert(patchRes.status === 200)
     t.assert(patchRes.data?.project?.name === 'Renamed Thesis Project')
+    t.assert(patchRes.data?.project?.ownerUsername === owner.username)
+    t.assert(patchRes.data?.project?.favorited === false)
 
     const favoriteRes = await request(`/api/projects/${projectId}/favorite`, {
         method: 'PUT',
@@ -91,6 +96,8 @@ export const testProjectsMembershipAndPermissions = async (tc) => {
     const memberGetRes = await request(`/api/projects/${projectId}`, { token: member.token })
     t.assert(memberGetRes.status === 200)
     t.assert(memberGetRes.data?.project?.accessType === 'r')
+    t.assert(memberGetRes.data?.project?.ownerUsername === owner.username)
+    t.assert(memberGetRes.data?.project?.memberCount === 1)
 
     // Read-only members must not be able to mutate project metadata.
     const memberPatchRes = await request(`/api/projects/${projectId}`, {
