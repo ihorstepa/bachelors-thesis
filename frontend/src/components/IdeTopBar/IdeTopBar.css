@@ -21,6 +21,9 @@
 }
 
 .ide-topbar-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-family: var(--font-mono);
     font-size: 12px;
     font-weight: 600;
@@ -28,6 +31,18 @@
     letter-spacing: 0.3px;
     white-space: nowrap;
     user-select: none;
+}
+
+.ide-topbar-readonly-icon {
+    color: var(--text-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ide-topbar-readonly-icon svg {
+    width: 14px;
+    height: 14px;
 }
 
 .ide-topbar-right {

@@ -1,7 +1,7 @@
 import '@/components/IdeTopBar/IdeTopBar.css'
 
 import { useRef, useState } from 'react'
-import { VscClose } from 'react-icons/vsc'
+import { VscClose, VscEye } from 'react-icons/vsc'
 import { useNavigate, useParams } from 'react-router'
 
 import IdeAboutModal from '@/components/AboutIdeModal/IdeAboutModal'
@@ -170,7 +170,14 @@ function IdeTopBar({ projectName, canWrite }: Props) {
                     ))}
                 </div>
 
-                <span className='ide-topbar-title'>{projectId ? (projectName ?? 'project') : 'playground'}</span>
+                <span className='ide-topbar-title'>
+                    {!canWrite && (
+                        <span className='ide-topbar-readonly-icon' title='Read-only access'>
+                            <VscEye />
+                        </span>
+                    )}
+                    {projectId ? (projectName ?? 'project') : 'playground'}
+                </span>
 
                 <div className='ide-topbar-right'>
                     <GhostButton className='ide-topbar-close' onClick={() => navigate('/')} title='Close project'>
