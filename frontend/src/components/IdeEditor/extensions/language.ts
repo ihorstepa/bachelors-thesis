@@ -61,7 +61,28 @@ export function language(filename: string): Extension {
     return []
 }
 
-let lspClient: LSPClient | null = null
+const lspClients = new WeakMap<LanguageServerManager, LSPClient>()
+
+function createLspClient(languageServerManager: LanguageServerManager): LSPClient {
+    return new LSPClient({
+        extensions: [serverDiagnostics(), hoverTooltips({ hoverTime: 250 }), signatureHelp(), serverCompletion()],
+    }).connect({
+        send: (msg) => languageServerManager.send(msg),
+        subscribe: (h) => languageServerManager.on('message', h),
+        unsubscribe: (h) => languageServerManager.off('message', h),
+    })
+}
+
+function getLspClient(languageServerManager: LanguageServerManager): LSPClient {
+    const existing = lspClients.get(languageServerManager)
+    if (existing) {
+        return existing
+    }
+
+    const next = createLspClient(languageServerManager)
+    lspClients.set(languageServerManager, next)
+    return next
+}
 
 function languageServer(languageServerManager: LanguageServerManager, fileId: string, fileName: string): Extension[] {
     const languageName = extensionToNameMap[getFileExtension(fileName)]
@@ -74,16 +95,7 @@ function languageServer(languageServerManager: LanguageServerManager, fileId: st
         return []
     }
 
-    if (!lspClient) {
-        lspClient = new LSPClient({
-            extensions: [serverDiagnostics(), hoverTooltips({ hoverTime: 250 }), signatureHelp(), serverCompletion()],
-        }).connect({
-            send: (msg) => languageServerManager.send(msg),
-            subscribe: (h) => languageServerManager.on('message', h),
-            unsubscribe: (h) => languageServerManager.off('message', h),
-        })
-    }
-    return [lspClient.plugin(uri)]
+    return [getLspClient(languageServerManager).plugin(uri)]
 }
 
 export function languageSupport(

@@ -3,12 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const state = vi.hoisted(() => ({
     connectCalls: 0,
     pluginCalls: [] as string[],
-    languageManager: {
+    createLanguageManager: () => ({
         send: vi.fn(),
         on: vi.fn(),
         off: vi.fn(),
         getDocumentUri: vi.fn((fileId: string) => `file:///project/${fileId}.cpp`),
-    },
+    }),
 }))
 
 vi.mock('@codemirror/lang-cpp', () => ({ cpp: vi.fn(() => 'cpp-ext') }))
@@ -58,11 +58,6 @@ describe('components/IdeEditor/extensions/language', () => {
         vi.resetModules()
         state.connectCalls = 0
         state.pluginCalls = []
-        state.languageManager.send.mockReset()
-        state.languageManager.on.mockReset()
-        state.languageManager.off.mockReset()
-        state.languageManager.getDocumentUri.mockReset()
-        state.languageManager.getDocumentUri.mockImplementation((fileId: string) => `file:///project/${fileId}.cpp`)
     })
 
     it('maps filenames to language names case-insensitively', async () => {
@@ -76,10 +71,11 @@ describe('components/IdeEditor/extensions/language', () => {
     })
 
     it('falls back to word completion when no LSP URI exists', async () => {
-        state.languageManager.getDocumentUri.mockReturnValue(null as unknown as string)
+        const languageManager = state.createLanguageManager()
+        languageManager.getDocumentUri.mockReturnValue(null as unknown as string)
         const { languageSupport } = await importLanguageModule()
 
-        const extensions = languageSupport(state.languageManager as never, 'f1', 'main.cpp')
+        const extensions = languageSupport(languageManager as never, 'f1', 'main.cpp')
 
         expect(extensions).toHaveLength(2)
         expect(extensions[0]).toBe('cpp-ext')
@@ -88,14 +84,27 @@ describe('components/IdeEditor/extensions/language', () => {
     })
 
     it('creates a single shared LSP client and returns language plugin extensions', async () => {
+        const languageManager = state.createLanguageManager()
         const { languageSupport } = await importLanguageModule()
 
-        const first = languageSupport(state.languageManager as never, 'f1', 'main.cpp')
-        const second = languageSupport(state.languageManager as never, 'f2', 'util.hpp')
+        const first = languageSupport(languageManager as never, 'f1', 'main.cpp')
+        const second = languageSupport(languageManager as never, 'f2', 'util.hpp')
 
         expect(state.connectCalls).toBe(1)
         expect(first.some((ext) => (ext as unknown as string) === 'plugin:file:///project/f1.cpp')).toBe(true)
         expect(second.some((ext) => (ext as unknown as string) === 'plugin:file:///project/f2.cpp')).toBe(true)
+        expect(state.pluginCalls).toEqual(['file:///project/f1.cpp', 'file:///project/f2.cpp'])
+    })
+
+    it('recreates LSP client when language server manager instance changes', async () => {
+        const firstManager = state.createLanguageManager()
+        const secondManager = state.createLanguageManager()
+        const { languageSupport } = await importLanguageModule()
+
+        languageSupport(firstManager as never, 'f1', 'main.cpp')
+        languageSupport(secondManager as never, 'f2', 'util.hpp')
+
+        expect(state.connectCalls).toBe(2)
         expect(state.pluginCalls).toEqual(['file:///project/f1.cpp', 'file:///project/f2.cpp'])
     })
 

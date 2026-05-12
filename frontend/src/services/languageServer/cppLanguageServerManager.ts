@@ -302,6 +302,12 @@ class CppLanguageServerManager extends LanguageServerManager {
             return
         }
 
+        // Always sync current content before detaching
+        const path = this.pathById.get(fileId)
+        if (path) {
+            this.syncPathContent(fileId, path, obs.text.toString(), true)
+        }
+
         obs.text.unobserve(obs.observer)
         this.fileSyncManager.closeFile(fileId)
         this.observedFiles.delete(fileId)
@@ -310,6 +316,7 @@ class CppLanguageServerManager extends LanguageServerManager {
 
     private onTextChange(fileId: string): void {
         const obs = this.observedFiles.get(fileId)
+        // The changes made by current user, should be handled by the CodeMirror extension
         if (!obs || obs.source !== 'collaborator') return
 
         this.dirtyFiles.add(fileId)
