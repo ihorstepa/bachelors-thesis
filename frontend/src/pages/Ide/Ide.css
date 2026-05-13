@@ -8,6 +8,8 @@
         'statusbar statusbar' var(--ide-statusbar-height)
         / auto 1fr;
     height: 100vh;
+    height: 100dvh;
+    padding-bottom: var(--safe-area-inset-bottom);
     overflow: hidden;
     background: var(--bg-base);
     color: var(--text-primary);
@@ -39,6 +41,8 @@
 
 .ide-route-state {
     height: 100vh;
+    height: 100dvh;
+    padding-bottom: calc(24px + var(--safe-area-inset-bottom));
     display: flex;
     flex-direction: column;
     align-items: center;

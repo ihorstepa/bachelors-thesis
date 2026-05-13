@@ -130,7 +130,7 @@
         position: fixed;
         top: var(--ide-topbar-height);
         left: var(--sidebar-rail-width);
-        bottom: var(--ide-statusbar-height);
+        bottom: calc(var(--ide-statusbar-height) + var(--safe-area-inset-bottom));
         width: var(--sidebar-panel-width);
         flex: none;
         z-index: 30;

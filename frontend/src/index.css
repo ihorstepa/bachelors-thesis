@@ -44,6 +44,7 @@
     --ide-topbar-height: 36px;
     --ide-tabs-height: 36px;
     --ide-statusbar-height: 22px;
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
     --ide-terminal-height: 220px;
 
     --sidebar-rail-width: 48px;

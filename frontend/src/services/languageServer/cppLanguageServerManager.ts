@@ -119,7 +119,7 @@ class CppLanguageServerManager extends LanguageServerManager {
     }
 
     public isReady(): boolean {
-        return this.workerReady
+        return this.workerReady && this.preloaded
     }
 
     private handleActiveTabChange(fileId: string | null): void {
