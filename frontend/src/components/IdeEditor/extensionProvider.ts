@@ -53,6 +53,7 @@ class ExtensionProvider {
             drawSelection(),
             dropCursor(),
             EditorState.allowMultipleSelections.of(true),
+            lineNumbers(), // Extension order for gutters influences their display order
             foldGutter({
                 markerDOM: createFoldMarker,
             }),
@@ -62,7 +63,7 @@ class ExtensionProvider {
             highlightSpecialChars(),
             indentationMarkers({
                 highlightActiveBlock: false,
-                colors: { dark: 'var(--border-color-soft)' },
+                colors: { dark: 'var(--bg-selection)' },
             }),
             indentOnInput(),
             indentUnit.of('    '),
@@ -76,7 +77,6 @@ class ExtensionProvider {
                 ...yUndoManagerKeymap,
             ]),
             languageSupport(this.languageServerManager, fileId, meta.name),
-            lineNumbers(),
             oneDark,
             overlayScrollbar,
             rectangularSelection(),

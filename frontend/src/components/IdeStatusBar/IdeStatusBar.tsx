@@ -6,6 +6,7 @@ import { VscTerminal } from 'react-icons/vsc'
 import { useCodeRunner } from '@/contextProviders/codeRunner/CodeRunnerContext'
 import { useEditor } from '@/contextProviders/editor/EditorContext'
 import { useService } from '@/contextProviders/service/ServiceContext'
+import { useTabs } from '@/contextProviders/tabs/TabsContext'
 import { useTerminal } from '@/contextProviders/terminal/TerminalContext'
 import type { CodeRunnerStatus } from '@/core/codeRunner'
 import { LanguageServerManager } from '@/core/languageServerManager'
@@ -22,6 +23,7 @@ function IdeStatusBar() {
     const { editorState } = useEditor()
     const { status } = useCodeRunner()
     const { terminalOpen, setTerminalOpen } = useTerminal()
+    const { activeId } = useTabs()
     const languageServerManager = useService(LanguageServerManager)
     const activeStage = getActiveStage(status)
     const languageServerReady = useSyncExternalStore(
@@ -33,11 +35,15 @@ function IdeStatusBar() {
         <div className='ide-statusbar'>
             {!languageServerReady && <button>Loading language server...</button>}
             {activeStage && <button>{activeStage}</button>}
-            <button>
-                Ln {editorState.line}, Col {editorState.column}{' '}
-                {editorState.selected > 0 && ` (${editorState.selected} selected)`}
-            </button>
-            <button>{editorState.language || 'Plain Text'}</button>
+            {activeId && (
+                <>
+                    <button>
+                        Ln {editorState.line}, Col {editorState.column}{' '}
+                        {editorState.selected > 0 && ` (${editorState.selected} selected)`}
+                    </button>
+                    <button>{editorState.language || 'Plain Text'}</button>
+                </>
+            )}
             <button onClick={() => setTerminalOpen(!terminalOpen)}>
                 <VscTerminal />
             </button>
