@@ -1,6 +1,6 @@
 import '@/pages/Dashboard/Dashboard.css'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
@@ -14,6 +14,8 @@ import { MAX_PROJECTS_PER_OWNER } from '@/config'
 import { useAuth } from '@/contextProviders/auth/AuthContext'
 import { useProjects } from '@/contextProviders/projects/ProjectsContext'
 import type { ProjectPreview } from '@/core/projectManager'
+
+const SEARCH_DEBOUNCE_MS = 250
 
 function Dashboard() {
     const navigate = useNavigate()
@@ -30,6 +32,7 @@ function Dashboard() {
         removeMember,
     } = useProjects()
     const [activeNav, setActiveNav] = useState<DashboardNav>('all')
+    const [searchInput, setSearchInput] = useState('')
     const [search, setSearch] = useState('')
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [showNewProject, setShowNewProject] = useState(false)
@@ -42,6 +45,16 @@ function Dashboard() {
     const email = auth.user?.email ?? '?'
     const currentUserId = String(auth.user?.id ?? '')
     const personalProjectCount = projects.filter((project) => project.ownerId === currentUserId).length
+
+    useEffect(() => {
+        const timeoutId = window.setTimeout(() => {
+            setSearch(searchInput)
+        }, SEARCH_DEBOUNCE_MS)
+
+        return () => {
+            window.clearTimeout(timeoutId)
+        }
+    }, [searchInput])
 
     const handleAddMember = async (projectId: string, memberUsername: string, accessType: 'r' | 'rw') => {
         const member = await addMember(projectId, memberUsername, accessType)
@@ -89,9 +102,9 @@ function Dashboard() {
 
             <div className='dashboard-main'>
                 <DashboardTopBar
-                    search={search}
+                    search={searchInput}
                     isSidebarOpen={isSidebarOpen}
-                    onSearchChange={setSearch}
+                    onSearchChange={setSearchInput}
                     onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
                     onOpenPlayground={() => navigate('/ide')}
                     onCreateProject={() => setShowNewProject(true)}
