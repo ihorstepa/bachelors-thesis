@@ -5,6 +5,7 @@ import { DragDropProvider, DragOverlay } from '@dnd-kit/react'
 import type { CSSProperties, JSX } from 'react'
 import { useEffect, useState } from 'react'
 
+import { ideDragSensors } from '@/components/DragDrop/ideDragSensors'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import ContextMenu from '@/components/ContextMenu/ContextMenu'
 import type { FileTreeContextMenuState } from '@/components/FileTree/fileTreeContextMenuSections'
@@ -271,7 +272,7 @@ function FileTree({ canWrite }: Props): JSX.Element {
                 canRenameOrDelete={canRenameOrDelete}
                 fileLimitReached={fileLimitReached}
             />
-            <DragDropProvider onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+            <DragDropProvider onDragStart={handleDragStart} onDragEnd={handleDragEnd} sensors={ideDragSensors}>
                 <FileTreeRoot onContextMenu={handleRootContextMenu}>
                     {editState?.mode === 'create' && editState.parentId === null && (
                         <div

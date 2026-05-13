@@ -4,6 +4,7 @@ import type { DragEndEvent } from '@dnd-kit/react'
 import { DragDropProvider } from '@dnd-kit/react'
 import { isSortable } from '@dnd-kit/react/sortable'
 
+import { ideDragSensors } from '@/components/DragDrop/ideDragSensors'
 import TabItem from '@/components/IdeTabs/TabItem'
 import OverlayScrollbar from '@/components/OverlayScrollbar/OverlayScrollbar'
 import { useService } from '@/contextProviders/service/ServiceContext'
@@ -30,7 +31,7 @@ function IdeTabs() {
     }
 
     return (
-        <DragDropProvider onDragEnd={handleDragEnd}>
+        <DragDropProvider onDragEnd={handleDragEnd} sensors={ideDragSensors}>
             <OverlayScrollbar variant='tabs' theme='os-theme-ide-tabs' x='scroll' y='hidden'>
                 <div className='tabs-content'>
                     {tabs.map((id, index) => {
