@@ -372,13 +372,13 @@
     box-sizing: border-box;
 }
 
+.cm-editor:has(.cm-ySelectionCaret:hover) .cm-tooltip-hover {
+    display: none;
+}
+
 .cm-editor .cm-tooltip.cm-completionInfo {
-    /* display: none; */
     background-color: var(--bg-panel);
-    /* background-color: var(--bg-selection); */
     color: var(--text-primary);
-    /* outline: 1px solid var(--text-muted); */
-    /* border-radius: 0 6px 6px 0; */
     line-height: 1;
 }
 
@@ -399,7 +399,6 @@
     color: var(--text-muted);
 }
 
-/* section divider when hover tooltip and lint tooltip share one container */
 .cm-tooltip .cm-lsp-documentation + .cm-tooltip-lint,
 .cm-tooltip .cm-tooltip-lint + .cm-tooltip-section {
     border-top: 1px solid var(--text-muted);
@@ -623,6 +622,16 @@
 .cm-editor .cm-cursor {
     border-left-width: 2px;
     border-color: var(--text-bright);
+}
+
+.ide-editor .cm-editor .cm-line.cm-yLineSelection {
+    margin: 0;
+    padding: 0 2px 0 6px;
+    background-clip: content-box;
+}
+
+.ide-editor .cm-editor .cm-line.cm-ySelection {
+    height: 100%;
 }
 
 .cm-editor .cm-ySelectionInfo {

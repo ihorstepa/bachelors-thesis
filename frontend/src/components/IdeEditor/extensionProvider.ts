@@ -63,7 +63,7 @@ class ExtensionProvider {
             highlightSpecialChars(),
             indentationMarkers({
                 highlightActiveBlock: false,
-                colors: { dark: 'var(--bg-selection)' },
+                colors: { dark: 'var(--hover-overlay)' },
             }),
             indentOnInput(),
             indentUnit.of('    '),

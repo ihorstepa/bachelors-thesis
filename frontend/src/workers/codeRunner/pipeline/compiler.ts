@@ -105,7 +105,7 @@ export class Compiler {
 
     private getLangArgs(path: string): string[] {
         if (isCppFile(path)) {
-            return ['-x', 'c++', '-std=c++2b']
+            return ['-x', 'c++', '-std=c++20']
         }
         if (isSourceFile(path)) {
             return ['-x', 'c', '-std=c17']

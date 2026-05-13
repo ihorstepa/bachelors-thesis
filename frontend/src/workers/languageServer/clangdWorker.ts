@@ -44,7 +44,7 @@ const clangdConfig = [
     'If:',
     "  PathMatch: '.*\\.(cpp|hpp|hxx|cxx)'",
     'CompileFlags:',
-    "  Add: ['-std=c++2b', '-x', 'c++']",
+    "  Add: ['-std=c++20', '-x', 'c++']",
     "  Remove: ['-std=c17', '-x', 'c']",
 ].join('\n')
 
