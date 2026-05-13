@@ -93,14 +93,14 @@ const serializeProjectMembers = (ownerUser, members) => {
         ownerUser == null
             ? []
             : [
-                  serializeMember({
-                      userId: ownerUser.id,
-                      username: ownerUser.username,
-                      email: ownerUser.email,
-                      accessType: /** @type {'rw'} */ ('rw'),
-                      isOwner: true,
-                  }),
-              ]
+                serializeMember({
+                    userId: ownerUser.id,
+                    username: ownerUser.username,
+                    email: ownerUser.email,
+                    accessType: /** @type {'rw'} */ ('rw'),
+                    isOwner: true,
+                }),
+            ]
 
     return [...ownerMember, ...members.map((member) => serializeMember({ ...member, isOwner: false }))]
 }
@@ -122,7 +122,7 @@ const requireObjectBody = (body) => {
  */
 const parseValidatedProjectName = (body) => {
     const { name: rawName } = requireObjectBody(body)
-    const name = normalizeProjectName(/** @type {string} */ (rawName ?? ''))
+    const name = normalizeProjectName(/** @type {string} */(rawName ?? ''))
     validateProjectName(name)
     return name
 }

@@ -10,6 +10,7 @@ import DashboardSidebar from '@/components/DashboardSidebar/DashboardSidebar'
 import DashboardTopBar from '@/components/DashboardTopBar/DashboardTopBar'
 import ManageMembersModal from '@/components/ManageMembersModal/ManageMembersModal'
 import NewProjectModal from '@/components/NewProjectModal/NewProjectModal'
+import { MAX_PROJECTS_PER_OWNER } from '@/config'
 import { useAuth } from '@/contextProviders/auth/AuthContext'
 import { useProjects } from '@/contextProviders/projects/ProjectsContext'
 import type { ProjectPreview } from '@/core/projectManager'
@@ -18,6 +19,7 @@ function Dashboard() {
     const navigate = useNavigate()
     const auth = useAuth()
     const {
+        projects,
         reload,
         createProject,
         updateProject,
@@ -39,6 +41,7 @@ function Dashboard() {
     const username = auth.user?.username ?? '?'
     const email = auth.user?.email ?? '?'
     const currentUserId = String(auth.user?.id ?? '')
+    const personalProjectCount = projects.filter((project) => project.ownerId === currentUserId).length
 
     const handleAddMember = async (projectId: string, memberUsername: string, accessType: 'r' | 'rw') => {
         const member = await addMember(projectId, memberUsername, accessType)
@@ -63,6 +66,8 @@ function Dashboard() {
                 userInitial={userInitial}
                 username={username}
                 email={email}
+                personalProjectCount={personalProjectCount}
+                personalProjectLimit={MAX_PROJECTS_PER_OWNER}
                 activeNav={activeNav}
                 onNavChange={(nav) => {
                     setActiveNav(nav)

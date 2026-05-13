@@ -3,6 +3,8 @@ import '@/components/DashboardSidebar/DashboardSidebar.css'
 import type { ReactNode } from 'react'
 import { VscFile, VscFiles, VscOrganization, VscSettingsGear, VscSignOut, VscStarFull } from 'react-icons/vsc'
 
+import { PROJECT_LIMIT_WARNING_PERCENT } from '@/config'
+
 export type DashboardNav = 'all' | 'mine' | 'shared' | 'favorite'
 
 const navItems: Array<{ id: DashboardNav; label: string; icon: ReactNode }> = [
@@ -16,12 +18,26 @@ type Props = {
     userInitial: string
     username: string
     email: string
+    personalProjectCount: number
+    personalProjectLimit: number
     activeNav: DashboardNav
     onNavChange(nav: DashboardNav): void
     onLogout(): void
 }
 
-function DashboardSidebar({ userInitial, username, email, activeNav, onNavChange, onLogout }: Props) {
+function DashboardSidebar({
+    userInitial,
+    username,
+    email,
+    personalProjectCount,
+    personalProjectLimit,
+    activeNav,
+    onNavChange,
+    onLogout,
+}: Props) {
+    const usagePercent = Math.round((personalProjectCount / personalProjectLimit) * 100)
+    const isWarning = usagePercent >= PROJECT_LIMIT_WARNING_PERCENT
+
     return (
         <aside className='dashboard-sidebar'>
             <div className='dashboard-sidebar-account'>
@@ -45,6 +61,19 @@ function DashboardSidebar({ userInitial, username, email, activeNav, onNavChange
             ))}
 
             <div className='dashboard-nav-divider' />
+
+            <div className='dashboard-sidebar-limit'>
+                <span className='dashboard-sidebar-limit-label'>Personal projects</span>
+                <div className='dashboard-sidebar-limit-track'>
+                    <div
+                        className={`dashboard-sidebar-limit-fill ${isWarning ? 'danger' : ''}`}
+                        style={{ width: `${Math.min(usagePercent, 100)}%` }}
+                    />
+                </div>
+                <span className='dashboard-sidebar-limit-value'>
+                    {personalProjectCount} of {personalProjectLimit}
+                </span>
+            </div>
 
             <div className='dashboard-sidebar-bottom'>
                 <button type='button' className='dashboard-nav-item' disabled title='Unavailable'>

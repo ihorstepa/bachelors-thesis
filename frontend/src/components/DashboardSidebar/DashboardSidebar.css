@@ -132,6 +132,45 @@
     margin: 8px 14px;
 }
 
+.dashboard-sidebar-limit {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 14px 10px;
+}
+
+.dashboard-sidebar-limit-label {
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.dashboard-sidebar-limit-track {
+    position: relative;
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg-hover) 88%, var(--black));
+    border: 1px solid color-mix(in srgb, var(--border-color-soft) 70%, transparent);
+    overflow: hidden;
+}
+
+.dashboard-sidebar-limit-fill {
+    height: 100%;
+    border-radius: 999px;
+    background-color: var(--accent);
+    transition: width 0.2s ease;
+}
+
+.dashboard-sidebar-limit-fill.danger {
+    background-color: var(--red);
+}
+
+.dashboard-sidebar-limit-value {
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
 .dashboard-sidebar-bottom {
     margin-top: auto;
     padding: 12px 0 0;

@@ -8,6 +8,8 @@ import type { AccessType, ProjectMember, ProjectPreview } from '@/core/projectMa
 
 type SidebarProps = {
     onLogout: () => void
+    personalProjectCount: number
+    personalProjectLimit: number
 }
 
 type TopBarProps = {
@@ -63,6 +65,7 @@ const dashboardState = vi.hoisted(() => ({
         updatedAt: '2026-01-01T00:00:00.000Z',
         memberPreviewUsernames: ['alice'],
     } satisfies ProjectPreview,
+    listedProjects: [] as ProjectPreview[],
     sidebarProps: null as SidebarProps | null,
     topBarProps: null as TopBarProps | null,
     contentProps: null as ContentProps | null,
@@ -82,7 +85,7 @@ vi.mock('@/contextProviders/projects/ProjectsContext', () => ({
     useProjects: () => {
         if (dashboardState.projects == null) throw new Error('Projects state not configured')
         return {
-            projects: [dashboardState.sampleProject],
+            projects: dashboardState.listedProjects,
             loading: false,
             error: null,
             toggleFavorite: vi.fn(),
@@ -214,6 +217,7 @@ describe('Dashboard page integration', () => {
         ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
         dashboardState.auth = makeAuth()
         dashboardState.projects = makeProjectsState()
+        dashboardState.listedProjects = [dashboardState.sampleProject]
         dashboardState.sidebarProps = null
         dashboardState.topBarProps = null
         dashboardState.contentProps = null
@@ -264,6 +268,31 @@ describe('Dashboard page integration', () => {
 
         expect(dashboardState.auth?.logout).toHaveBeenCalledOnce()
         await waitForCondition(() => node.querySelector('[data-testid="auth-page"]') != null)
+    })
+
+    it('passes personal project usage to sidebar using owner-only count', async () => {
+        dashboardState.listedProjects = [
+            dashboardState.sampleProject,
+            {
+                ...dashboardState.sampleProject,
+                id: 'p2',
+                name: 'Project Two',
+                ownerId: 'u1',
+            },
+            {
+                ...dashboardState.sampleProject,
+                id: 'p3',
+                name: 'Shared Project',
+                ownerId: 'u2',
+                ownerUsername: 'bob',
+            },
+        ]
+
+        await renderDashboard()
+        await waitForCondition(() => dashboardState.sidebarProps != null)
+
+        expect(dashboardState.sidebarProps?.personalProjectCount).toBe(2)
+        expect(dashboardState.sidebarProps?.personalProjectLimit).toBe(10)
     })
 
     it('creates a project through new project modal flow', async () => {
