@@ -7,6 +7,7 @@ A real-time collaborative IDE that runs in the browser. Users can create project
 Note: this repository uses Git LFS for large frontend binaries; install with `git lfs install` and use `git pull`.
 
 ```bash
+npm install
 cp backend/.env.template backend/.env
 cp backend/.env.docker.template backend/.env.docker
 cp frontend/.env.template frontend/.env
@@ -18,12 +19,11 @@ The application will be available at `localhost`.
 
 ## Local Development
 
-First, add the env files like in normal setup.
+First, install deps and add the env files like in normal setup.
 
-For frontend development, backend can still be be run in Docker:
+For frontend development, backend can still be be run in Docker.
 
 ```bash
-npm --prefix frontend install
 npm run docker:backend
 npm run dev:frontend
 ```
@@ -33,7 +33,6 @@ The application will be available at `localhost:5173`.
 For backend development, database services can be run in Docker and the server / worker can be run locally.
 
 ```bash
-npm --prefix backend install
 npm --prefix backend run docker:db
 npm --prefix backend run start:server
 npm --prefix backend run start:worker
@@ -41,13 +40,13 @@ npm --prefix backend run start:worker
 
 ## Testing
 
-Frontend tests have no external dependencies:
+Frontend tests use `playwright` and may prompt you to install it.
 
 ```bash
 npm run test:frontend
 ```
 
-Backend tests require a running database:
+Backend tests will require a running database.
 
 ```bash
 npm --prefix backend run docker:db

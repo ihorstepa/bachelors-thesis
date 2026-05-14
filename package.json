@@ -14,7 +14,8 @@
         "test:frontend": "npm --prefix frontend run test",
         "docker:all": "docker compose up -d --build",
         "docker:backend": "docker compose up -d --build server worker init postgres valkey minio",
-        "dev:frontend": "npm --prefix frontend run dev"
+        "dev:frontend": "npm --prefix frontend run dev",
+        "postinstall": "npm --prefix frontend install && npm --prefix backend install"
     },
     "repository": {
         "type": "git",
